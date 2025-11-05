@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-Core functions and data for calculating environmental footprints in agro-food systems. This package provides standardized coefficients, classifications, and functions for tracing environmental impacts through global supply chains.
+This package provides coefficients, classifications, and functions for assessing environmental impacts of agro-food systems and tracing them through global supply chains.
 
 ## Overview
 
