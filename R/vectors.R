@@ -21,11 +21,11 @@ Month_numbers <- data.frame(
   Month_names,
   Month_integer,
   Month_number
-) %>%
+) |>
   dplyr::mutate(
     Month = Month_integer / 12,
     Month_number = as.numeric(Month_number)
-  ) %>%
+  ) |>
   dplyr::select(-Month_integer)
 
 # General colours ----
@@ -595,10 +595,10 @@ Input_cats_tot <- c(
 # NPP categories
 NPP_comp <- c("Prod_MgC", "Burn_MgC", "Used_MgC", "Unharvested_MgC", "Root_MgC", "Weeds_AG_MgC", "Weeds_BG_MgC")
 NPP_names <- c("Production", "Burnt residues", "Used residues", "Unharvested residues", "Crop belowground", "Weeds aboveground", "Weeds belowground")
-NPP_cat <- tibble(
+NPP_cat <- tibble::tibble(
   NPP_comp,
   NPP_names
-) %>%
+) |>
   dplyr::mutate(NPP_names = factor(NPP_names,
     levels = c(
       "Weeds belowground",
@@ -613,14 +613,14 @@ NPP_cat <- tibble(
 # C input categories
 C_input_comp <- c("Residue", "Root", "Weeds_AG", "Weeds_BG", "Agro_industry", "Manure", "Urban")
 C_input_names <- c("Unharvested residues", "Crop belowground", "Weeds aboveground", "Weeds belowground", "Agro-industry", "Manure", "Urban")
-C_input_cat <- tibble(
+C_input_cat <- tibble::tibble(
   C_input_comp,
   C_input_names
-) %>%
+) |>
   dplyr::rename(
     Fert_type = C_input_comp,
     C_input_name = C_input_names
-  ) %>%
+  ) |>
   dplyr::mutate(C_input_names = factor(C_input_name,
     levels = c(
       "Urban",
