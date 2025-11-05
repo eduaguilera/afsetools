@@ -1,0 +1,29 @@
+Package: afsetools
+Type: Package
+Title: Agro-Food System and Environment Tools
+Version: 0.1.0
+Authors@R: person("Eduardo", "Aguilera", 
+                  email = "eduardo.aguilera@upm.es",
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0000-0002-0429-0883"))
+Description: Core functions and data for calculating environmental footprints 
+    in agro-food systems. This package provides standardized coefficients, 
+    classifications, and functions for tracing environmental impacts through 
+    global supply chains.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.0
+Depends: 
+    R (>= 4.0.0)
+Imports:
+    dplyr,
+    ggplot2,
+    tidyr,
+    readxl,
+    openxlsx
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

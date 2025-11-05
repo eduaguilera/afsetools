@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-Core functions and data for calculating environmental footprints in agro-food systems. This package provides standardized coefficients, classifications, and functions for tracing environmental impacts through global supply chains.
+This package provides coefficients, classifications, and functions for assessing environmental impacts of agro-food systems and tracing them through global supply chains.
 
 ## Overview
 
@@ -23,6 +23,35 @@ Core functions and data for calculating environmental footprints in agro-food sy
 # install.packages("devtools")
 devtools::install_github("eduaguilera/afsetools")
 ```
+
+## Documentation
+
+**Function Reference**: All functions are documented with roxygen2. After installation, use R's built-in help system:
+
+```r
+# Get help for any function
+?load_general_data
+?calculate_footprints
+?Calc_NPP_potentials
+
+# See all package functions
+help(package = "afsetools")
+```
+
+**Generate HTML Documentation**: To create a comprehensive HTML reference website:
+
+```r
+# Install documentation tools
+install.packages(c("roxygen2", "pkgdown"))
+
+# Generate documentation files
+roxygen2::roxygenise()
+
+# Create HTML documentation website
+pkgdown::build_site()
+```
+
+**Data Objects**: For detailed information about the 73+ data objects loaded by `load_general_data()`, see [DATA_REFERENCE.md](DATA_REFERENCE.md).
 
 ## Quick Start
 
