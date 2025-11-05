@@ -1,0 +1,92 @@
+url: https://eduaguilera.github.io/afsetools
+
+template:
+  bootstrap: 5
+
+home:
+  links:
+  - text: GitHub Repository
+    href: https://github.com/eduaguilera/afsetools
+
+authors:
+  Eduardo Aguilera:
+    href: "https://orcid.org/0000-0002-0429-0883"
+
+reference:
+- title: Data Loading
+  desc: >
+    Load coefficients, classifications, and foundational data objects.
+  contents:
+  - load_general_data
+
+- title: NPP Calculation Functions
+  desc: >
+    Net Primary Productivity calculation and conversion functions.
+  contents:
+  - Calc_NPP_potentials
+  - Calculate_crop_NPP
+  - Calc_NPP_DM_C_N
+  - Calc_CropNPP_components
+
+- title: Impact Tracing Functions
+  desc: >
+    Supply chain impact allocation and tracing functions.
+  contents:
+  - Prepare_prim
+  - Allocate_impacts_to_products
+  - get_global_export_footprint
+  - calc_avail_fp_gt
+  - calc_avail_fp_dtm
+  - Calc_impact_processed
+  - Agg_primary
+  - Agg_processed
+
+- title: Analysis Functions
+  desc: >
+    Specialized environmental impact calculations.
+  contents:
+  - Calc_N_fix
+  - Gases_GWP
+  - Calc_diets
+  - get_herbwoody_fao
+  - calculate_land_scaling
+  - scale_land
+
+- title: Main Workflow Functions
+  desc: >
+    Complete footprint calculation pipelines.
+  contents:
+  - calculate_footprints
+  - extract_luh2
+
+- title: Utility Functions
+  desc: >
+    Helper functions for data manipulation and gap-filling.
+  contents:
+  - "%!in%"
+  - drop_cols
+  - is_empty
+  - Arrange_dates
+  - add_xlsx_sheet
+  - Filling
+  - FillingProxy
+  - fill_na_with_sum
+
+- title: Visualization Functions
+  desc: >
+    Plotting themes and visualization utilities.
+  contents:
+  - theme_new
+  - theme_nolabel
+  - ggplotRegression
+
+- title: Data Objects
+  desc: >
+    Data objects loaded by load_general_data(). See DATA_REFERENCE.md for details.
+  contents:
+  - afsetools-data
+  - Biomass_coefs
+  - GWP
+  - BNF
+  - items_full
+  - regions_full

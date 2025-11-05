@@ -26,7 +26,9 @@ devtools::install_github("eduaguilera/afsetools")
 
 ## Documentation
 
-**Function Reference**: All functions are documented with roxygen2. After installation, use R's built-in help system:
+**Function Reference**: All functions are documented with roxygen2. You can read more about the package's functionalities from the documentation at the [reference page](https://eduaguilera.github.io/afsetools/reference/index.html).
+
+After installation, you can also use R's built-in help system:
 
 ```r
 # Get help for any function
@@ -36,19 +38,6 @@ devtools::install_github("eduaguilera/afsetools")
 
 # See all package functions
 help(package = "afsetools")
-```
-
-**Generate HTML Documentation**: To create a comprehensive HTML reference website:
-
-```r
-# Install documentation tools
-install.packages(c("roxygen2", "pkgdown"))
-
-# Generate documentation files
-roxygen2::roxygenise()
-
-# Create HTML documentation website
-pkgdown::build_site()
 ```
 
 **Data Objects**: For detailed information about the 73+ data objects loaded by `load_general_data()`, see [DATA_REFERENCE.md](DATA_REFERENCE.md).
