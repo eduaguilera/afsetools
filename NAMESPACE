@@ -14,17 +14,17 @@ export(fill_na_with_sum)
 # Data loading
 export(load_general_data)
 
-# Vectors and constants
-export(Month_names)
-export(Month_numbers)
-export(Total_color)
-export(SOM_color)
-export(GHG_color)
-export(N_color)
-export(P_color)
-export(Land_color)
-export(Water_color)
-export(Energy_color)
+# Vectors and constants - these are loaded by load_general_data(), not exported
+# export(Month_names)
+# export(Month_numbers)
+# export(Total_color)
+# export(SOM_color)
+# export(GHG_color)
+# export(N_color)
+# export(P_color)
+# export(Land_color)
+# export(Water_color)
+# export(Energy_color)
 
 # NPP calculation functions
 export(Calc_NPP_potentials)
