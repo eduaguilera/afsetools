@@ -27,14 +27,26 @@ NULL
 #' @description Drops an undefined number of columns from a data frame
 #'
 #' @param df Data frame
-#' @param ... Column names to drop
+#' @param ... Column names to drop (can be unquoted names or character vector)
 #'
 #' @return Data frame without the specified columns
 #'
 #' @export
 drop_cols <- function(df, ...) {
+  dots <- rlang::list2(...)
+  
+  # Handle both c("col1", "col2") and col1, col2 syntax
+  if (length(dots) == 1 && is.character(dots[[1]])) {
+    # Character vector passed
+    col_names <- dots[[1]]
+  } else {
+    # Individual symbols passed
+    cols <- rlang::ensyms(...)
+    col_names <- purrr::map_chr(cols, rlang::as_string)
+  }
+  
   df |>
-    dplyr::select(-one_of(purrr::map_chr(rlang::enquos(...), rlang::quo_name)))
+    dplyr::select(-dplyr::any_of(col_names))
 }
 
 #' Check if dataset is empty
@@ -128,7 +140,7 @@ Filling <- function(data, var, Index) {
   data |>
     dplyr::mutate(
       Value_interpfilled = zoo::na.approx({{ var }},
-        x = index({{ Index }}),
+        x = {{ Index }},
         na.rm = FALSE
       ),
       Value_CarriedBackward = zoo::na.locf0({{ var }}),

@@ -23,7 +23,6 @@ test_that("%!in% operator works correctly", {
 })
 
 test_that("Filling gap-fills time series correctly", {
-  load_general_data()
   
   # Create realistic data with gaps as in Spain_Hist
   test_data <- tibble::tribble(
@@ -66,7 +65,6 @@ test_that("Filling gap-fills time series correctly", {
 })
 
 test_that("Filling handles multiple provinces correctly", {
-  load_general_data()
   
   # Real usage pattern: multiple provinces with different gaps
   test_data <- tibble::tribble(
@@ -98,7 +96,6 @@ test_that("Filling handles multiple provinces correctly", {
 })
 
 test_that("Filling handles edge cases properly", {
-  load_general_data()
   
   # Test with all NAs (should carry forward/backward)
   test_all_na <- tibble::tribble(
@@ -138,7 +135,6 @@ test_that("Filling handles edge cases properly", {
 })
 
 test_that("FillingProxy fills data using proxy variable", {
-  load_general_data()
   
   # Realistic usage: fill production using area as proxy (common in Spain_Hist)
   test_data <- tibble::tribble(
@@ -213,7 +209,6 @@ test_that("is_empty correctly identifies empty data", {
 })
 
 test_that("Arrange_dates creates and sorts by date", {
-  load_general_data()
   
   # Create data as used in Spain_Hist water calculations
   test_data <- tibble::tribble(

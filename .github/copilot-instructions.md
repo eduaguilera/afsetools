@@ -12,6 +12,7 @@
 - **roxygen2 documentation**: All exported functions must have complete roxygen2 documentation
 - **Package structure**: Follow standard R package conventions (R/, man/, tests/, inst/extdata/)
 - **Keep data loading flexible**: `load_general_data()` should work both as installed package and during development
+- **Documentation location**: NEVER create documentation files in package root - use `additional_files/documentation/` structure
 
 ## Documentation Standards
 
@@ -202,6 +203,54 @@ expect_equal(calculate_sum(c(1, 2, 3)), 6)
 - **Update _pkgdown.yml**: Organize functions by category
 - **No manual building needed**: Workflow handles everything
 
+## Additional Files Structure
+
+**CRITICAL: Never create documentation or working files in the package root!**
+
+Use the `additional_files/` folder for all non-package content. This folder is excluded from Git via `.gitignore`.
+
+### Folder Organization
+
+```
+additional_files/
+├── documentation/
+│   ├── fixes/           # Bug fixes and code changes documentation
+│   ├── development/     # Development notes, design decisions
+│   ├── analysis/        # Analysis documentation, research notes
+│   └── meetings/        # Meeting notes, project discussions
+├── data/
+│   ├── raw/            # Raw data files (not in inst/extdata/)
+│   ├── processed/      # Intermediate processed data
+│   └── output/         # Analysis outputs, results
+└── scripts/
+    ├── development/    # Development/testing scripts
+    ├── analysis/       # Analysis scripts
+    └── utils/          # Utility scripts
+```
+
+### Documentation Guidelines
+
+**Where to document:**
+- ❌ **NEVER in root**: No markdown files except README.md, NEWS.md, CITATION, LICENSE
+- ✅ **Code changes**: `additional_files/documentation/fixes/`
+- ✅ **Development notes**: `additional_files/documentation/development/`
+- ✅ **Analysis results**: `additional_files/documentation/analysis/`
+- ✅ **Function docs**: `R/` files using roxygen2 comments
+- ✅ **Package docs**: `man/` (auto-generated from roxygen2)
+
+**What goes where:**
+- **Bug fixes and patches** → `additional_files/documentation/fixes/`
+- **Feature development notes** → `additional_files/documentation/development/`
+- **Test results and debugging** → `additional_files/documentation/fixes/`
+- **Research and analysis** → `additional_files/documentation/analysis/`
+- **Temporary scripts** → `additional_files/scripts/development/`
+
+**Naming conventions:**
+- Use descriptive names: `fix_bnf_calculation_2025-11-06.md`
+- Include dates for time-sensitive docs: `YYYY-MM-DD` format
+- Use lowercase with hyphens: `migration-summary.md`
+- Group related files in subdirectories
+
 ## Common Tasks
 
 ### Adding a New Function
@@ -211,6 +260,7 @@ expect_equal(calculate_sum(c(1, 2, 3)), 6)
 4. Add to appropriate category in _pkgdown.yml
 5. Write tests in tests/testthat/
 6. Run `devtools::document()` and `devtools::check()`
+7. Document development process in `additional_files/documentation/development/` if complex
 
 ### Adding New Data Objects
 1. Add data file to inst/extdata/
