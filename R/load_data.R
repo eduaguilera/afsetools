@@ -2,8 +2,8 @@
 #'
 #' @description
 #' Loads all foundational data objects from Excel files in inst/extdata/ and
-#' optionally sources vectors.R for color palettes, factor levels, and
-#' categorical dataframes. This function creates 73+ objects (or 370+ with
+#' optionally creates color palettes, factor levels, and categorical dataframes
+#' via `load_vectors()`. This function creates 73+ objects (or 370+ with
 #' vectors) in the calling environment including:
 #' - 35 code/nomenclature objects from Codes_coefs.xlsx
 #' - 3 derived objects (regions_full_uISO3, Names_biomass_cats, items_prim)
@@ -11,15 +11,16 @@
 #' - 7 GWP objects from GWP.xlsx
 #' - 3 BNF objects from BNF.xlsx
 #' - 6 miscellaneous coefficient scalars
-#' - 300+ vectors and dataframes from vectors.R (if load_vectors = TRUE)
+#' - 300+ vectors and dataframes from `load_vectors()` (if load_vectors = TRUE)
 #'
-#' The vectors are sourced directly from R/vectors.R, ensuring any changes are
-#' immediately reflected without needing to regenerate binary data files.
+#' The vectors are created directly using `load_vectors()`, ensuring they are
+#' available in both installed package and development mode.
 #'
 #' @param path Optional character string with path to data directory.
 #'   If NULL (default), uses system.file("extdata", package = "afsetools")
-#' @param load_vectors Logical. If TRUE (default), loads vectors and dataframes
-#'   from vectors.R. Set to FALSE to load only data files.
+#' @param load_vectors Logical. If TRUE (default), calls `load_vectors()` to
+#'   create color palettes and factor levels. Set to FALSE to load only data
+#'   files.
 #'
 #' @return NULL (loads objects into parent environment)
 #'
@@ -50,7 +51,7 @@
 #' Miscellaneous coefficients:
 #' toe, IOM, SOM_C, Soil_depth_carbon, Protein_N, Kcal_MJ
 #'
-#' Vectors and dataframes from vectors.R (when load_vectors = TRUE):
+#' Vectors and dataframes created by `load_vectors()` (when load_vectors = TRUE):
 #' Month-related: Month_names, Month_order, Month_integer, Month_number,
 #' Month_numbers
 #' Color palettes: Total_color, SOM_color, and numerous category-specific colors
@@ -310,38 +311,10 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   )
   assign("Pure_legs", Pure_legs, envir = env)
   
-  # Load vectors and dataframes from vectors.R ----
+  # Load vectors and dataframes ----
   if (load_vectors) {
-    # Try to find vectors.R in multiple possible locations
-    vectors_file <- NULL
-    
-    # Option 1: Check package source directory (development mode)
-    if (file.exists("R/vectors.R")) {
-      vectors_file <- "R/vectors.R"
-    } 
-    # Option 2: Construct path from data_path (development with inst/extdata)
-    else if (grepl("inst/extdata", data_path, fixed = TRUE)) {
-      potential_path <- file.path(dirname(dirname(data_path)), "R", "vectors.R")
-      if (file.exists(potential_path)) {
-        vectors_file <- potential_path
-      }
-    }
-    # Option 3: Try working directory relative path
-    else {
-      potential_path <- file.path(getwd(), "R", "vectors.R")
-      if (file.exists(potential_path)) {
-        vectors_file <- potential_path
-      }
-    }
-    
-    if (!is.null(vectors_file) && file.exists(vectors_file)) {
-      # Source vectors.R directly into the calling environment
-      sys.source(vectors_file, envir = env)
-      message("Loaded 73 objects from data files and 300+ vectors from vectors.R into environment")
-    } else {
-      message("Loaded 73 objects from data files into environment")
-      message("Note: vectors.R not found - only available in development mode. Set load_vectors = FALSE to suppress this message.")
-    }
+    afsetools::load_vectors(env = env)
+    message("Loaded 73 objects from data files and 300+ vectors into environment")
   } else {
     message("Loaded 73 objects from data files into environment (vectors skipped)")
   }
