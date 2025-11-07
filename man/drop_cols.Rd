@@ -9,7 +9,7 @@ drop_cols(df, ...)
 \arguments{
 \item{df}{Data frame}
 
-\item{...}{Column names to drop}
+\item{...}{Column names to drop (can be unquoted names or character vector)}
 }
 \value{
 Data frame without the specified columns

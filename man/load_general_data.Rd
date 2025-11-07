@@ -2,7 +2,7 @@
 % Please edit documentation in R/load_data.R
 \name{load_general_data}
 \alias{load_general_data}
-\title{Load General Data, Codes, and Coefficients}
+\title{Load General Data, Codes, Coefficients, and Vectors}
 \usage{
 load_general_data(path = NULL)
 }
@@ -14,14 +14,16 @@ If NULL (default), uses system.file("extdata", package = "afsetools")}
 NULL (loads objects into parent environment)
 }
 \description{
-Loads all foundational data objects from Excel files in inst/extdata/.
-This function creates 73 objects in the calling environment including:
+Loads all foundational data objects from Excel files in inst/extdata/ and
+vectors/dataframes from vectors.R. This function creates 73+ objects in the
+calling environment including:
 - 35 code/nomenclature objects from Codes_coefs.xlsx
 - 3 derived objects (regions_full_uISO3, Names_biomass_cats, items_prim)
 - 17 biomass coefficient objects from Biomass_coefs.xlsx
 - 7 GWP objects from GWP.xlsx
 - 3 BNF objects from BNF.xlsx
 - 6 miscellaneous coefficient scalars
+- All vectors and dataframes defined in vectors.R (colors, levels, etc.)
 }
 \details{
 Objects loaded from Codes_coefs.xlsx:
@@ -49,6 +51,16 @@ Names_BNF, BNF, Pure_legs
 
 Miscellaneous coefficients:
 toe, IOM, SOM_C, Soil_depth_carbon, Protein_N, Kcal_MJ
+
+Vectors and dataframes from vectors.R:
+Month-related: Month_names, Month_order, Month_integer, Month_number,
+Month_numbers
+Color palettes: Total_color, SOM_color, and numerous category-specific colors
+Factor levels: Irrig_Climate_levels, PlantType_levels, GHG_levels, Cat_1_levels,
+and many others for data visualization
+Named color vectors: For ggplot2 scale functions (e.g., Irrig_Climate_colours,
+NPP_colours, Cat_01_colours)
+Categorical dataframes: NPP_cat, C_input_cat for categorization
 }
 \examples{
 \dontrun{
