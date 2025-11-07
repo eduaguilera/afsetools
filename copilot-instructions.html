@@ -318,7 +318,8 @@
 <li>**Update _pkgdown.yml**: Organize functions by category</li>
 <li>
 <strong>No manual building needed</strong>: Workflow handles everything</li>
-</ul></div>
+</ul><p>**CRITICAL: _pkgdown.yml MUST stay in sync with exported functions<strong> - ❌ </strong>DO NOT** add <code>@export</code> to a function without adding it to <code>_pkgdown.yml</code> - ❌ <strong>DO NOT</strong> remove a function without removing it from <code>_pkgdown.yml</code> - ✅ <strong>ALWAYS</strong> add newly exported functions to the appropriate category in <code>_pkgdown.yml</code> - ✅ <strong>ALWAYS</strong> mark internal functions with <code>@keywords internal</code> instead of adding to <code>_pkgdown.yml</code> - Mismatches cause pkgdown builds to fail: “topic missing from index: [function_name]” - Run <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> locally before pushing to catch these errors early</p>
+</div>
 <div class="section level2">
 <h2 id="additional-files-structure">Additional Files Structure<a class="anchor" aria-label="anchor" href="#additional-files-structure"></a></h2>
 <p><strong>CRITICAL: Never create documentation or working files in the package root!</strong></p>
@@ -354,10 +355,14 @@
 <ol style="list-style-type: decimal"><li>Write function in appropriate R/ file (see function categories above)</li>
 <li>Add complete roxygen2 documentation</li>
 <li>Export if needed (<code>@export</code>)</li>
-<li>**Add to _pkgdown.yml reference index** under appropriate category</li>
+<li>**CRITICAL: Add to _pkgdown.yml reference index** under appropriate category
+<ul><li>All exported functions MUST be listed in <code>_pkgdown.yml</code> or pkgdown build fails</li>
+<li>If internal function, use <code>@keywords internal</code> instead and skip this step</li>
+</ul></li>
 <li>Write tests in tests/testthat/</li>
 <li>Run <code>devtools::document()</code> and <code>devtools::check()</code>
 </li>
+<li>Run <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> locally to verify before pushing</li>
 <li>Document development process in <code>additional_files/documentation/development/</code> if complex</li>
 </ol></div>
 <div class="section level3">
