@@ -63,6 +63,7 @@ reference:
   desc: >
     Helper functions for data manipulation and gap-filling.
   contents:
+  - utility_functions
   - "%!in%"
   - drop_cols
   - is_empty
