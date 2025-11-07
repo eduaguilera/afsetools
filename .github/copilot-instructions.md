@@ -14,6 +14,32 @@
 - **Keep data loading flexible**: `load_general_data()` should work both as installed package and during development
 - **Documentation location**: NEVER create documentation files in package root - use `additional_files/documentation/` structure
 
+## Architecture: Data-Driven Design
+
+**CRITICAL**: This package is fundamentally data-driven. The architecture flows from Excel coefficients → loaded objects → calculation functions:
+
+1. **Data files** in `inst/extdata/`: Excel files contain 73+ coefficient tables and classifications
+2. **`load_general_data()`** in `R/load_data.R`: Loads all objects into user's environment (NOT package namespace)
+3. **Functions** expect these objects to exist in calling environment (implicit dependencies)
+4. **Workflow functions** orchestrate complete calculations using multiple data objects
+
+**Key insight**: Functions don't pass data objects as parameters - they expect them in environment. Always call `load_general_data()` first.
+
+## Environment Object Pattern
+
+Unlike typical R packages, afsetools loads 73+ objects directly into the user's environment:
+
+```r
+library(afsetools)
+load_general_data()  # Creates Biomass_coefs, GWP, BNF, etc. in environment
+npp <- Calc_NPP_potentials(climate_data)  # Functions use environment objects
+```
+
+**Implications for development**:
+- Functions have implicit dependencies on environment objects
+- Test files must call `load_general_data()` in setup (see `tests/testthat/setup-afsetools.R`)
+- Adding new data: Update `load_general_data()`, document in `R/data.R`, list in `DATA_REFERENCE.md`
+
 ## Documentation Standards
 
 ### Function Documentation (roxygen2)
@@ -74,7 +100,20 @@ Data objects loaded by `load_general_data()` should be documented in `R/data.R`:
 - Maximum line width: 80 characters
 - Use `.by` for inline grouping: `mutate(.by = Year, total = sum(value))`
 - Avoid `group_by()` unless required by specific functions
-- Always `ungroup()` after `group_by()` operations
+- **CRITICAL**: Always `ungroup()` after `group_by()` operations
+
+### Grouping Pattern (Important!)
+
+```r
+# CORRECT: Use .by for simple operations
+df |> mutate(.by = Year, total = sum(value))
+
+# For Filling() and FillingProxy(): Must use group_by/ungroup
+df |>
+  group_by(Region, Item) |>
+  Filling(Production, Year) |>
+  ungroup()  # REQUIRED - prevents grouped data flowing downstream
+```
 
 ## Package Data Management
 
@@ -93,60 +132,74 @@ Data objects loaded by `load_general_data()` should be documented in `R/data.R`:
 ## Function Organization
 
 ### Function Categories
-1. **Data Loading** (`load_data.R`): Load coefficients and classifications
-2. **NPP Calculation** (`npp_functions.R`): Net Primary Productivity calculations
-3. **Impact Tracing** (`impact_functions.R`): Supply chain impact allocation
-4. **Analysis** (`analysis_functions.R`): Specialized calculations (N fixation, GHG, etc.)
-5. **Utilities** (`utility_functions.R`): Helper functions, gap-filling
-6. **Visualization** (`plotting.R`): Themes and plotting functions
+1. **Data Loading** (`load_data.R`): `load_general_data()` - loads 73+ objects
+2. **NPP Calculation** (`npp_functions.R`): `Calc_NPP_potentials()`, `Calculate_crop_NPP()`, `Calc_NPP_DM_C_N()`, `Calc_CropNPP_components()`
+3. **Impact Tracing** (`impact_functions.R`): `Prepare_prim()`, `Allocate_impacts_to_products()`, `calc_avail_fp_gt()`, `Calc_impact_processed()`
+4. **Analysis** (`analysis_functions.R`): `Calc_N_fix()`, `Gases_GWP()`, `Calc_diets()`, `calculate_land_scaling()`
+5. **Utilities** (`utility_functions.R`): `Filling()`, `FillingProxy()`, `%!in%`, `drop_cols()`
+6. **Visualization** (`plotting.R`): `theme_new()`, `theme_nolabel()`, `ggplotRegression()`
 7. **Workflows** (`calculate_footprints.R`): Complete calculation pipelines
 
-### Function Design
-- **Single responsibility**: Each function should do one thing well
-- **Clear inputs/outputs**: Document expected data structure
-- **Vectorized operations**: Use tidyverse/data.table for efficiency
-- **Fail gracefully**: Provide informative error messages
-- **Return tidy data**: Prefer long format over wide format
+### Function Design Patterns
+
+**Pipe-friendly functions** (return modified data frame):
+```r
+Calculate_crop_NPP <- function(Dataset, HI, ...) {
+  Dataset |>
+    dplyr::left_join(Biomass_coefs, by = "Name_biomass") |>  # Uses environment object
+    dplyr::mutate(Prod_MgDM = Prod_ygpit_Mg * Product_kgDM_kgFM) |>
+    dplyr::select(...)
+}
+```
+
+**Environment object usage** (implicit dependencies):
+```r
+Calc_N_fix <- function(x) {
+  x |>
+    dplyr::left_join(Names_BNF |>  # Names_BNF from environment
+      dplyr::left_join(BNF, by = "Name_BNF"), by = "Name_biomass") |>  # BNF from environment
+    dplyr::mutate(CropBNF = Crop_NPP_MgN * Ndfa * Leguminous_share)
+}
+```
 
 ## Testing
 
 **Location**: `tests/testthat/` - name as `test-[script-name].R`
 
+**Critical setup pattern**:
+```r
+# tests/testthat/setup-afsetools.R
+library(afsetools)
+load_general_data()  # Makes all 73+ objects available to tests
+```
+
 **Testing approach**:
 - One test file per R script (e.g., `test-load_data.R` for `load_data.R`)
-- Use meaningful test names that describe what is being tested
-- Test functionality and edge cases
-- Use `testthat` framework
+- Test that `load_general_data()` creates expected objects
+- Verify coefficient values are realistic (e.g., DM content 0-1)
+- Check data structure and required columns
 
 **Useful test patterns**:
 ```r
-# Use tibble::tribble() for sample data
-test_data <- tibble::tribble(
-  ~Year, ~Value,
-  2020, 100,
-  2021, 150
-)
+# Test environment loading
+test_that("load_general_data creates all required data objects", {
+  test_env <- new.env()
+  with(test_env, load_general_data())
+  expect_true(exists("Biomass_coefs", envir = test_env))
+})
 
-# Test column existence and properties
-expect_true("Year" %in% names(result))
-expect_type(result$Value, "double")
-
-# Test function behavior
-expect_error(my_function(invalid_input))
-expect_equal(calculate_sum(c(1, 2, 3)), 6)
+# Test coefficient realism
+expect_true(all(Biomass_coefs$Product_kgDM_kgFM >= 0 & 
+               Biomass_coefs$Product_kgDM_kgFM <= 1, na.rm = TRUE))
 ```
 
 ## Dependencies
 
-### Package Dependencies
-- **Core tidyverse**: dplyr, tidyr, ggplot2
-- **Data I/O**: readxl, openxlsx
-- **Other**: Add to DESCRIPTION file under `Imports` or `Suggests`
+**Core tidyverse**: dplyr, tidyr, ggplot2  
+**Data I/O**: readxl, openxlsx  
+**Utilities**: zoo (for `Filling()` functions)
 
-### Dependency Management
-- Minimize dependencies where possible
-- Use package imports explicitly in functions
-- Document why each dependency is needed
+**Dependency pattern**: Always use explicit `package::function()` syntax in function code.
 
 ## Package Development Workflow
 
@@ -162,7 +215,22 @@ expect_equal(calculate_sum(c(1, 2, 3)), 6)
 - Run `devtools::check()` and fix all errors/warnings
 - Ensure all tests pass
 - Update NEWS.md if adding features or fixing bugs
+- Update DESCRIPTION (URL, BugReports) and _pkgdown.yml reference index
 - Document any new data objects in DATA_REFERENCE.md
+
+### pkgdown Configuration
+
+**Two critical files must stay in sync**:
+1. **DESCRIPTION**: Must include `URL:` and `BugReports:` fields
+2. **_pkgdown.yml**: All documented functions must be listed in `reference:` section
+
+```yaml
+# _pkgdown.yml structure
+reference:
+- title: Category Name
+  contents:
+  - function_name  # Must match .Rd filename in man/
+```
 
 ## Coefficient Management
 
@@ -182,6 +250,16 @@ expect_equal(calculate_sum(c(1, 2, 3)), 6)
 - ✅ `left_join(Biomass_coefs, by = "Name_biomass")`
 - ✅ Load from Excel with documented source
 - ✅ Calculate with referenced methodology
+
+**Example from code**:
+```r
+# Weed coefficients derived from grass biomass coefficients
+assign("Root_Shoot_ratio_W", 
+       as.numeric(Biomass_coefs |> 
+                    dplyr::filter(Name_biomass == "Grass") |> 
+                    dplyr::select(Root_Shoot_ratio)),
+       envir = env)
+```
 
 ## Version Control
 
@@ -254,20 +332,20 @@ additional_files/
 ## Common Tasks
 
 ### Adding a New Function
-1. Write function in appropriate R/ file
+1. Write function in appropriate R/ file (see function categories above)
 2. Add complete roxygen2 documentation
 3. Export if needed (`@export`)
-4. Add to appropriate category in _pkgdown.yml
+4. **Add to _pkgdown.yml reference index** under appropriate category
 5. Write tests in tests/testthat/
 6. Run `devtools::document()` and `devtools::check()`
 7. Document development process in `additional_files/documentation/development/` if complex
 
 ### Adding New Data Objects
-1. Add data file to inst/extdata/
+1. Add data file to `inst/extdata/` (Excel format preferred)
 2. Update `load_general_data()` to load the new data
-3. Document in R/data.R with roxygen2
-4. Add description to DATA_REFERENCE.md
-5. List in _pkgdown.yml under "Data Objects"
+3. Document in `R/data.R` with roxygen2
+4. Add description to `DATA_REFERENCE.md`
+5. **List in _pkgdown.yml under "Data Objects"**
 
 ### Updating Coefficients
 1. Update source file in inst/extdata/
@@ -276,19 +354,10 @@ additional_files/
 4. Update tests if coefficient values changed
 5. Note changes in NEWS.md
 
-## Publication and Citation
-
-When preparing for publication:
-- Ensure all data sources are properly cited
-- Update DESCRIPTION with accurate version number
-- Create DOI via Zenodo or similar
-- Update CITATION file with publication details
-- Add publication info to README.md
-
 ## Resources
 
+- **Package website**: https://eduaguilera.github.io/afsetools/
 - **Tidyverse style guide**: https://style.tidyverse.org/
 - **R Packages book**: https://r-pkgs.org/
 - **roxygen2 documentation**: https://roxygen2.r-lib.org/
 - **pkgdown**: https://pkgdown.r-lib.org/
-- **Package website**: https://eduaguilera.github.io/afsetools/
