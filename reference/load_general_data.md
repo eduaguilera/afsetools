@@ -1,0 +1,87 @@
+# Load General Data, Codes, Coefficients, and Vectors
+
+Loads all foundational data objects from Excel files in inst/extdata/
+and optionally creates color palettes, factor levels, and categorical
+dataframes via \`load_vectors()\`. This function creates 73+ objects (or
+370+ with vectors) in the calling environment including: - 35
+code/nomenclature objects from Codes_coefs.xlsx - 3 derived objects
+(regions_full_uISO3, Names_biomass_cats, items_prim) - 17 biomass
+coefficient objects from Biomass_coefs.xlsx - 7 GWP objects from
+GWP.xlsx - 3 BNF objects from BNF.xlsx - 6 miscellaneous coefficient
+scalars - 300+ vectors and dataframes from \`load_vectors()\` (if
+load_vectors = TRUE)
+
+The vectors are created directly using \`load_vectors()\`, ensuring they
+are available in both installed package and development mode.
+
+## Usage
+
+``` r
+load_general_data(path = NULL, load_vectors = TRUE)
+```
+
+## Arguments
+
+- path:
+
+  Optional character string with path to data directory. If NULL
+  (default), uses system.file("extdata", package = "afsetools")
+
+- load_vectors:
+
+  Logical. If TRUE (default), calls \`load_vectors()\` to create color
+  palettes and factor levels. Set to FALSE to load only data files.
+
+## Value
+
+NULL (loads objects into parent environment)
+
+## Details
+
+Objects loaded from Codes_coefs.xlsx: regions_full, region_krausmann,
+polities_whep, polities_cats, regions_fabio, Animals_codes,
+Names_Liv_Prod, CBS_Trade_codes, CB_processing, items_prod_full,
+CB_processing_tidy, items_full, Names_biomass_CB, Names_cats, Cats,
+Primary_double, items_proc_fabio, Feedstuff_FEDNA, FishStat_items, Prov,
+Names_Prov, FAO_Sp, Crops_Eurostat, Names_MAPA, Names_Lab, CB_item,
+Names_biomass, Biomass_names, Crop_Names, conv_bouwman, conv_krausmann,
+HI_changes_krausmann, residue_krausmann, Liv_LU_coefs, CBS_cat
+
+Derived objects: regions_full_uISO3, Names_biomass_cats, items_prim
+
+Biomass coefficient objects: Biomass_coefs, Nutrients_energy,
+Root_Shoot_ratio_W, Residue_kgDM_kgFM_W, Residue_kgN_kgDM_W,
+Root_kgN_kgDM_W, Residue_kgC_kgDM_W, Root_kgC_kgDM_W,
+Rhizod_kgN_kgRootN_W, Residue_kgC_kgDM_Wo, Root_kgC_kgDM_Wo
+
+GWP objects: GWP, GWP_C, GWP_CO2, GWP_CH4, GWP_CH4_fossil, GWP_N2ON,
+GWP_N2O
+
+BNF objects: Names_BNF, BNF, Pure_legs
+
+Miscellaneous coefficients: toe, IOM, SOM_C, Soil_depth_carbon,
+Protein_N, Kcal_MJ
+
+Vectors and dataframes created by \`load_vectors()\` (when load_vectors
+= TRUE): Month-related: Month_names, Month_order, Month_integer,
+Month_number, Month_numbers Color palettes: Total_color, SOM_color, and
+numerous category-specific colors Factor levels: Irrig_Climate_levels,
+PlantType_levels, GHG_levels, Cat_1_levels, and many others for data
+visualization Named color vectors: For ggplot2 scale functions (e.g.,
+Irrig_Climate_colours, NPP_colours, Cat_01_colours) Categorical
+dataframes: NPP_cat, C_input_cat for categorization
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Load all data and vectors into current environment
+load_general_data()
+
+# Load only data files, skip vectors
+load_general_data(load_vectors = FALSE)
+
+# Check what was loaded
+ls()
+} # }
+```
