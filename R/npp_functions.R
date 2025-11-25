@@ -11,9 +11,9 @@
 #' @examples
 #' \dontrun{
 #' climate_data <- data.frame(TMP = 15, MAP = 800, PET = 1000, AET = 700)
-#' npp_results <- Calc_NPP_potentials(climate_data)
+#' npp_results <- calculate_npp_potentials(climate_data)
 #' }
-Calc_NPP_potentials <- function(Dataset) {
+calculate_npp_potentials <- function(Dataset) {
   Dataset |>
     dplyr::mutate(
       WaterInput_mm = MAP - PET + AET, # The water input is the sum of precipitation and soil moisture difference
@@ -41,20 +41,27 @@ Calc_NPP_potentials <- function(Dataset) {
 #'
 #' @param Dataset A data frame with crop area and production data
 #' @param HI A data frame with harvest index (HI) values
-#' @param ... Additional grouping variables to preserve in output
 #'
 #' @return A data frame with NPP components (Prod_MgDM, Residue_MgDM, Root_MgDM)
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' crop_npp <- Calculate_crop_NPP(crop_data, harvest_index)
+#' crop_npp <- calculate_crop_npp(crop_data, harvest_index)
 #' }
-Calculate_crop_NPP <- function(Dataset, HI, ...) {
+calculate_crop_npp <- function(Dataset, HI) {
   Dataset |> # Crop area and production
-    dplyr::left_join(Biomass_coefs, by = c("Name_biomass")) |>
-    dplyr::left_join(Root_ref, by = c("Name_biomass")) |>
-    dplyr::left_join(HI, by = c("Year", "Name_biomass")) |>
+    dplyr::left_join(Biomass_coefs |> 
+      dplyr::select(Name_biomass, Product_kgDM_kgFM, Residue_kgDM_kgFM, Root_kgDM_kgFM,
+        kg_residue_kg_product_FM, Root_Shoot_ratio
+      ),
+      by = c("Name_biomass")) |>
+    dplyr::left_join(Root_ref |> 
+      dplyr::select(Name_biomass, Root_MghaDM_ref),
+      by = c("Name_biomass")) |>
+    dplyr::left_join(HI |> 
+      dplyr::select(Year, Name_biomass, Dyn_HI, Dyn_RS),
+      by = c("Year", "Name_biomass")) |>
     dplyr::mutate(
       Prod_ygpit_Mg = dplyr::if_else(is.na(Prod_ygpit_Mg),
         0,
@@ -82,9 +89,9 @@ Calculate_crop_NPP <- function(Dataset, HI, ...) {
       Crop_NPP_MgDM = Prod_MgDM + Residue_MgDM + Root_MgDM
     ) |>
     dplyr::select(
-      ..., Year, Name_biomass, Province_name, Irrig_cat, Irrig_type, # Add scenario grouping if needed
-      Area_ygpit_ha, Prod_ygpit_Mg, Yield_ygpi_Mgha,
-      Prod_MgDM, Residue_MgDM, Root_MgDM
+      -Product_kgDM_kgFM, -Residue_kgDM_kgFM, -Root_kgDM_kgFM,
+      -Root_MghaDM_ref, -Dyn_HI, -Dyn_RS, -Aerial_MgDM, -Root_MgDM_RS, -Root_MgDM_ref,
+      -kg_residue_kg_product_FM, -Root_Shoot_ratio
     )
 }
 
@@ -100,9 +107,9 @@ Calculate_crop_NPP <- function(Dataset, HI, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' npp_nutrients <- Calc_NPP_DM_C_N(area_npp_data)
+#' npp_nutrients <- calculate_npp_dm_c_n(area_npp_data)
 #' }
-Calc_NPP_DM_C_N <- function(AreaNPP) {
+calculate_npp_dm_c_n <- function(AreaNPP) {
   AreaNPP |>
     dplyr::mutate(
       Weeds_BG_MgDM = Weeds_AG_MgDM * Root_Shoot_ratio_W,
@@ -144,25 +151,44 @@ Calc_NPP_DM_C_N <- function(AreaNPP) {
 #'
 #' @examples
 #' \dontrun{
-#' cropland_npp <- Calc_CropNPP_components(crop_npp_potential)
+#' cropland_npp <- calculate_crop_npp_components(crop_npp_potential)
 #' }
-Calc_CropNPP_components <- function(Crop_NPPpot) {
+calculate_crop_npp_components <- function(Crop_NPPpot) {
+  biomass_coef_cols <- c(
+    "Product_kgDM_kgFM",
+    "Residue_kgDM_kgFM",
+    "Root_kgDM_kgFM",
+    "kg_residue_kg_product_FM",
+    "Root_Shoot_ratio",
+    "Product_kgN_kgDM",
+    "Residue_kgN_kgDM",
+    "Root_kgN_kgDM",
+    "Rhizodeposits_N_kgN_kgRootN",
+    "Product_kgC_kgDM",
+    "Residue_kgC_kgDM",
+    "Root_kgC_kgDM"
+  )
+
   Crop_NPPpot |>
-    dplyr::left_join(Biomass_coefs |>
-      dplyr::select(-Category, -Code, -Equiv), by = c("Name_biomass")) |>
+    dplyr::left_join(
+      Biomass_coefs |>
+        dplyr::select(dplyr::all_of(c("Name_biomass", biomass_coef_cols))),
+      by = c("Name_biomass")
+    ) |>
     dplyr::left_join(Weed_NPP_Scaling, by = c("Year", "Name_biomass")) |>
     dplyr::left_join(Residue_Shares, by = c("Year", "Name_biomass")) |>
     dplyr::left_join(Fallow_cover, by = c("Year", "Name_biomass")) |>
-    dplyr::group_by(Year) |>
-    dplyr::mutate(Scaling_weeds = dplyr::if_else(is.na(Scaling_weeds),
+    dplyr::mutate(.by=Year,
+      Scaling_weeds = dplyr::if_else(is.na(Scaling_weeds),
       mean(Scaling_weeds, na.rm = TRUE),
       Scaling_weeds
     )) |>
     base::replace(is.na(.), 0) |>
-    dplyr::mutate(Weeds_AG_MgDM = dplyr::if_else(Name_biomass != "Fallow",
+    dplyr::mutate(.by=Year,
+      Weeds_AG_MgDM = dplyr::if_else(Name_biomass != "Fallow",
       Area_ygpit_ha * Scaling_weeds * NPPpot_MgDMha / (1 + Root_Shoot_ratio_W),
       Area_ygpit_ha * Fallow_cover_share * NPPpot_MgDMha / (1 + Root_Shoot_ratio_W)
     )) |>
-    dplyr::ungroup() |>
-    Calc_NPP_DM_C_N()
+    calculate_npp_dm_c_n() |>
+    dplyr::select(-dplyr::any_of(biomass_coef_cols))
 }

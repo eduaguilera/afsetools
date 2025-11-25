@@ -378,7 +378,7 @@ load_vectors <- function(env = parent.frame()) {
   assign("UsedResidue_colour", c("UsedResidue" = Crop_residue_color), envir = env)
   assign("Used_Residue_colour", c("Used Residue" = Crop_residue_color), envir = env)
   assign("Prod_colour", c("Prod" = Crop_prod_color), envir = env)
-  assign("Production_colour", c("Production" = Crop_prod_color), envir = env)
+  # assign("Production_colour", c("Production" = Crop_prod_color), envir = env)
   assign("Surplus_colour", c("Surplus" = Surplus_color), envir = env)
   assign("Burning_colour", c("Burning" = Burning_color), envir = env)
   assign("Grazed_weeds_colour", c("Grazed_weeds" = Grazed_weeds_color), envir = env)
