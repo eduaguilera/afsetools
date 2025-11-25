@@ -52,7 +52,7 @@ calculate_npp_potentials <- function(Dataset) {
 calculate_crop_npp <- function(Dataset, HI) {
   Dataset |> # Crop area and production
     dplyr::left_join(Biomass_coefs |> 
-      dplyr::select(Name_biomass, Product_kgDM_kgFM, Residue_kgDM_kgFM, Root_kgDM_kgFM,
+      dplyr::select(Name_biomass, Product_kgDM_kgFM, Residue_kgDM_kgFM,
         kg_residue_kg_product_FM, Root_Shoot_ratio
       ),
       by = c("Name_biomass")) |>
@@ -89,7 +89,7 @@ calculate_crop_npp <- function(Dataset, HI) {
       Crop_NPP_MgDM = Prod_MgDM + Residue_MgDM + Root_MgDM
     ) |>
     dplyr::select(
-      -Product_kgDM_kgFM, -Residue_kgDM_kgFM, -Root_kgDM_kgFM,
+      -Product_kgDM_kgFM, -Residue_kgDM_kgFM,
       -Root_MghaDM_ref, -Dyn_HI, -Dyn_RS, -Aerial_MgDM, -Root_MgDM_RS, -Root_MgDM_ref,
       -kg_residue_kg_product_FM, -Root_Shoot_ratio
     )
