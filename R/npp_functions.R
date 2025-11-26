@@ -58,8 +58,7 @@ calculate_crop_npp <- function(Dataset, HI) {
     dplyr::left_join(Root_ref |> 
       dplyr::select(Name_biomass, Root_MghaDM_ref),
       by = c("Name_biomass")) |>
-    dplyr::left_join(HI |> 
-      dplyr::select(Year, Name_biomass, Dyn_HI, Dyn_RS)) |>
+    dplyr::left_join(HI) |>
     dplyr::mutate(
       Prod_ygpit_Mg = dplyr::if_else(is.na(Prod_ygpit_Mg),
         0,
