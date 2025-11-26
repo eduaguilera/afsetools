@@ -1,18 +1,18 @@
 # Tests for NPP calculation functions based on Spain_Hist and Global usage patterns
 
-test_that("calculate_npp_potentials calculates realistic NPP from climate data", {
+test_that("calculate_potential_npp calculates realistic NPP from climate data", {
 
   # Create climate data based on real Spain_Hist usage
   # Realistic values for Mediterranean, humid, and semi-arid climates
   climate_data <- tibble::tribble(
-    ~TMP, ~MAP, ~PET, ~AET, ~AET_mm,
-    15,   800,  1000, 700,  700,    # Mediterranean climate
-    20,   1200, 1200, 900,  900,    # Warm humid climate
-    5,    400,  600,  350,  350,    # Cold semi-arid
-    25,   2000, 1500, 1200, 1200    # Tropical
+    ~TMP, ~WaterInput_mm, ~AET_mm,
+    15,   800,            700,    # Mediterranean climate
+    20,   1200,           900,    # Warm humid climate
+    5,    400,            350,    # Cold semi-arid
+    25,   2000,           1200    # Tropical
   )
 
-  result <- calculate_npp_potentials(climate_data)
+  result <- calculate_potential_npp(climate_data)
 
   # Test that all three NPP model outputs exist
   expect_true("NPP_Miami_MgDMha" %in% names(result))
@@ -53,28 +53,49 @@ test_that("calculate_crop_npp_components drops Biomass_coefs helpers", {
      "Root_kgC_kgDM"
   )
 
-  old_biomass <- Biomass_coefs
-  old_weeds <- Weed_NPP_Scaling
-  old_residue <- Residue_Shares
-  old_fallow <- Fallow_cover
+  # Save old values if they exist
+  old_biomass <- if (exists("Biomass_coefs")) get("Biomass_coefs") else NULL
+  old_weeds <- if (exists("Weed_NPP_Scaling")) get("Weed_NPP_Scaling") else NULL
+  old_residue <- if (exists("Residue_Shares")) get("Residue_Shares") else NULL
+  old_fallow <- if (exists("Fallow_cover")) get("Fallow_cover") else NULL
 
   on.exit({
-    Biomass_coefs <<- old_biomass
-    Weed_NPP_Scaling <<- old_weeds
-    Residue_Shares <<- old_residue
-    Fallow_cover <<- old_fallow
+    if (!is.null(old_biomass)) {
+      Biomass_coefs <<- old_biomass
+    } else if (exists("Biomass_coefs")) {
+      rm("Biomass_coefs", envir = .GlobalEnv)
+    }
+    if (!is.null(old_weeds)) {
+      Weed_NPP_Scaling <<- old_weeds
+    } else if (exists("Weed_NPP_Scaling")) {
+      rm("Weed_NPP_Scaling", envir = .GlobalEnv)
+    }
+    if (!is.null(old_residue)) {
+      Residue_Shares <<- old_residue
+    } else if (exists("Residue_Shares")) {
+      rm("Residue_Shares", envir = .GlobalEnv)
+    }
+    if (!is.null(old_fallow)) {
+      Fallow_cover <<- old_fallow
+    } else if (exists("Fallow_cover")) {
+      rm("Fallow_cover", envir = .GlobalEnv)
+    }
   }, add = TRUE)
 
   Biomass_coefs <<- tibble::tibble(
     Name_biomass = "TestCrop",
+    Product_kgDM_kgFM = 0.2,
     Residue_kgDM_kgFM = 0.4,
+    Root_kgDM_kgFM = 0.3,
+    kg_residue_kg_product_FM = 0.5,
+    Root_Shoot_ratio = 0.5,
     Product_kgN_kgDM = 0.02,
     Residue_kgN_kgDM = 0.015,
     Root_kgN_kgDM = 0.018,
     Rhizodeposits_N_kgN_kgRootN = 0.05,
     Product_kgC_kgDM = 0.45,
     Residue_kgC_kgDM = 0.42,
-    Root_kgC_kgDM = 0.4,
+    Root_kgC_kgDM = 0.4
   )
 
   Weed_NPP_Scaling <<- tibble::tibble(

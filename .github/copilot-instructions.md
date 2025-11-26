@@ -281,14 +281,6 @@ assign("Root_Shoot_ratio_W",
 - **Update _pkgdown.yml**: Organize functions by category
 - **No manual building needed**: Workflow handles everything
 
-**CRITICAL: _pkgdown.yml MUST stay in sync with exported functions**
-- ❌ **DO NOT** add `@export` to a function without adding it to `_pkgdown.yml`
-- ❌ **DO NOT** remove a function without removing it from `_pkgdown.yml`
-- ✅ **ALWAYS** add newly exported functions to the appropriate category in `_pkgdown.yml`
-- ✅ **ALWAYS** mark internal functions with `@keywords internal` instead of adding to `_pkgdown.yml`
-- Mismatches cause pkgdown builds to fail: "topic missing from index: [function_name]"
-- Run `pkgdown::build_site()` locally before pushing to catch these errors early
-
 ## Additional Files Structure
 
 **CRITICAL: Never create documentation or working files in the package root!**
@@ -343,13 +335,10 @@ additional_files/
 1. Write function in appropriate R/ file (see function categories above)
 2. Add complete roxygen2 documentation
 3. Export if needed (`@export`)
-4. **CRITICAL: Add to _pkgdown.yml reference index** under appropriate category
-   - All exported functions MUST be listed in `_pkgdown.yml` or pkgdown build fails
-   - If internal function, use `@keywords internal` instead and skip this step
+4. **Add to _pkgdown.yml reference index** under appropriate category
 5. Write tests in tests/testthat/
 6. Run `devtools::document()` and `devtools::check()`
-7. Run `pkgdown::build_site()` locally to verify before pushing
-8. Document development process in `additional_files/documentation/development/` if complex
+7. Document development process in `additional_files/documentation/development/` if complex
 
 ### Adding New Data Objects
 1. Add data file to `inst/extdata/` (Excel format preferred)

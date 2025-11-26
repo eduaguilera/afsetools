@@ -7,6 +7,9 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(afsetools)
+# Load afsetools without conflict warnings
+# The package exports functions that may appear to mask data objects when
+# load_general_data() is called, but this is expected and harmless
+library(afsetools, warn.conflicts = FALSE)
 
 test_check("afsetools")

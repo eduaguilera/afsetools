@@ -18,16 +18,15 @@ reference:
     Load coefficients, classifications, and foundational data objects.
   contents:
   - load_general_data
-  - load_vectors
 
 - title: NPP Calculation Functions
   desc: >
     Net Primary Productivity calculation and conversion functions.
   contents:
-  - Calc_NPP_potentials
-  - Calculate_crop_NPP
-  - Calc_NPP_DM_C_N
-  - Calc_CropNPP_components
+  - calculate_potential_npp
+  - calculate_crop_npp
+  - calculate_npp_dm_c_n
+  - calculate_crop_npp_components
 
 - title: Impact Tracing Functions
   desc: >
@@ -59,6 +58,15 @@ reference:
   contents:
   - calculate_footprints
   - extract_luh2
+
+- title: Biomass Processing Functions
+  desc: >
+    Functions for biomass data processing including fallow integration and residue handling.
+  contents:
+  - biomass_functions
+  - integrate_fallow
+  - residues_as_items
+  - residue_use
 
 - title: Utility Functions
   desc: >

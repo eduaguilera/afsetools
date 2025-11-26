@@ -3,30 +3,29 @@
 #' Calculates potential NPP using various models including Miami, NCEAS, and Rosenzweig.
 #' This function estimates ecosystem productivity based on temperature and precipitation.
 #'
-#' @param Dataset A data frame containing climate data with columns: TMP (temperature), MAP (precipitation), PET (potential evapotranspiration), AET (actual evapotranspiration)
+#' @param Dataset A data frame containing climate data with columns: TMP (temperature), Water_input_mm (Precipitation + Irrigation), AET_mm (actual evapotranspiration)
 #'
 #' @return A data frame with calculated NPP values from different models in MgDM/ha
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' climate_data <- data.frame(TMP = 15, MAP = 800, PET = 1000, AET = 700)
-#' npp_results <- calculate_npp_potentials(climate_data)
+#' climate_data <- data.frame(TMP = 15, WaterInput_mm = 800, AET_mm = 700)
+#' npp_results <- calculate_potential_npp(climate_data)
 #' }
-calculate_npp_potentials <- function(Dataset) {
+calculate_potential_npp <- function(Dataset) {
   Dataset |>
     dplyr::mutate(
-      WaterInput_mm = MAP - PET + AET, # The water input is the sum of precipitation and soil moisture difference
-      NPPT_Miami_MgDMha = 30 / (1 + exp(1.315 - (0.119 * TMP))) / (100 * Residue_kgC_kgDM_W), # Miami model, from Lieth (1975)
-      NPPP_Miami_MgDMha = 30 * (1 - exp(-6.64 * 10^-4 * MAP)) / (100 * Residue_kgC_kgDM_W), # Miami model, from Lieth (1975)
-      FMAP_TNPP_NCEAS_MgDMha = ((0.2163 * WaterInput_mm^1.125) / exp(0.000319 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
+      NPPT_Miami_MgDMha = (3000 / (1 + exp(1.315 - 0.119 * TMP))) / 100,
+      NPPP_Miami_MgDMha = (3000 * (1 - exp(-0.000664 * WaterInput_mm))) / 100,
+      FMAP_TNPP_NCEAS_MgDMha = ((0.551 * WaterInput_mm^1.055) / exp(0.000306 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
       FMAT_TNPP_NCEAS_MgDMha = 2540 / (1 + exp(1.584 - 0.0622 * TMP)) / (100 * Residue_kgC_kgDM_Wo),
       FMAP_ANPP_NCEAS_MgDMha = ((0.1665 * WaterInput_mm^1.185) / exp(0.000414 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
       FMAT_ANPP_NCEAS_MgDMha = 3139 / (1 + exp(2.2 - 0.0307 * TMP)) / (100 * Residue_kgC_kgDM_Wo),
       TNPP_NCEAS_MgDMha = 6116 * (1 - exp(-6.05 * 10^-5 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_W), # NCEAS model for total non-tree vegetation, from Del Grosso et al. (2008)
       ANPP_NCEAS_MgDMha = 4000 * (1 - exp(-4.77 * 10^-5 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_W), # NCEAS model for aboveground non-tree vegetation, from Del Grosso et al. (2008)
-      TNPP_tree_NCEAS_MgDMha = pmin(FMAP_TNPP_NCEAS_MgDMha, FMAT_TNPP_NCEAS_MgDMha), # NCEAS model for total vegetation with trees
-      ANPP_tree_NCEAS_MgDMha = pmin(FMAP_ANPP_NCEAS_MgDMha, FMAT_ANPP_NCEAS_MgDMha), # NCEAS model for aboveground vegetation with trees
+      TNPP_tree_NCEAS_MgDMha = pmin(FMAP_TNPP_NCEAS_MgDMha, FMAT_TNPP_NCEAS_MgDMha), # NCEAS model for total vegetation with trees,
+      ANPP_tree_NCEAS_MgDMha = pmin(FMAP_ANPP_NCEAS_MgDMha, FMAT_ANPP_NCEAS_MgDMha), # NCEAS model for aboveground vegetation with trees,
       NPP_Miami_MgDMha = pmin(NPPT_Miami_MgDMha, NPPP_Miami_MgDMha), # Miami model, from Lieth (1975)
       NPP_Rosenzweig_MgDMha = 10^(1.66 * log10(AET_mm) - 1.66) / 100, # Rosenzweig (1968), based on AET
       RS_ratio_NCEAS = (TNPP_NCEAS_MgDMha - ANPP_NCEAS_MgDMha) / ANPP_NCEAS_MgDMha,
@@ -60,8 +59,7 @@ calculate_crop_npp <- function(Dataset, HI) {
       dplyr::select(Name_biomass, Root_MghaDM_ref),
       by = c("Name_biomass")) |>
     dplyr::left_join(HI |> 
-      dplyr::select(Year, Name_biomass, Dyn_HI, Dyn_RS),
-      by = c("Year", "Name_biomass")) |>
+      dplyr::select(Year, Name_biomass, Dyn_HI, Dyn_RS)) |>
     dplyr::mutate(
       Prod_ygpit_Mg = dplyr::if_else(is.na(Prod_ygpit_Mg),
         0,
@@ -172,7 +170,7 @@ calculate_crop_npp_components <- function(Crop_NPPpot) {
   Crop_NPPpot |>
     dplyr::left_join(
       Biomass_coefs |>
-        dplyr::select(dplyr::all_of(c("Name_biomass", biomass_coef_cols))),
+        dplyr::select(dplyr::any_of(c("Name_biomass", biomass_coef_cols))),
       by = c("Name_biomass")
     ) |>
     dplyr::left_join(Weed_NPP_Scaling, by = c("Year", "Name_biomass")) |>
@@ -183,7 +181,7 @@ calculate_crop_npp_components <- function(Crop_NPPpot) {
       mean(Scaling_weeds, na.rm = TRUE),
       Scaling_weeds
     )) |>
-    base::replace(is.na(.), 0) |>
+    (\(x) base::replace(x, is.na(x), 0))() |>
     dplyr::mutate(.by=Year,
       Weeds_AG_MgDM = dplyr::if_else(Name_biomass != "Fallow",
       Area_ygpit_ha * Scaling_weeds * NPPpot_MgDMha / (1 + Root_Shoot_ratio_W),
