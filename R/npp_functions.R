@@ -142,15 +142,26 @@ calculate_npp_dm_c_n <- function(AreaNPP) {
 #' and considering fallow periods.
 #'
 #' @param Crop_NPPpot A data frame with potential NPP values and crop data
+#' @param .by Character vector of column names for grouping operations (e.g.,
+#'   c("Year", "Region")). Used for scaling weeds calculations. If NULL, no
+#'   grouping is applied.
 #'
 #' @return A data frame with complete cropland NPP components (crop + weeds) in DM, C, N
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' cropland_npp <- calculate_crop_npp_components(crop_npp_potential)
+#' # With grouping by Year
+#' cropland_npp <- calculate_crop_npp_components(crop_npp_potential, .by = "Year")
+#' 
+#' # With multiple grouping variables
+#' cropland_npp <- calculate_crop_npp_components(crop_npp_potential, 
+#'                                                 .by = c("Year", "Region"))
+#' 
+#' # Without grouping
+#' cropland_npp <- calculate_crop_npp_components(crop_npp_potential, .by = NULL)
 #' }
-calculate_crop_npp_components <- function(Crop_NPPpot) {
+calculate_crop_npp_components <- function(Crop_NPPpot, .by = NULL) {
   biomass_coef_cols <- c(
     "Product_kgDM_kgFM",
     "Residue_kgDM_kgFM",
@@ -172,16 +183,16 @@ calculate_crop_npp_components <- function(Crop_NPPpot) {
         dplyr::select(dplyr::any_of(c("Name_biomass", biomass_coef_cols))),
       by = c("Name_biomass")
     ) |>
-    dplyr::left_join(Weed_NPP_Scaling, by = c("Year", "Name_biomass")) |>
-    dplyr::left_join(Residue_Shares, by = c("Year", "Name_biomass")) |>
-    dplyr::left_join(Fallow_cover, by = c("Year", "Name_biomass")) |>
-    dplyr::mutate(.by=Year,
+    dplyr::left_join(Weed_NPP_Scaling) |>
+    dplyr::left_join(Residue_Shares) |>
+    dplyr::left_join(Fallow_cover) |>
+    dplyr::mutate(.by = dplyr::all_of(.by),
       Scaling_weeds = dplyr::if_else(is.na(Scaling_weeds),
       mean(Scaling_weeds, na.rm = TRUE),
       Scaling_weeds
     )) |>
     (\(x) base::replace(x, is.na(x), 0))() |>
-    dplyr::mutate(.by=Year,
+    dplyr::mutate(.by = dplyr::all_of(.by),
       Weeds_AG_MgDM = dplyr::if_else(Name_biomass != "Fallow",
       Area_ygpit_ha * Scaling_weeds * NPPpot_MgDMha / (1 + Root_Shoot_ratio_W),
       Area_ygpit_ha * Fallow_cover_share * NPPpot_MgDMha / (1 + Root_Shoot_ratio_W)

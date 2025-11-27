@@ -4,10 +4,14 @@
 \alias{calculate_crop_npp_components}
 \title{Calculate Cropland NPP Components Including Weeds}
 \usage{
-calculate_crop_npp_components(Crop_NPPpot)
+calculate_crop_npp_components(Crop_NPPpot, .by = NULL)
 }
 \arguments{
 \item{Crop_NPPpot}{A data frame with potential NPP values and crop data}
+
+\item{.by}{Character vector of column names for grouping operations (e.g.,
+c("Year", "Region")). Used for scaling weeds calculations. If NULL, no
+grouping is applied.}
 }
 \value{
 A data frame with complete cropland NPP components (crop + weeds) in DM, C, N
@@ -18,6 +22,14 @@ and considering fallow periods.
 }
 \examples{
 \dontrun{
-cropland_npp <- calculate_crop_npp_components(crop_npp_potential)
+# With grouping by Year
+cropland_npp <- calculate_crop_npp_components(crop_npp_potential, .by = "Year")
+
+# With multiple grouping variables
+cropland_npp <- calculate_crop_npp_components(crop_npp_potential, 
+                                                .by = c("Year", "Region"))
+
+# Without grouping
+cropland_npp <- calculate_crop_npp_components(crop_npp_potential, .by = NULL)
 }
 }
