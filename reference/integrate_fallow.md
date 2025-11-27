@@ -1,0 +1,52 @@
+# Integrate Fallow Area into Cropland Area
+
+Integrates the area of fallow land into the area of crops by
+distributing fallow area proportionally across herbaceous crops based on
+their area share.
+
+## Usage
+
+``` r
+integrate_fallow(x, .by = NULL)
+```
+
+## Arguments
+
+- x:
+
+  Data frame with cropland and fallow area data containing columns:
+  LandUse, Name_biomass, Area_ygpit_ha
+
+- .by:
+
+  Character vector of column names for area aggregation grouping (e.g.,
+  c("Year", "Region")). If NULL, no grouping is applied.
+
+## Value
+
+Data frame with fallow area integrated into crop areas, excluding
+separate fallow entries. Includes Variable = "AreaProd" and Cat_1
+classification.
+
+## Details
+
+This function: 1. Filters out non-cropland and fallow entries 2.
+Identifies herbaceous crops using Names_biomass and Names_cats 3.
+Calculates area share for each herbaceous crop within groups 4.
+Distributes fallow area proportionally to herbaceous crops 5. Adds Cat_1
+classification from Names_cats
+
+Requires these objects from load_general_data(): - Names_biomass (with
+Name_biomass, Name, Herb_Woody columns) - Names_cats (with Name, Cat_1
+columns)
+
+Used in Crop_AreaNPP.R and Scenarios.R workflows.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+cropland_data |>
+  integrate_fallow(.by = c("Year", "Region", "Item"))
+} # }
+```

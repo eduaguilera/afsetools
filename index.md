@@ -94,14 +94,13 @@ final_fp <- footprints$FP_final
 
 ### NPP Calculation
 
-- [`Calc_NPP_potentials()`](https://eduaguilera.github.io/afsetools/reference/Calc_NPP_potentials.md):
-  Calculate potential NPP using Miami, NCEAS, and Rosenzweig models
-- [`Calculate_crop_NPP()`](https://eduaguilera.github.io/afsetools/reference/Calculate_crop_NPP.md):
-  Calculate crop NPP components (product, residue, root biomass)
-- [`Calc_NPP_DM_C_N()`](https://eduaguilera.github.io/afsetools/reference/Calc_NPP_DM_C_N.md):
-  Convert NPP to dry matter, carbon, and nitrogen
-- [`Calc_CropNPP_components()`](https://eduaguilera.github.io/afsetools/reference/Calc_CropNPP_components.md):
-  Complete cropland NPP including weed biomass
+- `Calc_NPP_potentials()`: Calculate potential NPP using Miami, NCEAS,
+  and Rosenzweig models
+- `Calculate_crop_NPP()`: Calculate crop NPP components (product,
+  residue, root biomass)
+- `Calc_NPP_DM_C_N()`: Convert NPP to dry matter, carbon, and nitrogen
+- `Calc_CropNPP_components()`: Complete cropland NPP including weed
+  biomass
 
 ### Impact Tracing
 

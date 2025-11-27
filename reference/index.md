@@ -13,13 +13,13 @@ Load coefficients, classifications, and foundational data objects.
 
 Net Primary Productivity calculation and conversion functions.
 
-- [`Calc_NPP_potentials()`](https://eduaguilera.github.io/afsetools/reference/Calc_NPP_potentials.md)
+- [`calculate_potential_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_potential_npp.md)
   : Calculate Potential Net Primary Production (NPP)
-- [`Calculate_crop_NPP()`](https://eduaguilera.github.io/afsetools/reference/Calculate_crop_NPP.md)
+- [`calculate_crop_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md)
   : Calculate Crop Net Primary Production Components
-- [`Calc_NPP_DM_C_N()`](https://eduaguilera.github.io/afsetools/reference/Calc_NPP_DM_C_N.md)
+- [`calculate_npp_dm_c_n()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md)
   : Calculate NPP in Dry Matter, Carbon, and Nitrogen
-- [`Calc_CropNPP_components()`](https://eduaguilera.github.io/afsetools/reference/Calc_CropNPP_components.md)
+- [`calculate_crop_npp_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md)
   : Calculate Cropland NPP Components Including Weeds
 
 ## Impact Tracing Functions
@@ -68,6 +68,20 @@ Complete footprint calculation pipelines.
   : Calculate Complete Environmental Footprints Along Supply Chains
 - [`extract_luh2()`](https://eduaguilera.github.io/afsetools/reference/extract_luh2.md)
   : Extract Data from Land-Use Harmonization 2 (LUH2) Dataset
+
+## Biomass Processing Functions
+
+Functions for biomass data processing including fallow integration and
+residue handling.
+
+- [`biomass_functions`](https://eduaguilera.github.io/afsetools/reference/biomass_functions.md)
+  : Biomass Processing Functions
+- [`integrate_fallow()`](https://eduaguilera.github.io/afsetools/reference/integrate_fallow.md)
+  : Integrate Fallow Area into Cropland Area
+- [`residues_as_items()`](https://eduaguilera.github.io/afsetools/reference/residues_as_items.md)
+  : Classify Residues as CBS Items
+- [`residue_use()`](https://eduaguilera.github.io/afsetools/reference/residue_use.md)
+  : Calculate Residue Use from Crop NPP Data
 
 ## Utility Functions
 

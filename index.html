@@ -106,10 +106,10 @@
 <span><span class="co"># - And 60+ more data objects</span></span>
 <span></span>
 <span><span class="co"># Calculate NPP from climate data</span></span>
-<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/Calc_NPP_potentials.html">Calc_NPP_potentials</a></span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span></span>
+<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu">Calc_NPP_potentials</span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Calculate crop NPP components</span></span>
-<span><span class="va">crop_npp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/Calculate_crop_NPP.html">Calculate_crop_NPP</a></span><span class="op">(</span><span class="va">crop_data</span>, <span class="va">harvest_index</span><span class="op">)</span></span>
+<span><span class="va">crop_npp</span> <span class="op">&lt;-</span> <span class="fu">Calculate_crop_NPP</span><span class="op">(</span><span class="va">crop_data</span>, <span class="va">harvest_index</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Trace impacts through supply chains</span></span>
 <span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span></span>
@@ -140,13 +140,13 @@
 </h3>
 <ul>
 <li>
-<code><a href="reference/Calc_NPP_potentials.html">Calc_NPP_potentials()</a></code>: Calculate potential NPP using Miami, NCEAS, and Rosenzweig models</li>
+<code>Calc_NPP_potentials()</code>: Calculate potential NPP using Miami, NCEAS, and Rosenzweig models</li>
 <li>
-<code><a href="reference/Calculate_crop_NPP.html">Calculate_crop_NPP()</a></code>: Calculate crop NPP components (product, residue, root biomass)</li>
+<code>Calculate_crop_NPP()</code>: Calculate crop NPP components (product, residue, root biomass)</li>
 <li>
-<code><a href="reference/Calc_NPP_DM_C_N.html">Calc_NPP_DM_C_N()</a></code>: Convert NPP to dry matter, carbon, and nitrogen</li>
+<code>Calc_NPP_DM_C_N()</code>: Convert NPP to dry matter, carbon, and nitrogen</li>
 <li>
-<code><a href="reference/Calc_CropNPP_components.html">Calc_CropNPP_components()</a></code>: Complete cropland NPP including weed biomass</li>
+<code>Calc_CropNPP_components()</code>: Complete cropland NPP including weed biomass</li>
 </ul>
 </div>
 <div class="section level3">

@@ -74,7 +74,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Creates Biomass_coefs, GWP, BNF, etc. in environment</span></span>
-<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/Calc_NPP_potentials.html">Calc_NPP_potentials</a></span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span>  <span class="co"># Functions use environment objects</span></span></code></pre></div>
+<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu">Calc_NPP_potentials</span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span>  <span class="co"># Functions use environment objects</span></span></code></pre></div>
 <p><strong>Implications for development</strong>: - Functions have implicit dependencies on environment objects - Test files must call <code><a href="reference/load_general_data.html">load_general_data()</a></code> in setup (see <code>tests/testthat/setup-afsetools.R</code>) - Adding new data: Update <code><a href="reference/load_general_data.html">load_general_data()</a></code>, document in <code>R/data.R</code>, list in <code>DATA_REFERENCE.md</code></p>
 </div>
 <div class="section level2">
@@ -175,7 +175,7 @@
 <ol style="list-style-type: decimal"><li>
 <strong>Data Loading</strong> (<code>load_data.R</code>): <code><a href="reference/load_general_data.html">load_general_data()</a></code> - loads 73+ objects</li>
 <li>
-<strong>NPP Calculation</strong> (<code>npp_functions.R</code>): <code><a href="reference/Calc_NPP_potentials.html">Calc_NPP_potentials()</a></code>, <code><a href="reference/Calculate_crop_NPP.html">Calculate_crop_NPP()</a></code>, <code><a href="reference/Calc_NPP_DM_C_N.html">Calc_NPP_DM_C_N()</a></code>, <code><a href="reference/Calc_CropNPP_components.html">Calc_CropNPP_components()</a></code>
+<strong>NPP Calculation</strong> (<code>npp_functions.R</code>): <code>Calc_NPP_potentials()</code>, <code>Calculate_crop_NPP()</code>, <code>Calc_NPP_DM_C_N()</code>, <code>Calc_CropNPP_components()</code>
 </li>
 <li>
 <strong>Impact Tracing</strong> (<code>impact_functions.R</code>): <code><a href="reference/Prepare_prim.html">Prepare_prim()</a></code>, <code><a href="reference/Allocate_impacts_to_products.html">Allocate_impacts_to_products()</a></code>, <code><a href="reference/calc_avail_fp_gt.html">calc_avail_fp_gt()</a></code>, <code><a href="reference/Calc_impact_processed.html">Calc_impact_processed()</a></code>
@@ -318,8 +318,7 @@
 <li>**Update _pkgdown.yml**: Organize functions by category</li>
 <li>
 <strong>No manual building needed</strong>: Workflow handles everything</li>
-</ul><p>**CRITICAL: _pkgdown.yml MUST stay in sync with exported functions<strong> - ❌ </strong>DO NOT** add <code>@export</code> to a function without adding it to <code>_pkgdown.yml</code> - ❌ <strong>DO NOT</strong> remove a function without removing it from <code>_pkgdown.yml</code> - ✅ <strong>ALWAYS</strong> add newly exported functions to the appropriate category in <code>_pkgdown.yml</code> - ✅ <strong>ALWAYS</strong> mark internal functions with <code>@keywords internal</code> instead of adding to <code>_pkgdown.yml</code> - Mismatches cause pkgdown builds to fail: “topic missing from index: [function_name]” - Run <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> locally before pushing to catch these errors early</p>
-</div>
+</ul></div>
 <div class="section level2">
 <h2 id="additional-files-structure">Additional Files Structure<a class="anchor" aria-label="anchor" href="#additional-files-structure"></a></h2>
 <p><strong>CRITICAL: Never create documentation or working files in the package root!</strong></p>
@@ -355,14 +354,10 @@
 <ol style="list-style-type: decimal"><li>Write function in appropriate R/ file (see function categories above)</li>
 <li>Add complete roxygen2 documentation</li>
 <li>Export if needed (<code>@export</code>)</li>
-<li>**CRITICAL: Add to _pkgdown.yml reference index** under appropriate category
-<ul><li>All exported functions MUST be listed in <code>_pkgdown.yml</code> or pkgdown build fails</li>
-<li>If internal function, use <code>@keywords internal</code> instead and skip this step</li>
-</ul></li>
+<li>**Add to _pkgdown.yml reference index** under appropriate category</li>
 <li>Write tests in tests/testthat/</li>
 <li>Run <code>devtools::document()</code> and <code>devtools::check()</code>
 </li>
-<li>Run <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> locally to verify before pushing</li>
 <li>Document development process in <code>additional_files/documentation/development/</code> if complex</li>
 </ol></div>
 <div class="section level3">

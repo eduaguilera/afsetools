@@ -176,11 +176,9 @@ df |>
 1.  **Data Loading** (`load_data.R`):
     [`load_general_data()`](https://eduaguilera.github.io/afsetools/reference/load_general_data.md) -
     loads 73+ objects
-2.  **NPP Calculation** (`npp_functions.R`):
-    [`Calc_NPP_potentials()`](https://eduaguilera.github.io/afsetools/reference/Calc_NPP_potentials.md),
-    [`Calculate_crop_NPP()`](https://eduaguilera.github.io/afsetools/reference/Calculate_crop_NPP.md),
-    [`Calc_NPP_DM_C_N()`](https://eduaguilera.github.io/afsetools/reference/Calc_NPP_DM_C_N.md),
-    [`Calc_CropNPP_components()`](https://eduaguilera.github.io/afsetools/reference/Calc_CropNPP_components.md)
+2.  **NPP Calculation** (`npp_functions.R`): `Calc_NPP_potentials()`,
+    `Calculate_crop_NPP()`, `Calc_NPP_DM_C_N()`,
+    `Calc_CropNPP_components()`
 3.  **Impact Tracing** (`impact_functions.R`):
     [`Prepare_prim()`](https://eduaguilera.github.io/afsetools/reference/Prepare_prim.md),
     [`Allocate_impacts_to_products()`](https://eduaguilera.github.io/afsetools/reference/Allocate_impacts_to_products.md),
@@ -356,17 +354,6 @@ assign("Root_Shoot_ratio_W",
 - \*\*Update \_pkgdown.yml\*\*: Organize functions by category
 - **No manual building needed**: Workflow handles everything
 
-\*\*CRITICAL: \_pkgdown.yml MUST stay in sync with exported functions
-**- ❌** DO NOT\*\* add `@export` to a function without adding it to
-`_pkgdown.yml` - ❌ **DO NOT** remove a function without removing it
-from `_pkgdown.yml` - ✅ **ALWAYS** add newly exported functions to the
-appropriate category in `_pkgdown.yml` - ✅ **ALWAYS** mark internal
-functions with `@keywords internal` instead of adding to
-`_pkgdown.yml` - Mismatches cause pkgdown builds to fail: “topic missing
-from index: \[function_name\]” - Run
-[`pkgdown::build_site()`](https://pkgdown.r-lib.org/reference/build_site.html)
-locally before pushing to catch these errors early
-
 ## Additional Files Structure
 
 **CRITICAL: Never create documentation or working files in the package
@@ -422,18 +409,11 @@ docs: `YYYY-MM-DD` format - Use lowercase with hyphens:
     above)
 2.  Add complete roxygen2 documentation
 3.  Export if needed (`@export`)
-4.  \*\*CRITICAL: Add to \_pkgdown.yml reference index\*\* under
-    appropriate category
-    - All exported functions MUST be listed in `_pkgdown.yml` or pkgdown
-      build fails
-    - If internal function, use `@keywords internal` instead and skip
-      this step
+4.  \*\*Add to \_pkgdown.yml reference index\*\* under appropriate
+    category
 5.  Write tests in tests/testthat/
 6.  Run `devtools::document()` and `devtools::check()`
-7.  Run
-    [`pkgdown::build_site()`](https://pkgdown.r-lib.org/reference/build_site.html)
-    locally to verify before pushing
-8.  Document development process in
+7.  Document development process in
     `additional_files/documentation/development/` if complex
 
 ### Adding New Data Objects
