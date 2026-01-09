@@ -191,6 +191,49 @@ test_that("drop_cols removes specified columns", {
   expect_equal(result$C, test_data$C)
 })
 
+test_that("drop_cols silently ignores non-existent columns", {
+  test_data <- tibble::tibble(
+    A = 1:3,
+    B = 4:6,
+    C = 7:9
+  )
+  
+  # Test with non-existent column mixed with existing
+ expect_no_error(result <- drop_cols(test_data, "A", "nonexistent"))
+  expect_false("A" %in% names(result))
+  expect_true("B" %in% names(result))
+  expect_true("C" %in% names(result))
+  
+  # Test with character vector containing non-existent columns
+  expect_no_error(result2 <- drop_cols(test_data, c("A", "B", "nonexistent", "also_missing")))
+  expect_equal(names(result2), "C")
+  
+  # Test with all non-existent columns (returns original df)
+  expect_no_error(result3 <- drop_cols(test_data, "x", "y", "z"))
+  expect_equal(names(result3), names(test_data))
+  expect_equal(nrow(result3), nrow(test_data))
+})
+
+test_that("drop_cols works with multiple argument styles", {
+  test_data <- tibble::tibble(
+    A = 1:3,
+    B = 4:6,
+    C = 7:9
+  )
+  
+  # Test with separate character arguments
+  result1 <- drop_cols(test_data, "A", "B")
+  expect_equal(names(result1), "C")
+  
+  # Test with character vector
+  result2 <- drop_cols(test_data, c("A", "B"))
+  expect_equal(names(result2), "C")
+  
+  # Test with single column
+  result3 <- drop_cols(test_data, "A")
+  expect_equal(names(result3), c("B", "C"))
+})
+
 test_that("is_empty correctly identifies empty data", {
   # Test with NULL
   expect_true(is_empty(data.frame()))

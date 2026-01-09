@@ -24,29 +24,24 @@ NULL
 
 #' Drop columns from data frame
 #'
-#' @description Drops an undefined number of columns from a data frame
+#' @description Drops an undefined number of columns from a data frame.
+#' Silently ignores columns that don't exist in the data frame.
 #'
 #' @param df Data frame
-#' @param ... Column names to drop (can be unquoted names or character vector)
+#' @param ... Column names to drop (character strings or character vector)
 #'
 #' @return Data frame without the specified columns
 #'
+#' @examples
+#' df <- data.frame(a = 1:3, b = 4:6, c = 7:9)
+#' drop_cols(df, "a", "b")
+#' drop_cols(df, c("a", "nonexistent"))  
+#'
 #' @export
 drop_cols <- function(df, ...) {
-  dots <- rlang::list2(...)
-  
-  # Handle both c("col1", "col2") and col1, col2 syntax
-  if (length(dots) == 1 && is.character(dots[[1]])) {
-    # Character vector passed
-    col_names <- dots[[1]]
-  } else {
-    # Individual symbols passed
-    cols <- rlang::ensyms(...)
-    col_names <- purrr::map_chr(cols, rlang::as_string)
-  }
-  
-  df |>
-    dplyr::select(-dplyr::any_of(col_names))
+ col_names <- unlist(list(...))
+ df |>
+   dplyr::select(-dplyr::any_of(col_names))
 }
 
 #' Check if dataset is empty
