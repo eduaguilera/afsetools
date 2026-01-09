@@ -10,13 +10,13 @@
 Source:
 [`DESCRIPTION`](https://github.com/eduaguilera/afsetools/blob/main/DESCRIPTION)
 
-Aguilera E (2025). *afsetools: Agro-Food System and Environment Tools*.
+Aguilera E (2026). *afsetools: Agro-Food System and Environment Tools*.
 R package version 0.1.0, <https://eduaguilera.github.io/afsetools>.
 
     @Manual{,
       title = {afsetools: Agro-Food System and Environment Tools},
       author = {Eduardo Aguilera},
-      year = {2025},
+      year = {2026},
       note = {R package version 0.1.0},
       url = {https://eduaguilera.github.io/afsetools},
     }
