@@ -9,11 +9,18 @@ drop_cols(df, ...)
 \arguments{
 \item{df}{Data frame}
 
-\item{...}{Column names to drop (can be unquoted names or character vector)}
+\item{...}{Column names to drop (character strings or character vector)}
 }
 \value{
 Data frame without the specified columns
 }
 \description{
-Drops an undefined number of columns from a data frame
+Drops an undefined number of columns from a data frame.
+Silently ignores columns that don't exist in the data frame.
+}
+\examples{
+df <- data.frame(a = 1:3, b = 4:6, c = 7:9)
+drop_cols(df, "a", "b")
+drop_cols(df, c("a", "nonexistent"))  
+
 }
