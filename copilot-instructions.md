@@ -17,7 +17,7 @@ global supply chains.
 - **Type-safe conditionals**: Use
   [`dplyr::if_else()`](https://dplyr.tidyverse.org/reference/if_else.html)
   or
-  [`dplyr::case_when()`](https://dplyr.tidyverse.org/reference/case_when.html)
+  [`dplyr::case_when()`](https://dplyr.tidyverse.org/reference/case-and-replace-when.html)
   instead of base [`ifelse()`](https://rdrr.io/r/base/ifelse.html)
 - **roxygen2 documentation**: All exported functions must have complete
   roxygen2 documentation
