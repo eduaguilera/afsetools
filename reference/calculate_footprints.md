@@ -24,10 +24,10 @@ calculate_footprints(
 - cbs:
 
   Commodity Balance Sheets table. Required columns: \`Year\`, \`area\`,
-  \`area_code\`, \`item\`, \`item_code\`, \`Element\`, \`Value\`. This
-  function uses at least the following \`Element\` values:
-  \`Production\`, \`Import\`, \`Export\`, \`Seed\`, \`Processing\`, and
-  \`Domestic_supply\`.
+  \`area_code\`, \`item_cbs\`, \`item_code_cbs\`, \`Element\`,
+  \`Value\`. This function uses at least the following \`Element\`
+  values: \`Production\`, \`Import\`, \`Export\`, \`Seed\`,
+  \`Processing\`, and \`Domestic_supply\`.
 
 - primary:
 
