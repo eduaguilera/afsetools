@@ -182,8 +182,10 @@ calculate_footprints <- function(cbs,
   
   # Calculate footprint of primary items
   FP_prim <- Primary_raw |>
+    dplyr::mutate(item_code_impact = as.character(item_code_impact)) |>
     dplyr::left_join(impact_prod |>
       dplyr::select(Year, area, item_code_prod, Impact, Value, u_FU) |>
+      dplyr::mutate(item_code_prod = as.character(item_code_prod)) |>
       dplyr::rename(
         item_code_impact = item_code_prod,
         FU = Value
@@ -213,6 +215,7 @@ calculate_footprints <- function(cbs,
             dplyr::select(Year, area, item_prod, item_cbs, Prod_ygpit_Mg) |>
             dplyr::left_join(items_prod_full |>
               dplyr::select(item_code_prod, item_prod), by = c("item_prod")) |>
+            dplyr::mutate(item_code_prod = as.character(item_code_prod)) |>
             dplyr::rename(
               item_code_impact = item_code_prod,
               Value = Prod_ygpit_Mg
