@@ -5,38 +5,60 @@
 \title{Calculate Complete Environmental Footprints Along Supply Chains}
 \usage{
 calculate_footprints(
-  CBS,
-  Primary_all,
-  Impact_prod,
-  Crop_NPPr_NoFallow,
-  DTM = NULL,
-  trade_mode = "gt"
+  cbs,
+  primary,
+  impact_prod,
+  crop_nppr,
+  feed_intake,
+  dtm = NULL
 )
 }
 \arguments{
-\item{CBS}{Commodity Balance Sheets data frame with columns: Year, area, area_code, item, item_code, Element, Value}
+\item{cbs}{Commodity Balance Sheets table. Required columns: \code{Year}, \code{area},
+\code{area_code}, \code{item}, \code{item_code}, \code{Element}, \code{Value}.
+This function uses at least the following \code{Element} values:
+\code{Production}, \code{Import}, \code{Export}, \code{Seed},
+\code{Processing}, and \code{Domestic_supply}.}
 
-\item{Primary_all}{Primary production data frame with crop areas and production}
+\item{primary}{Primary production / co-product table (new schema). Required
+columns: \code{Year}, \code{area}, \code{area_code}, \code{item_prod},
+\code{item_code_prod}, \code{unit}, \code{Value}, \code{item_cbs},
+\code{item_code_cbs}, \code{Live_anim}, \code{Live_anim_code},
+\code{Relative_residue_price}. The workflow expects \code{unit == "tonnes"}
+rows and (for draught allocation) \code{unit == "LU"} livestock rows.}
 
-\item{Impact_prod}{Impact data at production level with columns: Year, area_code, item_code, Impact, Value, u_FU}
+\item{impact_prod}{Production impact table (new schema). Required columns:
+\code{Year}, \code{area}, \code{item_prod}, \code{item_code_prod},
+\code{Impact}, \code{Value}, \code{u_FU}. \code{Value} is treated as the
+functional unit amount (\code{FU}) when joining production impacts to primary
+production.}
 
-\item{Crop_NPPr_NoFallow}{Crop NPP data excluding fallow periods}
+\item{crop_nppr}{Crop NPP / residue table. Required columns: \code{Year},
+\code{area}, \code{item_prod}, \code{item_cbs}, \code{Product_residue},
+\code{Prod_ygpit_Mg}. Residue flows are taken from rows where
+\code{Product_residue == "Residue"}.}
 
-\item{DTM}{Detailed Trade Matrix data (optional, depending on trade_mode)}
+\item{feed_intake}{Feed intake table (new schema). Required columns:
+\code{Year}, \code{area}, \code{area_code}, \code{Live_anim},
+\code{item_cbs}, \code{item_code_cbs}, \code{Supply}, \code{Intake_DM}.}
 
-\item{trade_mode}{Character string: "gt" for gross trade or "dtm" for detailed trade matrix. Default is "gt".}
+\item{dtm}{Optional detailed trade matrix. If \code{NULL} (default), the
+function uses gross-trade mode (\code{calc_avail_fp_gt()}). If provided, it
+automatically uses detailed bilateral trade mode (\code{calc_avail_fp_dtm()}).
+Required columns when provided: \code{Year}, \code{area_code},
+\code{area_code_p}, \code{area_p}, \code{item_code}, \code{Element},
+\code{Impact}, \code{Country_share} (with \code{Element == "Import"} rows
+used).}
 }
 \value{
-A named list containing all footprint data frames:
-  \item{FP_prim}{Primary production footprints with economic allocation}
-  \item{FP_prim_ds}{Primary product footprints including domestic supply}
-  \item{FP_processed_raw}{Processed product footprints (raw calculation)}
-  \item{FP_processed_ds}{Processed product footprints with domestic supply}
-  \item{FP_feed}{Feed product footprints}
-  \item{FP_feed_ds}{Feed product footprints with domestic supply}
-  \item{FP_final}{Final comprehensive footprint data frame}
-  \item{Seed_share}{Calculated seed shares by crop}
-  \item{draught_shares}{Draught animal allocation shares}
+A named list of intermediate and final footprint tables, including:
+\code{FP_prim}, \code{FP_prim_i}, \code{FP_prim_i_global}, \code{FP_prim_ds},
+\code{FP_prim_ds_i}, \code{FP_processed_raw}, \code{FP_processed_raw_i},
+\code{FP_processed_ds}, \code{FP_processed_ds_i}, \code{FP_reprocessed_raw},
+\code{FP_reprocessed_raw_i}, \code{FP_raw_all}, \code{FP_feed_raw},
+\code{FP_feed}, \code{FP_feed_i}, \code{FP_feed_ds}, \code{FP_feed_ds_i},
+\code{FP_ioc}, \code{FP_i}, \code{FP_final}, \code{Seed_share},
+\code{draught_shares}, \code{Import_share}, and \code{Processing_shares}.
 }
 \description{
 Main workflow function that traces environmental footprints through global supply chains,
@@ -50,7 +72,7 @@ This function implements a complete footprint accounting system that:
   \item Calculates seed shares and removes them from production
   \item Allocates impacts to co-products using economic allocation
   \item Traces impacts through processing chains
-  \item Accounts for international trade (gross trade or bilateral trade matrix)
+  \item Accounts for international trade (gross trade when \code{dtm} is \code{NULL}, bilateral trade matrix when \code{dtm} is provided)
   \item Handles feed products and livestock production
   \item Allocates draught animal services to crop production
 }
@@ -63,14 +85,16 @@ all necessary coefficient tables and classification data.
 library(afsetools)
 load_general_data()
 
-# Calculate footprints using gross trade
+# Calculate footprints using gross trade (omit dtm)
 footprints <- calculate_footprints(
-  CBS = my_cbs_data,
-  Primary_all = my_primary_data,
-  Impact_prod = my_impact_data,
-  Crop_NPPr_NoFallow = my_npp_data,
-  trade_mode = "gt"
+  cbs = my_cbs_data,
+  primary = my_primary_data,
+  impact_prod = my_impact_data,
+  crop_nppr = my_npp_data,
+  feed_intake = my_feed_intake
 )
+
+# To use bilateral trade, pass dtm = my_dtm_data
 
 # Access individual footprint tables
 fp_primary <- footprints$FP_prim

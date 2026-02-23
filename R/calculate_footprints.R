@@ -5,23 +5,38 @@
 #' orchestrates the entire footprint calculation process and returns all intermediate
 #' and final footprint data frames.
 #'
-#' @param CBS Commodity Balance Sheets data frame with columns: Year, area, area_code, item, item_code, Element, Value
-#' @param Primary_all Primary production data frame with crop areas and production
-#' @param Impact_prod Impact data at production level with columns: Year, area_code, item_code, Impact, Value, u_FU
-#' @param Crop_NPPr_NoFallow Crop NPP data excluding fallow periods
-#' @param DTM Detailed Trade Matrix data (optional, depending on trade_mode)
-#' @param trade_mode Character string: "gt" for gross trade or "dtm" for detailed trade matrix. Default is "gt".
+#' @param cbs Commodity Balance Sheets table. Required columns: `Year`, `area`,
+#'   `area_code`, `item`, `item_code`, `Element`, `Value`. This function uses at
+#'   least the following `Element` values: `Production`, `Import`, `Export`,
+#'   `Seed`, `Processing`, and `Domestic_supply`.
+#' @param primary Primary production / co-product table (new schema). Required
+#'   columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
+#'   `Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
+#'   `Relative_residue_price`. The workflow expects `unit == "tonnes"` rows and
+#'   (for draught allocation) `unit == "LU"` livestock rows.
+#' @param impact_prod Production impact table (new schema). Required columns:
+#'   `Year`, `area`, `item_prod`, `item_code_prod`, `Impact`, `Value`,
+#'   `u_FU`. `Value` is treated as the functional unit amount (`FU`) when joining
+#'   production impacts to primary production.
+#' @param crop_nppr Crop NPP / residue table. Required columns: `Year`, `area`,
+#'   `item_prod`, `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`. Residue flows
+#'   are taken from rows where `Product_residue == "Residue"`.
+#' @param feed_intake Feed intake table (new schema). Required columns: `Year`,
+#'   `area`, `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
+#'   `Intake_DM`.
+#' @param dtm Optional detailed trade matrix. If `NULL` (default), the function
+#'   uses gross-trade mode (`calc_avail_fp_gt()`). If provided, it automatically
+#'   uses detailed bilateral trade mode (`calc_avail_fp_dtm()`). Required columns
+#'   when provided: `Year`, `area_code`, `area_code_p`, `area_p`, `item_code`,
+#'   `Element`, `Impact`, `Country_share` (with `Element == "Import"` rows used).
 #'
-#' @return A named list containing all footprint data frames:
-#'   \item{FP_prim}{Primary production footprints with economic allocation}
-#'   \item{FP_prim_ds}{Primary product footprints including domestic supply}
-#'   \item{FP_processed_raw}{Processed product footprints (raw calculation)}
-#'   \item{FP_processed_ds}{Processed product footprints with domestic supply}
-#'   \item{FP_feed}{Feed product footprints}
-#'   \item{FP_feed_ds}{Feed product footprints with domestic supply}
-#'   \item{FP_final}{Final comprehensive footprint data frame}
-#'   \item{Seed_share}{Calculated seed shares by crop}
-#'   \item{draught_shares}{Draught animal allocation shares}
+#' @return A named list of intermediate and final footprint tables, including:
+#'   `FP_prim`, `FP_prim_i`, `FP_prim_i_global`, `FP_prim_ds`, `FP_prim_ds_i`,
+#'   `FP_processed_raw`, `FP_processed_raw_i`, `FP_processed_ds`,
+#'   `FP_processed_ds_i`, `FP_reprocessed_raw`, `FP_reprocessed_raw_i`,
+#'   `FP_raw_all`, `FP_feed_raw`, `FP_feed`, `FP_feed_i`, `FP_feed_ds`,
+#'   `FP_feed_ds_i`, `FP_ioc`, `FP_i`, `FP_final`, `Seed_share`,
+#'   `draught_shares`, `Import_share`, and `Processing_shares`.
 #'
 #' @details
 #' This function implements a complete footprint accounting system that:
@@ -29,7 +44,8 @@
 #'   \item Calculates seed shares and removes them from production
 #'   \item Allocates impacts to co-products using economic allocation
 #'   \item Traces impacts through processing chains
-#'   \item Accounts for international trade (gross trade or bilateral trade matrix)
+#'   \item Accounts for international trade (gross trade when `dtm` is `NULL`,
+#'     bilateral trade matrix when `dtm` is provided)
 #'   \item Handles feed products and livestock production
 #'   \item Allocates draught animal services to crop production
 #' }
@@ -44,35 +60,76 @@
 #' library(afsetools)
 #' load_general_data()
 #'
-#' # Calculate footprints using gross trade
+#' # Calculate footprints using gross trade (omit dtm)
 #' footprints <- calculate_footprints(
-#'   CBS = my_cbs_data,
-#'   Primary_all = my_primary_data,
-#'   Impact_prod = my_impact_data,
-#'   Crop_NPPr_NoFallow = my_npp_data,
-#'   trade_mode = "gt"
+#'   cbs = my_cbs_data,
+#'   primary = my_primary_data,
+#'   impact_prod = my_impact_data,
+#'   crop_nppr = my_npp_data,
+#'   feed_intake = my_feed_intake
 #' )
+#'
+#' # To use bilateral trade, pass dtm = my_dtm_data
 #'
 #' # Access individual footprint tables
 #' fp_primary <- footprints$FP_prim
 #' fp_final <- footprints$FP_final
 #' }
-calculate_footprints <- function(CBS,
-                                  Primary_all,
-                                  Impact_prod,
-                                  Crop_NPPr_NoFallow,
-                                  DTM = NULL,
-                                  trade_mode = "gt") {
+calculate_footprints <- function(cbs,
+                                  primary,
+                                  impact_prod,
+                                  crop_nppr,
+                                  feed_intake,
+                                  dtm = NULL) {
   
-  # Select trade calculation method
-  calc_avail_fp <- base::switch(trade_mode,
-    "gt" = calc_avail_fp_gt,
-    "dtm" = calc_avail_fp_dtm,
-    base::stop("Error: trade_mode must be 'gt' or 'dtm'")
-  )
+  # Normalize external schemas to internal item/item_code conventions.
+  impact_prod <- impact_prod |>
+    dplyr::rename(
+      item = item_prod,
+      item_code = item_code_prod
+    )
+
+  feed_intake <- feed_intake |>
+    dplyr::rename(
+      item = item_cbs,
+      item_code = item_code_cbs
+    )
+
+  # Select trade calculation method automatically from dtm availability.
+  calc_avail_fp <- if (is.null(dtm)) {
+    function(filtered_cbs, df) {
+      calc_avail_fp_gt(filtered_cbs, df, cbs = cbs)
+    }
+  } else {
+    function(filtered_cbs, df) {
+      calc_avail_fp_dtm(
+        filtered_cbs,
+        df,
+        cbs = cbs,
+        dtm = dtm,
+        impact_prod = impact_prod
+      )
+    }
+  }
+
+  # data.table fast path for large aggregations.
+  fast_sum_value_impact <- function(df, by_cols) {
+    dt <- data.table::as.data.table(df)
+    out <- dt[, .(
+      Value = sum(Value, na.rm = TRUE),
+      Impact_u = sum(Impact_u, na.rm = TRUE)
+    ), by = by_cols]
+    as.data.frame(out)
+  }
+
+  fast_sum_impact <- function(df, by_cols) {
+    dt <- data.table::as.data.table(df)
+    out <- dt[, .(Impact_u = sum(Impact_u, na.rm = TRUE)), by = by_cols]
+    as.data.frame(out)
+  }
   
   # Calculate share of seeds over production
-  Seed_share <- CBS |>
+  Seed_share <- cbs |>
     dplyr::filter(Element %in% c("Seed", "Production")) |>
     tidyr::pivot_wider(
       names_from = Element,
@@ -89,7 +146,7 @@ calculate_footprints <- function(CBS,
     dplyr::select(Year, area, area_code, item, item_code, Seed_share, Seed)
   
   # Remove seeds from CBS
-  CBS_NoSeeds <- CBS |>
+  CBS_NoSeeds <- cbs |>
     dplyr::left_join(Seed_share, by = c("Year", "area", "area_code", "item", "item_code")) |>
     dplyr::mutate(Value = dplyr::if_else(Element %in% c("Production", "Domestic_supply"),
       Value - Seed,
@@ -98,7 +155,7 @@ calculate_footprints <- function(CBS,
     dplyr::select(-Seed_share, -Seed)
   
   # Prepare primary production data
-  Primary_raw <- Prepare_prim(Primary_all)
+  Primary_raw <- Prepare_prim(primary)
   
   # Calculate draught animal shares
   Draught_animals <- c("Buffalo", "Camels", "Cattle, dairy", "Cattle, non-dairy", 
@@ -106,8 +163,8 @@ calculate_footprints <- function(CBS,
   
   draught_shares_all <- Primary_raw |>
     dplyr::filter(unit == "tonnes") |>
-    dplyr::inner_join(Primary_all |>
-      dplyr::mutate(Live_anim = item) |>
+    dplyr::inner_join(primary |>
+      dplyr::mutate(Live_anim = item_prod) |>
       dplyr::filter(unit == "LU") |>
       dplyr::rename(LU = Value) |>
       dplyr::select(Year, area, Live_anim, LU), by = c("Year", "area", "Live_anim")) |>
@@ -139,12 +196,12 @@ calculate_footprints <- function(CBS,
   
   # Calculate footprint of primary items
   FP_prim <- Primary_raw |>
-    dplyr::left_join(Impact_prod |>
-      dplyr::select(Year, area_code, item_code, Impact, Value, u_FU) |>
+    dplyr::left_join(impact_prod |>
+      dplyr::select(Year, area, item_code, Impact, Value, u_FU) |>
       dplyr::rename(
         item_code_impact = item_code,
         FU = Value
-      ), by = c("Year", "area_code", "item_code_impact", "Impact")) |>
+      ), by = c("Year", "area", "item_code_impact", "Impact")) |>
     dplyr::mutate(Origin = "Production") |>
     dplyr::left_join(Seed_share |>
       dplyr::select(Year, area_code, item_code, Seed_share) |>
@@ -166,7 +223,7 @@ calculate_footprints <- function(CBS,
             u_FU = mean(u_FU),
             .groups = "drop"
           ) |>
-          dplyr::right_join(Crop_NPPr_NoFallow |>
+          dplyr::right_join(crop_nppr |>
             dplyr::filter(Product_residue == "Residue") |>
             dplyr::select(Year, area, item_prod, item_cbs, Prod_ygpit_Mg) |>
             dplyr::left_join(items_prod_full |>
@@ -197,7 +254,7 @@ calculate_footprints <- function(CBS,
       Yield_DM = Yield * Product_kgDM_kgFM,
       Yield_N = Yield_DM * Product_kgN_kgDM
     ) |>
-    Allocate_impacts_to_products() |>
+    Allocate_impacts_to_products(draught_shares = draught_shares) |>
     dplyr::group_by(Year, area, item_code_impact, item_cbs, item_code_cbs, Impact) |>
     dplyr::mutate(n = n()) |>
     dplyr::ungroup()
@@ -223,40 +280,49 @@ calculate_footprints <- function(CBS,
         dplyr::select(item_code, group), by = c("item_code")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
-        group %in% c("Primary crops", "Livestock products", "Fish") | 
-          item %in% c("Cotton lint", "Cottonseed", "Palm Oil", "Palm kernels")
+        group %in% c("Primary crops", "Livestock products", "Fish")
       ),
     FP_prim_i |> dplyr::filter(!is.na(Impact))
   )
   
   FP_prim_ds_i <- FP_prim_ds |>
-    dplyr::group_by(Year, area, area_code, item, item_code, Origin, Impact) |>
+    dplyr::group_by(Year, area, area_code, Element, Origin, Impact, item) |>
     dplyr::summarize(
+      Impact_Mu = sum(Impact_u, na.rm = TRUE) / 1000000,
       Value = sum(Value, na.rm = TRUE),
-      Impact_u = sum(Impact_u, na.rm = TRUE),
       .groups = "drop"
     ) |>
-    dplyr::mutate(u_ton = Impact_u / Value)
+    dplyr::group_by(Year, area, Impact) |>
+    dplyr::mutate(Elem_share = Impact_Mu / sum(Impact_Mu)) |>
+    dplyr::ungroup()
   
   # Calculate import shares
   Import_share <- FP_prim_ds |>
-    dplyr::group_by(Year, area, item, Impact) |>
+    dplyr::group_by(Year, area, Element, Impact) |>
     dplyr::summarize(
-      Value = sum(Value, na.rm = TRUE),
-      Impact_u = sum(Impact_u, na.rm = TRUE),
+      Impact_Mu = sum(Impact_u, na.rm = TRUE) / 1000000,
       .groups = "drop"
     ) |>
-    tidyr::pivot_wider(names_from = Origin, values_from = c(Value, Impact_u), values_fill = 0)
+    dplyr::group_by(Year, area, Impact) |>
+    dplyr::mutate(Elem_share = Impact_Mu / sum(Impact_Mu)) |>
+    dplyr::ungroup()
   
   # Calculate processing shares
-  Processing_shares <- CBS_NoSeeds |>
-    tidyr::pivot_wider(names_from = Element, values_from = Value, values_fill = 0) |>
-    dplyr::mutate(Proc_share = Processing / (Production + Import)) |>
-    dplyr::select(Year, area, area_code, item, item_code, Proc_share) |>
-    dplyr::filter(Proc_share > 0, !is.na(Proc_share))
+  processing_shares <- CBS_NoSeeds |>
+    dplyr::filter(Element == "Processing") |>
+    dplyr::rename(Value_proc = Value) |>
+    dplyr::left_join(
+      CBS_NoSeeds |>
+        dplyr::filter(Element %in% c("Production", "Import")) |>
+        dplyr::group_by(Year, area_code, item_code) |>
+        dplyr::summarize(Value_ds = sum(Value, na.rm = TRUE), .groups = "drop"),
+      by = c("Year", "area_code", "item_code")
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(Proc_share = Value_proc / Value_ds)
   
   # Processed products
-  FP_processed_raw <- Calc_impact_processed(FP_prim_ds)
+  FP_processed_raw <- Calc_impact_processed(FP_prim_ds, processing_shares = processing_shares)
   FP_processed_raw_i <- Agg_processed(FP_processed_raw)
   
   FP_processed_ds <- calc_avail_fp(
@@ -265,37 +331,121 @@ calculate_footprints <- function(CBS,
         dplyr::select(item_code, group), by = c("item_code")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
-        group == "Processed"
+        group %in% c("Crop products", "Processed")
       ),
     FP_processed_raw_i
   )
   
   # Re-processed products (e.g., wine to alcohol)
-  FP_reprocessed_raw <- Calc_impact_processed(FP_processed_ds)
+  FP_reprocessed_raw <- Calc_impact_processed(FP_processed_ds, processing_shares = processing_shares)
   FP_reprocessed_raw_i <- Agg_processed(FP_reprocessed_raw)
   
   FP_processed_ds_i <- dplyr::bind_rows(
-    FP_processed_ds,
+    FP_processed_ds |>
+      dplyr::mutate(Cat_proc = "Processed"),
     FP_reprocessed_raw_i |>
-      dplyr::mutate(Element = "Production")
+      dplyr::mutate(Cat_proc = "Reprocessed")
   ) |>
-    dplyr::group_by(Year, area, area_code, item, item_code, Origin, Impact) |>
+    dplyr::group_by(Year, area, area_code, Element, Origin, Impact, item, Cat_proc) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE),
-      Impact_u = sum(Impact_u, na.rm = TRUE),
+      Impact_Mu = sum(Impact_u, na.rm = TRUE) / 1000000,
       .groups = "drop"
     ) |>
-    dplyr::mutate(u_ton = Impact_u / Value)
-  
-  # Feed products
-  FP_feed_i <- dplyr::bind_rows(FP_prim_i, FP_processed_raw_i, FP_reprocessed_raw_i)
-  
+    dplyr::group_by(Year, area, Impact) |>
+    dplyr::mutate(Elem_share = Impact_Mu / sum(Impact_Mu)) |>
+    dplyr::ungroup() |>
+    dplyr::filter(Impact_Mu != 0) |>
+    dplyr::mutate(i_ton = Impact_Mu * 1000000 / Value)
+
+  FP_raw_all <- fast_sum_value_impact(
+    dplyr::bind_rows(
+      FP_prim_ds,
+      FP_processed_ds,
+      FP_reprocessed_raw_i
+    ),
+    by_cols = c("Year", "area", "area_code", "Element", "Origin", "Impact", "item", "item_code")
+  ) |>
+    dplyr::mutate(u_ton = Impact_u / Value) |>
+    dplyr::group_by(Year, area, area_code, item, item_code, Impact) |>
+    dplyr::mutate(u_ton_scaled = Impact_u / sum(Value)) |>
+    dplyr::ungroup()
+
+  # Feed footprint of livestock products (legacy script logic)
+  FP_feed_raw <- feed_intake |>
+    dplyr::left_join(
+      Animals_codes |>
+        dplyr::select(item, item_code) |>
+        dplyr::rename(
+          Live_anim = item,
+          Live_anim_code = item_code
+        ) |>
+        dplyr::distinct(),
+      by = c("Live_anim")
+    ) |>
+    dplyr::left_join(
+      FP_raw_all |>
+        dplyr::select(Year, area, area_code, item, item_code, Impact, Origin, u_ton_scaled),
+      by = c("Year", "area", "area_code", "item", "item_code")
+    ) |>
+    dplyr::mutate(FPFeed_u = Supply * u_ton_scaled) |>
+    dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, Impact, Origin) |>
+    dplyr::mutate(DM_origin = sum(Intake_DM, na.rm = TRUE)) |>
+    dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, Impact) |>
+    dplyr::mutate(
+      DM_LiveAnim = sum(Intake_DM, na.rm = TRUE),
+      Origin_share_DM = DM_origin / DM_LiveAnim
+    ) |>
+    dplyr::ungroup()
+
+  FP_feed <- FP_feed_raw |>
+    dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, Impact, Origin) |>
+    dplyr::summarize(
+      Impact_u = sum(FPFeed_u, na.rm = TRUE),
+      Origin_share_DM = mean(Origin_share_DM, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    dplyr::filter(!is.na(Origin)) |>
+    dplyr::mutate(
+      FU = 1,
+      u_FU = Impact_u / FU
+    ) |>
+    dplyr::left_join(
+      primary |>
+        dplyr::filter(unit == "tonnes") |>
+        dplyr::rename(
+          item = item_prod,
+          item_code = item_code_prod
+        ),
+      by = c("Year", "area", "area_code", "item", "item_code")
+    ) |>
+    dplyr::mutate(
+      Value_tot = Value,
+      Value = Value_tot * Origin_share_DM
+    ) |>
+    dplyr::mutate(
+      item_code_impact = Live_anim_code,
+      Product_residue = "Product"
+    ) |>
+    Allocate_impacts_to_products(draught_shares = draught_shares) |>
+    dplyr::filter(!is.na(Impact))
+
+  FP_feed_i <- Agg_primary(FP_feed) |>
+    dplyr::filter(!is.na(item))
+
   FP_feed_ds <- calc_avail_fp(
     CBS_NoSeeds |>
-      dplyr::filter(Element %in% c("Production", "Import")),
+      dplyr::left_join(items_full |>
+        dplyr::select(item_code, group), by = c("item_code")) |>
+      dplyr::filter(
+        Element %in% c("Production", "Import"),
+        group == "Livestock products"
+      ),
     FP_feed_i
-  )
-  
+  ) |>
+    dplyr::filter(!is.na(Origin))
+
+  # Keep a summary table for package workflows that expected a summarized feed output.
   FP_feed_ds_i <- FP_feed_ds |>
     dplyr::group_by(Year, area, area_code, item, item_code, Origin, Impact) |>
     dplyr::summarize(
@@ -304,24 +454,101 @@ calculate_footprints <- function(CBS,
       .groups = "drop"
     ) |>
     dplyr::mutate(u_ton = Impact_u / Value)
-  
-  # Final comprehensive footprint
-  FP_final <- dplyr::bind_rows(
-    FP_prim_ds_i |> dplyr::mutate(Product_group = "Primary"),
-    FP_processed_ds_i |> dplyr::mutate(Product_group = "Processed"),
-    FP_feed_ds_i |> dplyr::mutate(Product_group = "Feed")
-  )
+
+  FP_ioc <- dplyr::bind_rows(
+    FP_raw_all |>
+      dplyr::left_join(items_full |>
+        dplyr::select(item_code, group), by = c("item_code")) |>
+      dplyr::mutate(Prod_class = dplyr::if_else(
+        group == "Livestock products",
+        "Animal",
+        "Cropland"
+      )),
+    FP_feed_ds |>
+      dplyr::mutate(Prod_class = "Cropland")
+  ) |>
+    dplyr::filter(!is.na(Impact))
+
+  FP_ioc <- fast_sum_impact(
+    FP_ioc,
+    by_cols = c("Year", "area", "area_code", "item", "item_code", "Element", "Impact", "Prod_class", "Origin")
+  ) |>
+    dplyr::left_join(
+      CBS_NoSeeds,
+      by = c("Year", "area", "area_code", "item", "item_code", "Element")
+    ) |>
+    dplyr::mutate(u_ton = Impact_u / Value) |>
+    dplyr::ungroup() |>
+    dplyr::left_join(
+      items_full |>
+        dplyr::select(item, item_code, group),
+      by = c("item", "item_code")
+    )
+
+  FP_i <- fast_sum_impact(
+    FP_ioc,
+    by_cols = c("Year", "area", "area_code", "Prod_class", "item", "item_code", "Element", "Impact")
+  ) |>
+    dplyr::left_join(
+      CBS_NoSeeds,
+      by = c("Year", "area", "area_code", "item", "item_code", "Element")
+    ) |>
+    dplyr::mutate(u_ton = Impact_u / Value) |>
+    dplyr::ungroup()
+
+  FP_final <- fast_sum_value_impact(
+    FP_ioc,
+    by_cols = c("Year", "Impact", "area", "area_code", "Element", "Origin", "item", "item_code", "group")
+  ) |>
+    dplyr::mutate(u_ton = Impact_u / Value) |>
+    dplyr::left_join(
+      CBS_NoSeeds |>
+        tidyr::pivot_wider(
+          names_from = Element,
+          values_from = Value,
+          values_fill = 0
+        ) |>
+        dplyr::mutate(
+          Exp_share = Export / (Production + Import),
+          Exp_share = dplyr::if_else(
+            is.infinite(Exp_share) | Exp_share > 1,
+            1,
+            Exp_share
+          )
+        ) |>
+        dplyr::select(Year, area, item, Exp_share),
+      by = c("Year", "area", "item")
+    ) |>
+    dplyr::mutate(
+      Export_u = Impact_u * Exp_share,
+      Consumption_u = Impact_u - Export_u
+    )
   
   # Return all footprint objects as a named list
   return(list(
     FP_prim = FP_prim,
+    FP_prim_i = FP_prim_i,
+    FP_prim_i_global = FP_prim_i_global,
     FP_prim_ds = FP_prim_ds,
+    FP_prim_ds_i = FP_prim_ds_i,
     FP_processed_raw = FP_processed_raw,
+    FP_processed_raw_i = FP_processed_raw_i,
     FP_processed_ds = FP_processed_ds,
-    FP_feed = FP_feed_ds,
-    FP_feed_ds = FP_feed_ds_i,
+    FP_processed_ds_i = FP_processed_ds_i,
+    FP_reprocessed_raw = FP_reprocessed_raw,
+    FP_reprocessed_raw_i = FP_reprocessed_raw_i,
+    FP_raw_all = FP_raw_all,
+    FP_feed_raw = FP_feed_raw,
+    FP_feed = FP_feed,
+    FP_feed_i = FP_feed_i,
+    FP_feed_ds = FP_feed_ds,
+    FP_feed_ds_i = FP_feed_ds_i,
+    FP_ioc = FP_ioc,
+    FP_i = FP_i,
     FP_final = FP_final,
     Seed_share = Seed_share,
-    draught_shares = draught_shares
+    draught_shares = draught_shares,
+    Import_share = Import_share,
+    Processing_shares = processing_shares
   ))
 }
