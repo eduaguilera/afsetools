@@ -195,7 +195,10 @@ calc_avail_fp_gt <- function(filtered_cbs, df, cbs) {
     df, # Production impact
     filtered_cbs |> # Import impact
       dplyr::filter(Element == "Import") |>
-      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code_cbs", "Impact"))
+      dplyr::left_join(
+        get_global_export_footprint(df, cbs = cbs),
+        by = c("Year", "item_code_cbs", "Element")
+      )
   ) |>
     dplyr::mutate(
       u_ton2 = dplyr::if_else(is.na(u_ton),
@@ -232,7 +235,10 @@ calc_avail_fp_dtm <- function(filtered_cbs, df, cbs, dtm, impact_prod) {
     df, # Production impact
     filtered_cbs |> # Import impact
       dplyr::filter(Element == "Import") |>
-      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code_cbs", "Impact")) |>
+      dplyr::left_join(
+        get_global_export_footprint(df, cbs = cbs),
+        by = c("Year", "item_code_cbs", "Element")
+      ) |>
       dplyr::left_join(dtm |> # Get footprint in each partner
         dplyr::left_join(impact_prod |> dplyr::group_by(Year, Impact) |>
           dplyr::summarize(Year = mean(Year, na.rm = TRUE), .groups = "drop"), by = c("Year", "Impact")) |>
