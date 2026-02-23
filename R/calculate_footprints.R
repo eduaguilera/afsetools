@@ -234,7 +234,11 @@ calculate_footprints <- function(cbs,
             ) |>
             dplyr::select(-item_prod) |>
             dplyr::left_join(items_full |>
-              dplyr::select(item_code, item, group), by = c("item")) |>
+              dplyr::select(
+                item_code = item_code_cbs,
+                item = item_cbs,
+                group
+              ), by = c("item")) |>
             dplyr::rename(
               item_cbs = item,
               item_code_cbs = item_code,
@@ -277,7 +281,7 @@ calculate_footprints <- function(cbs,
   FP_prim_ds <- calc_avail_fp(
     CBS_NoSeeds |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code, group), by = c("item_code")) |>
+        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
         group %in% c("Primary crops", "Livestock products", "Fish")
@@ -328,7 +332,7 @@ calculate_footprints <- function(cbs,
   FP_processed_ds <- calc_avail_fp(
     CBS_NoSeeds |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code, group), by = c("item_code")) |>
+        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
         group %in% c("Crop products", "Processed")
@@ -375,7 +379,7 @@ calculate_footprints <- function(cbs,
   FP_feed_raw <- feed_intake |>
     dplyr::left_join(
       Animals_codes |>
-        dplyr::select(item, item_code) |>
+        dplyr::select(item = item_cbs, item_code = item_code_cbs) |>
         dplyr::rename(
           Live_anim = item,
           Live_anim_code = item_code
@@ -436,7 +440,7 @@ calculate_footprints <- function(cbs,
   FP_feed_ds <- calc_avail_fp(
     CBS_NoSeeds |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code, group), by = c("item_code")) |>
+        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
         group == "Livestock products"
@@ -458,7 +462,7 @@ calculate_footprints <- function(cbs,
   FP_ioc <- dplyr::bind_rows(
     FP_raw_all |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code, group), by = c("item_code")) |>
+        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
       dplyr::mutate(Prod_class = dplyr::if_else(
         group == "Livestock products",
         "Animal",
@@ -481,7 +485,7 @@ calculate_footprints <- function(cbs,
     dplyr::ungroup() |>
     dplyr::left_join(
       items_full |>
-        dplyr::select(item, item_code, group),
+        dplyr::select(item = item_cbs, item_code = item_code_cbs, group),
       by = c("item", "item_code")
     )
 

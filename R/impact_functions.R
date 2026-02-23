@@ -82,7 +82,7 @@ Allocate_impacts_to_products <- function(df, draught_shares) {
         item_cbs = "Animal draught"
       ) |>
       dplyr::left_join(items_full |>
-        dplyr::select(item, item_code) |>
+        dplyr::select(item = item_cbs, item_code = item_code_cbs) |>
         dplyr::rename(
           item_cbs = item,
           item_code_cbs = item_code
@@ -390,6 +390,6 @@ Agg_processed <- function(df) {
     ) |>
     dplyr::rename(item = Item) |>
     dplyr::left_join(items_full |>
-      dplyr::select(item, item_code), by = c("item")) |>
+      dplyr::select(item = item_cbs, item_code = item_code_cbs), by = c("item")) |>
     dplyr::filter(!is.na(item))
 }
