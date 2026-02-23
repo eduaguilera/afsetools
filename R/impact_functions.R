@@ -80,7 +80,7 @@ Allocate_impacts_to_products <- function(df, draught_shares) {
       dplyr::mutate(draught_share = tidyr::replace_na(draught_share, 0)) |>
       dplyr::left_join(Primary_prices |>
         dplyr::select(Year, item_code_prod, Price), by = c("Year", "item_code_prod")) |>
-      dplyr::left_join(CBS_item_prices |>
+      dplyr::left_join(CBS_item_prices_all |>
         dplyr::filter(Element == "Export") |>
         dplyr::select(Year, item_code, Price) |>
         dplyr::rename(
@@ -303,7 +303,7 @@ Calc_impact_processed <- function(df, processing_shares) {
     dplyr::group_by(Year, area_code, item_code_cbs, Impact) |>
     dplyr::left_join(Processing_coefs |>
       dplyr::select(Year, area_code, item_code_cbs = item_code, Item, cf), by = c("Year", "area_code", "item_code_cbs")) |>
-    dplyr::left_join(CBS_item_prices |>
+    dplyr::left_join(CBS_item_prices_all |>
       dplyr::filter(Element == "Export") |>
       dplyr::rename(Item = item) |>
       dplyr::select(Year, Item, Price), by = c("Year", "Item")) |>
