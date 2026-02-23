@@ -187,7 +187,7 @@ calculate_footprints <- function(cbs,
       dplyr::rename(
         item_code_impact = item_code_prod,
         FU = Value
-      ), by = c("Year", "area", "item_code_impact", "Impact")) |>
+      ), by = c("Year", "area", "item_code_impact")) |>
     dplyr::mutate(Origin = "Production") |>
     dplyr::left_join(Seed_share |>
       dplyr::select(Year, area_code, item_code_cbs, Seed_share), by = c("Year", "area_code", "item_code_cbs")) |>
