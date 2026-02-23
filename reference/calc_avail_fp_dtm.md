@@ -29,8 +29,8 @@ calc_avail_fp_dtm(filtered_cbs, df, cbs, dtm, impact_prod)
 
 - impact_prod:
 
-  Production impact table (new schema with `area`, not `area_code`; used
-  here only for `Year`/`Impact` coverage)
+  Production impact table (new schema with \`area\`, not \`area_code\`;
+  used here only for \`Year\`/\`Impact\` coverage)
 
 ## Value
 
