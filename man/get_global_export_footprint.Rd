@@ -4,10 +4,12 @@
 \alias{get_global_export_footprint}
 \title{Get Global Average Export Footprint}
 \usage{
-get_global_export_footprint(df)
+get_global_export_footprint(df, cbs)
 }
 \arguments{
 \item{df}{A data frame with product footprints}
+
+\item{cbs}{Commodity balance sheet data used to calculate export shares}
 }
 \value{
 A data frame with global average footprints (u_ton_glob)
@@ -17,6 +19,6 @@ Calculates the global average footprint of exported products, weighted by export
 }
 \examples{
 \dontrun{
-global_footprint <- get_global_export_footprint(product_footprints)
+global_footprint <- get_global_export_footprint(product_footprints, cbs)
 }
 }

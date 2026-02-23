@@ -4,10 +4,12 @@
 \alias{Allocate_impacts_to_products}
 \title{Allocate Impacts to Products Based on Economic Value}
 \usage{
-Allocate_impacts_to_products(df)
+Allocate_impacts_to_products(df, draught_shares)
 }
 \arguments{
 \item{df}{A data frame with impact data for products}
+
+\item{draught_shares}{Draught animal allocation shares by `Year`, `area`, `Live_anim`}
 }
 \value{
 A data frame with allocated impacts (Allocation, Impact_u, u_ton columns added)
@@ -18,6 +20,6 @@ Performs economic allocation of environmental impacts among co-products
 }
 \examples{
 \dontrun{
-allocated_impacts <- Allocate_impacts_to_products(impact_data)
+allocated_impacts <- Allocate_impacts_to_products(impact_data, draught_shares)
 }
 }

@@ -4,12 +4,19 @@
 \alias{calc_avail_fp_dtm}
 \title{Calculate Available Footprint Using Detailed Trade Matrix}
 \usage{
-calc_avail_fp_dtm(filtered_cbs, df)
+calc_avail_fp_dtm(filtered_cbs, df, cbs, dtm, impact_prod)
 }
 \arguments{
 \item{filtered_cbs}{Filtered CBS data with production and import}
 
 \item{df}{Product footprint data frame}
+
+\item{cbs}{Commodity balance sheet data}
+
+\item{dtm}{Detailed trade matrix data}
+
+\item{impact_prod}{Production impact table (new schema with \code{area}, not
+\code{area_code}; used here only for \code{Year}/\code{Impact} coverage)}
 }
 \value{
 A data frame with availability footprints including bilateral import footprints
@@ -19,6 +26,6 @@ Calculates the footprint of product availability using bilateral trade data (DTM
 }
 \examples{
 \dontrun{
-avail_fp <- calc_avail_fp_dtm(filtered_cbs, product_footprints)
+avail_fp <- calc_avail_fp_dtm(filtered_cbs, product_footprints, cbs, dtm, impact_prod)
 }
 }

@@ -4,12 +4,14 @@
 \alias{calc_avail_fp_gt}
 \title{Calculate Available Footprint Using Gross Trade}
 \usage{
-calc_avail_fp_gt(filtered_cbs, df)
+calc_avail_fp_gt(filtered_cbs, df, cbs)
 }
 \arguments{
 \item{filtered_cbs}{Filtered CBS data with production and import}
 
 \item{df}{Product footprint data frame}
+
+\item{cbs}{Commodity balance sheet data}
 }
 \value{
 A data frame with availability footprints including imports
@@ -20,6 +22,6 @@ gross trade data (no bilateral trade detail).
 }
 \examples{
 \dontrun{
-avail_fp <- calc_avail_fp_gt(filtered_cbs, product_footprints)
+avail_fp <- calc_avail_fp_gt(filtered_cbs, product_footprints, cbs)
 }
 }

@@ -4,10 +4,12 @@
 \alias{Calc_impact_processed}
 \title{Calculate Embodied Impact of Processed Products}
 \usage{
-Calc_impact_processed(df)
+Calc_impact_processed(df, processing_shares)
 }
 \arguments{
 \item{df}{Product footprint data frame}
+
+\item{processing_shares}{Processing shares table}
 }
 \value{
 A data frame with processed product footprints
@@ -17,6 +19,6 @@ Traces impacts through processing chains using processing shares and conversion 
 }
 \examples{
 \dontrun{
-processed_fp <- Calc_impact_processed(primary_footprints)
+processed_fp <- Calc_impact_processed(primary_footprints, processing_shares)
 }
 }

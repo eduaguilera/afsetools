@@ -7,7 +7,7 @@
 Prepare_prim(Prim_all)
 }
 \arguments{
-\item{Prim_all}{Primary production data frame with columns: unit, item, item_code, Value}
+\item{Prim_all}{Primary production data frame with columns: unit, item_prod, item_code_prod, Value}
 }
 \value{
 A data frame with item_code_impact added for joining with impact data

@@ -64,12 +64,13 @@ npp <- Calc_NPP_potentials(climate_data)
 crop_npp <- Calculate_crop_NPP(crop_data, harvest_index)
 
 # Trace impacts through supply chains
+# Omit `dtm` for gross trade; pass `dtm = detailed_trade_matrix` for bilateral trade
 footprints <- calculate_footprints(
-  CBS = commodity_balance_sheets,
-  Primary_all = primary_production,
-  Impact_prod = production_impacts,
-  Crop_NPPr_NoFallow = crop_npp,
-  trade_mode = "gt"  # or "dtm" for bilateral trade
+  cbs = commodity_balance_sheets,
+  primary = primary_production,
+  impact_prod = production_impacts,
+  crop_nppr = crop_npp,
+  feed_intake = feed_intake
 )
 
 # Access results
@@ -186,15 +187,15 @@ library(dplyr)
 load_general_data()
 
 # 2. Prepare your input data
-# (CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow)
+# (cbs, primary, impact_prod, crop_nppr, feed_intake)
 
 # 3. Calculate complete footprints
 results <- calculate_footprints(
-  CBS = my_cbs_data,
-  Primary_all = my_primary_data,
-  Impact_prod = my_impact_data,
-  Crop_NPPr_NoFallow = my_crop_npp,
-  trade_mode = "gt"
+  cbs = my_cbs_data,
+  primary = my_primary_data,
+  impact_prod = my_impact_data,
+  crop_nppr = my_crop_npp,
+  feed_intake = my_feed_intake
 )
 
 # 4. Analyze results
@@ -202,7 +203,7 @@ library(ggplot2)
 
 results$FP_final %>%
   filter(Impact == "GHG", Year == 2020) %>%
-  ggplot(aes(x = area, y = Impact_u, fill = Product_group)) +
+  ggplot(aes(x = area, y = Impact_u, fill = Element)) +
   geom_bar(stat = "identity") +
   theme_new() +
   labs(title = "GHG Footprint by Product Group, 2020")

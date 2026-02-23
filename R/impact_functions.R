@@ -8,7 +8,7 @@
 #' Prepares the primary production database by adding impact codes and filtering
 #' multi-products (cotton, oil palm, etc.).
 #'
-#' @param Prim_all Primary production data frame with columns: unit, item, item_code, Value
+#' @param Prim_all Primary production data frame with columns: unit, item_prod, item_code_prod, Value
 #'
 #' @return A data frame with item_code_impact added for joining with impact data
 #' @export
@@ -18,6 +18,12 @@
 #' primary_data <- Prepare_prim(Primary_all)
 #' }
 Prepare_prim <- function(Prim_all) {
+  Prim_all <- Prim_all |>
+    dplyr::rename(
+      item = item_prod,
+      item_code = item_code_prod
+    )
+
   Prim_all |>
     dplyr::filter(unit == "tonnes") |>
     dplyr::left_join(Primary_double |> # Joining code of corresponding primary product for double products
@@ -29,7 +35,7 @@ Prepare_prim <- function(Prim_all) {
         dplyr::rename(
           Item_area = item_prod,
           Item_code_area = item_code_prod
-        ), by = c("Item_area", "item_code_prod")) |>
+        ), by = c("Item_area")) |>
       dplyr::rename(item_code = item_code_prod) |>
       dplyr::select(item_code, Item_code_area, Multi_type), by = c("item_code")) |>
     dplyr::mutate(item_code_impact = dplyr::if_else(!is.na(Live_anim_code), # Code for joining impacts: same as product except for double products and animal products
@@ -51,15 +57,16 @@ Prepare_prim <- function(Prim_all) {
 #' (e.g., cotton lint and cottonseed) and creates draught animal items.
 #'
 #' @param df A data frame with impact data for products
+#' @param draught_shares Draught animal allocation shares by `Year`, `area`, `Live_anim`
 #'
 #' @return A data frame with allocated impacts (Allocation, Impact_u, u_ton columns added)
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' allocated_impacts <- Allocate_impacts_to_products(impact_data)
+#' allocated_impacts <- Allocate_impacts_to_products(impact_data, draught_shares)
 #' }
-Allocate_impacts_to_products <- function(df) {
+Allocate_impacts_to_products <- function(df, draught_shares) {
   dplyr::bind_rows(
     df |> # Create "Draught" item to allocate some impacts to it
       dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, item_code_impact, Origin, Impact) |>
@@ -131,15 +138,16 @@ Allocate_impacts_to_products <- function(df) {
 #' Calculates the global average footprint of exported products, weighted by export shares.
 #'
 #' @param df A data frame with product footprints
+#' @param cbs Commodity balance sheet data used to calculate export shares
 #'
 #' @return A data frame with global average footprints (u_ton_glob)
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' global_footprint <- get_global_export_footprint(product_footprints)
+#' global_footprint <- get_global_export_footprint(product_footprints, cbs)
 #' }
-get_global_export_footprint <- function(df) {
+get_global_export_footprint <- function(df, cbs) {
   df |>
     dplyr::group_by(Year, area_code, item_code, item, Impact) |>
     dplyr::summarize(
@@ -147,7 +155,7 @@ get_global_export_footprint <- function(df) {
       Impact_u = sum(Impact_u, na.rm = TRUE),
       .groups = "drop"
     ) |>
-    dplyr::left_join(CBS |> # Export share per country
+    dplyr::left_join(cbs |> # Export share per country
       tidyr::pivot_wider(
         names_from = Element,
         values_from = Value,
@@ -185,20 +193,21 @@ get_global_export_footprint <- function(df) {
 #'
 #' @param filtered_cbs Filtered CBS data with production and import
 #' @param df Product footprint data frame
+#' @param cbs Commodity balance sheet data
 #'
 #' @return A data frame with availability footprints including imports
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' avail_fp <- calc_avail_fp_gt(filtered_cbs, product_footprints)
+#' avail_fp <- calc_avail_fp_gt(filtered_cbs, product_footprints, cbs)
 #' }
-calc_avail_fp_gt <- function(filtered_cbs, df) {
+calc_avail_fp_gt <- function(filtered_cbs, df, cbs) {
   dplyr::bind_rows(
     df, # Production impact
     filtered_cbs |> # Import impact
       dplyr::filter(Element == "Import") |>
-      dplyr::left_join(get_global_export_footprint(df), by = c("Year", "item_code", "Impact"))
+      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code", "Impact"))
   ) |>
     dplyr::mutate(
       u_ton2 = dplyr::if_else(is.na(u_ton),
@@ -218,22 +227,26 @@ calc_avail_fp_gt <- function(filtered_cbs, df) {
 #'
 #' @param filtered_cbs Filtered CBS data with production and import
 #' @param df Product footprint data frame
+#' @param cbs Commodity balance sheet data
+#' @param dtm Detailed trade matrix data
+#' @param impact_prod Production impact table (new schema with `area`, not
+#'   `area_code`; used here only for `Year`/`Impact` coverage)
 #'
 #' @return A data frame with availability footprints including bilateral import footprints
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' avail_fp <- calc_avail_fp_dtm(filtered_cbs, product_footprints)
+#' avail_fp <- calc_avail_fp_dtm(filtered_cbs, product_footprints, cbs, dtm, impact_prod)
 #' }
-calc_avail_fp_dtm <- function(filtered_cbs, df) {
+calc_avail_fp_dtm <- function(filtered_cbs, df, cbs, dtm, impact_prod) {
   dplyr::bind_rows(
     df, # Production impact
     filtered_cbs |> # Import impact
       dplyr::filter(Element == "Import") |>
-      dplyr::left_join(get_global_export_footprint(df), by = c("Year", "item_code", "Impact")) |>
-      dplyr::left_join(DTM |> # Get footprint in each partner
-        dplyr::left_join(Impact_prod |> dplyr::group_by(Year, Impact) |>
+      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code", "Impact")) |>
+      dplyr::left_join(dtm |> # Get footprint in each partner
+        dplyr::left_join(impact_prod |> dplyr::group_by(Year, Impact) |>
           dplyr::summarize(Year = mean(Year, na.rm = TRUE), .groups = "drop"), by = c("Year", "Impact")) |>
         dplyr::filter(Element == "Import") |>
         dplyr::select(Year, area_code, area_code_p, area_p, item_code, Element, Impact, Country_share) |>
@@ -274,15 +287,16 @@ calc_avail_fp_dtm <- function(filtered_cbs, df) {
 #' Traces impacts through processing chains using processing shares and conversion coefficients.
 #'
 #' @param df Product footprint data frame
+#' @param processing_shares Processing shares table
 #'
 #' @return A data frame with processed product footprints
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' processed_fp <- Calc_impact_processed(primary_footprints)
+#' processed_fp <- Calc_impact_processed(primary_footprints, processing_shares)
 #' }
-Calc_impact_processed <- function(df) {
+Calc_impact_processed <- function(df, processing_shares) {
   df |>
     dplyr::group_by(Year, area, area_code, item, item_code, Origin, Impact) |>
     dplyr::summarize(
@@ -291,7 +305,7 @@ Calc_impact_processed <- function(df) {
       .groups = "drop"
     ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
-    dplyr::inner_join(Processing_shares, by = c("Year", "area", "area_code", "item", "item_code")) |>
+    dplyr::inner_join(processing_shares, by = c("Year", "area", "area_code", "item", "item_code")) |>
     dplyr::group_by(Year, area_code, item_code, Impact) |>
     dplyr::left_join(Processing_coefs |>
       dplyr::select(Year, area_code, item_code, Item, cf), by = c("Year", "area_code", "item_code")) |>
