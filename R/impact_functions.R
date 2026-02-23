@@ -79,7 +79,7 @@ Allocate_impacts_to_products <- function(df, draught_shares) {
       dplyr::left_join(draught_shares, by = c("Year", "area", "Live_anim")) |>
       dplyr::mutate(draught_share = tidyr::replace_na(draught_share, 0)) |>
       dplyr::left_join(Primary_prices |>
-        dplyr::select(Year, item_code_prod = item_code, Price), by = c("Year", "item_code_prod")) |>
+        dplyr::select(Year, item_code_prod, Price), by = c("Year", "item_code_prod")) |>
       dplyr::left_join(CBS_item_prices |>
         dplyr::filter(Element == "Export") |>
         dplyr::select(Year, item_code, Price) |>
