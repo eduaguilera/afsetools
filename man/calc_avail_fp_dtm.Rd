@@ -15,8 +15,8 @@ calc_avail_fp_dtm(filtered_cbs, df, cbs, dtm, impact_prod)
 
 \item{dtm}{Detailed trade matrix data}
 
-\item{impact_prod}{Production impact table (new schema with \code{area}, not
-\code{area_code}; used here only for \code{Year}/\code{Impact} coverage)}
+\item{impact_prod}{Production impact table (new schema with `area`, not
+`area_code`; used here only for `Year`/`Impact` coverage)}
 }
 \value{
 A data frame with availability footprints including bilateral import footprints

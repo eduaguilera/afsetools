@@ -14,51 +14,44 @@ calculate_footprints(
 )
 }
 \arguments{
-\item{cbs}{Commodity Balance Sheets table. Required columns: \code{Year}, \code{area},
-\code{area_code}, \code{item}, \code{item_code}, \code{Element}, \code{Value}.
-This function uses at least the following \code{Element} values:
-\code{Production}, \code{Import}, \code{Export}, \code{Seed},
-\code{Processing}, and \code{Domestic_supply}.}
+\item{cbs}{Commodity Balance Sheets table. Required columns: `Year`, `area`,
+`area_code`, `item`, `item_code`, `Element`, `Value`. This function uses at
+least the following `Element` values: `Production`, `Import`, `Export`,
+`Seed`, `Processing`, and `Domestic_supply`.}
 
 \item{primary}{Primary production / co-product table (new schema). Required
-columns: \code{Year}, \code{area}, \code{area_code}, \code{item_prod},
-\code{item_code_prod}, \code{unit}, \code{Value}, \code{item_cbs},
-\code{item_code_cbs}, \code{Live_anim}, \code{Live_anim_code},
-\code{Relative_residue_price}. The workflow expects \code{unit == "tonnes"}
-rows and (for draught allocation) \code{unit == "LU"} livestock rows.}
+columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
+`Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
+`Relative_residue_price`. The workflow expects `unit == "tonnes"` rows and
+(for draught allocation) `unit == "LU"` livestock rows.}
 
 \item{impact_prod}{Production impact table (new schema). Required columns:
-\code{Year}, \code{area}, \code{item_prod}, \code{item_code_prod},
-\code{Impact}, \code{Value}, \code{u_FU}. \code{Value} is treated as the
-functional unit amount (\code{FU}) when joining production impacts to primary
-production.}
+`Year`, `area`, `item_prod`, `item_code_prod`, `Impact`, `Value`,
+`u_FU`. `Value` is treated as the functional unit amount (`FU`) when joining
+production impacts to primary production.}
 
-\item{crop_nppr}{Crop NPP / residue table. Required columns: \code{Year},
-\code{area}, \code{item_prod}, \code{item_cbs}, \code{Product_residue},
-\code{Prod_ygpit_Mg}. Residue flows are taken from rows where
-\code{Product_residue == "Residue"}.}
+\item{crop_nppr}{Crop NPP / residue table. Required columns: `Year`, `area`,
+`item_prod`, `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`. Residue flows
+are taken from rows where `Product_residue == "Residue"`.}
 
-\item{feed_intake}{Feed intake table (new schema). Required columns:
-\code{Year}, \code{area}, \code{area_code}, \code{Live_anim},
-\code{item_cbs}, \code{item_code_cbs}, \code{Supply}, \code{Intake_DM}.}
+\item{feed_intake}{Feed intake table (new schema). Required columns: `Year`,
+`area`, `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
+`Intake_DM`.}
 
-\item{dtm}{Optional detailed trade matrix. If \code{NULL} (default), the
-function uses gross-trade mode (\code{calc_avail_fp_gt()}). If provided, it
-automatically uses detailed bilateral trade mode (\code{calc_avail_fp_dtm()}).
-Required columns when provided: \code{Year}, \code{area_code},
-\code{area_code_p}, \code{area_p}, \code{item_code}, \code{Element},
-\code{Impact}, \code{Country_share} (with \code{Element == "Import"} rows
-used).}
+\item{dtm}{Optional detailed trade matrix. If `NULL` (default), the function
+uses gross-trade mode (`calc_avail_fp_gt()`). If provided, it automatically
+uses detailed bilateral trade mode (`calc_avail_fp_dtm()`). Required columns
+when provided: `Year`, `area_code`, `area_code_p`, `area_p`, `item_code`,
+`Element`, `Impact`, `Country_share` (with `Element == "Import"` rows used).}
 }
 \value{
 A named list of intermediate and final footprint tables, including:
-\code{FP_prim}, \code{FP_prim_i}, \code{FP_prim_i_global}, \code{FP_prim_ds},
-\code{FP_prim_ds_i}, \code{FP_processed_raw}, \code{FP_processed_raw_i},
-\code{FP_processed_ds}, \code{FP_processed_ds_i}, \code{FP_reprocessed_raw},
-\code{FP_reprocessed_raw_i}, \code{FP_raw_all}, \code{FP_feed_raw},
-\code{FP_feed}, \code{FP_feed_i}, \code{FP_feed_ds}, \code{FP_feed_ds_i},
-\code{FP_ioc}, \code{FP_i}, \code{FP_final}, \code{Seed_share},
-\code{draught_shares}, \code{Import_share}, and \code{Processing_shares}.
+  `FP_prim`, `FP_prim_i`, `FP_prim_i_global`, `FP_prim_ds`, `FP_prim_ds_i`,
+  `FP_processed_raw`, `FP_processed_raw_i`, `FP_processed_ds`,
+  `FP_processed_ds_i`, `FP_reprocessed_raw`, `FP_reprocessed_raw_i`,
+  `FP_raw_all`, `FP_feed_raw`, `FP_feed`, `FP_feed_i`, `FP_feed_ds`,
+  `FP_feed_ds_i`, `FP_ioc`, `FP_i`, `FP_final`, `Seed_share`,
+  `draught_shares`, `Import_share`, and `Processing_shares`.
 }
 \description{
 Main workflow function that traces environmental footprints through global supply chains,
@@ -72,7 +65,8 @@ This function implements a complete footprint accounting system that:
   \item Calculates seed shares and removes them from production
   \item Allocates impacts to co-products using economic allocation
   \item Traces impacts through processing chains
-  \item Accounts for international trade (gross trade when \code{dtm} is \code{NULL}, bilateral trade matrix when \code{dtm} is provided)
+  \item Accounts for international trade (gross trade when `dtm` is `NULL`,
+    bilateral trade matrix when `dtm` is provided)
   \item Handles feed products and livestock production
   \item Allocates draught animal services to crop production
 }
