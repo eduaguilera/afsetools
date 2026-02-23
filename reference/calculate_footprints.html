@@ -48,12 +48,12 @@ and final footprint data frames.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_footprints</span><span class="op">(</span></span>
-<span>  <span class="va">CBS</span>,</span>
-<span>  <span class="va">Primary_all</span>,</span>
-<span>  <span class="va">Impact_prod</span>,</span>
-<span>  <span class="va">Crop_NPPr_NoFallow</span>,</span>
-<span>  DTM <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trade_mode <span class="op">=</span> <span class="st">"gt"</span></span>
+<span>  <span class="va">cbs</span>,</span>
+<span>  <span class="va">primary</span>,</span>
+<span>  <span class="va">impact_prod</span>,</span>
+<span>  <span class="va">crop_nppr</span>,</span>
+<span>  <span class="va">feed_intake</span>,</span>
+<span>  dtm <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -61,67 +61,71 @@ and final footprint data frames.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-cbs">CBS<a class="anchor" aria-label="anchor" href="#arg-cbs"></a></dt>
-<dd><p>Commodity Balance Sheets data frame with columns: Year, area, area_code, item, item_code, Element, Value</p></dd>
+<dl><dt id="arg-cbs">cbs<a class="anchor" aria-label="anchor" href="#arg-cbs"></a></dt>
+<dd><p>Commodity Balance Sheets table. Required columns: <code>Year</code>, <code>area</code>,
+<code>area_code</code>, <code>item</code>, <code>item_code</code>, <code>Element</code>, <code>Value</code>.
+This function uses at least the following <code>Element</code> values:
+<code>Production</code>, <code>Import</code>, <code>Export</code>, <code>Seed</code>,
+<code>Processing</code>, and <code>Domestic_supply</code>.</p></dd>
 
 
-<dt id="arg-primary-all">Primary_all<a class="anchor" aria-label="anchor" href="#arg-primary-all"></a></dt>
-<dd><p>Primary production data frame with crop areas and production</p></dd>
+<dt id="arg-primary">primary<a class="anchor" aria-label="anchor" href="#arg-primary"></a></dt>
+<dd><p>Primary production / co-product table (new schema). Required
+columns: <code>Year</code>, <code>area</code>, <code>area_code</code>, <code>item_prod</code>,
+<code>item_code_prod</code>, <code>unit</code>, <code>Value</code>, <code>item_cbs</code>,
+<code>item_code_cbs</code>, <code>Live_anim</code>, <code>Live_anim_code</code>,
+<code>Relative_residue_price</code>. The workflow expects <code>unit == "tonnes"</code>
+rows and (for draught allocation) <code>unit == "LU"</code> livestock rows.</p></dd>
 
 
-<dt id="arg-impact-prod">Impact_prod<a class="anchor" aria-label="anchor" href="#arg-impact-prod"></a></dt>
-<dd><p>Impact data at production level with columns: Year, area_code, item_code, Impact, Value, u_FU</p></dd>
+<dt id="arg-impact-prod">impact_prod<a class="anchor" aria-label="anchor" href="#arg-impact-prod"></a></dt>
+<dd><p>Production impact table (new schema). Required columns:
+<code>Year</code>, <code>area</code>, <code>item_prod</code>, <code>item_code_prod</code>,
+<code>Impact</code>, <code>Value</code>, <code>u_FU</code>. <code>Value</code> is treated as the
+functional unit amount (<code>FU</code>) when joining production impacts to primary
+production.</p></dd>
 
 
-<dt id="arg-crop-nppr-nofallow">Crop_NPPr_NoFallow<a class="anchor" aria-label="anchor" href="#arg-crop-nppr-nofallow"></a></dt>
-<dd><p>Crop NPP data excluding fallow periods</p></dd>
+<dt id="arg-crop-nppr">crop_nppr<a class="anchor" aria-label="anchor" href="#arg-crop-nppr"></a></dt>
+<dd><p>Crop NPP / residue table. Required columns: <code>Year</code>,
+<code>area</code>, <code>item_prod</code>, <code>item_cbs</code>, <code>Product_residue</code>,
+<code>Prod_ygpit_Mg</code>. Residue flows are taken from rows where
+<code>Product_residue == "Residue"</code>.</p></dd>
 
 
-<dt id="arg-dtm">DTM<a class="anchor" aria-label="anchor" href="#arg-dtm"></a></dt>
-<dd><p>Detailed Trade Matrix data (optional, depending on trade_mode)</p></dd>
+<dt id="arg-feed-intake">feed_intake<a class="anchor" aria-label="anchor" href="#arg-feed-intake"></a></dt>
+<dd><p>Feed intake table (new schema). Required columns:
+<code>Year</code>, <code>area</code>, <code>area_code</code>, <code>Live_anim</code>,
+<code>item_cbs</code>, <code>item_code_cbs</code>, <code>Supply</code>, <code>Intake_DM</code>.</p></dd>
 
 
-<dt id="arg-trade-mode">trade_mode<a class="anchor" aria-label="anchor" href="#arg-trade-mode"></a></dt>
-<dd><p>Character string: "gt" for gross trade or "dtm" for detailed trade matrix. Default is "gt".</p></dd>
+<dt id="arg-dtm">dtm<a class="anchor" aria-label="anchor" href="#arg-dtm"></a></dt>
+<dd><p>Optional detailed trade matrix. If <code>NULL</code> (default), the
+function uses gross-trade mode (<code><a href="calc_avail_fp_gt.html">calc_avail_fp_gt()</a></code>). If provided, it
+automatically uses detailed bilateral trade mode (<code><a href="calc_avail_fp_dtm.html">calc_avail_fp_dtm()</a></code>).
+Required columns when provided: <code>Year</code>, <code>area_code</code>,
+<code>area_code_p</code>, <code>area_p</code>, <code>item_code</code>, <code>Element</code>,
+<code>Impact</code>, <code>Country_share</code> (with <code>Element == "Import"</code> rows
+used).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A named list containing all footprint data frames:</p>
-<dl><dt>FP_prim</dt>
-<dd><p>Primary production footprints with economic allocation</p></dd>
-
-  <dt>FP_prim_ds</dt>
-<dd><p>Primary product footprints including domestic supply</p></dd>
-
-  <dt>FP_processed_raw</dt>
-<dd><p>Processed product footprints (raw calculation)</p></dd>
-
-  <dt>FP_processed_ds</dt>
-<dd><p>Processed product footprints with domestic supply</p></dd>
-
-  <dt>FP_feed</dt>
-<dd><p>Feed product footprints</p></dd>
-
-  <dt>FP_feed_ds</dt>
-<dd><p>Feed product footprints with domestic supply</p></dd>
-
-  <dt>FP_final</dt>
-<dd><p>Final comprehensive footprint data frame</p></dd>
-
-  <dt>Seed_share</dt>
-<dd><p>Calculated seed shares by crop</p></dd>
-
-  <dt>draught_shares</dt>
-<dd><p>Draught animal allocation shares</p></dd>
-
-</dl></div>
+    <p>A named list of intermediate and final footprint tables, including:
+<code>FP_prim</code>, <code>FP_prim_i</code>, <code>FP_prim_i_global</code>, <code>FP_prim_ds</code>,
+<code>FP_prim_ds_i</code>, <code>FP_processed_raw</code>, <code>FP_processed_raw_i</code>,
+<code>FP_processed_ds</code>, <code>FP_processed_ds_i</code>, <code>FP_reprocessed_raw</code>,
+<code>FP_reprocessed_raw_i</code>, <code>FP_raw_all</code>, <code>FP_feed_raw</code>,
+<code>FP_feed</code>, <code>FP_feed_i</code>, <code>FP_feed_ds</code>, <code>FP_feed_ds_i</code>,
+<code>FP_ioc</code>, <code>FP_i</code>, <code>FP_final</code>, <code>Seed_share</code>,
+<code>draught_shares</code>, <code>Import_share</code>, and <code>Processing_shares</code>.</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This function implements a complete footprint accounting system that:</p><ul><li><p>Calculates seed shares and removes them from production</p></li>
 <li><p>Allocates impacts to co-products using economic allocation</p></li>
 <li><p>Traces impacts through processing chains</p></li>
-<li><p>Accounts for international trade (gross trade or bilateral trade matrix)</p></li>
+<li><p>Accounts for international trade (gross trade when <code>dtm</code> is <code>NULL</code>, bilateral trade matrix when <code>dtm</code> is provided)</p></li>
 <li><p>Handles feed products and livestock production</p></li>
 <li><p>Allocates draught animal services to crop production</p></li>
 </ul><p>The calculation requires that `load_general_data()` has been called first to load
@@ -134,14 +138,16 @@ all necessary coefficient tables and classification data.</p>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Calculate footprints using gross trade</span></span></span>
+<span class="r-in"><span><span class="co"># Calculate footprints using gross trade (omit dtm)</span></span></span>
 <span class="r-in"><span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu">calculate_footprints</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  CBS <span class="op">=</span> <span class="va">my_cbs_data</span>,</span></span>
-<span class="r-in"><span>  Primary_all <span class="op">=</span> <span class="va">my_primary_data</span>,</span></span>
-<span class="r-in"><span>  Impact_prod <span class="op">=</span> <span class="va">my_impact_data</span>,</span></span>
-<span class="r-in"><span>  Crop_NPPr_NoFallow <span class="op">=</span> <span class="va">my_npp_data</span>,</span></span>
-<span class="r-in"><span>  trade_mode <span class="op">=</span> <span class="st">"gt"</span></span></span>
+<span class="r-in"><span>  cbs <span class="op">=</span> <span class="va">my_cbs_data</span>,</span></span>
+<span class="r-in"><span>  primary <span class="op">=</span> <span class="va">my_primary_data</span>,</span></span>
+<span class="r-in"><span>  impact_prod <span class="op">=</span> <span class="va">my_impact_data</span>,</span></span>
+<span class="r-in"><span>  crop_nppr <span class="op">=</span> <span class="va">my_npp_data</span>,</span></span>
+<span class="r-in"><span>  feed_intake <span class="op">=</span> <span class="va">my_feed_intake</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># To use bilateral trade, pass dtm = my_dtm_data</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Access individual footprint tables</span></span></span>
 <span class="r-in"><span><span class="va">fp_primary</span> <span class="op">&lt;-</span> <span class="va">footprints</span><span class="op">$</span><span class="va">FP_prim</span></span></span>

@@ -112,12 +112,13 @@
 <span><span class="va">crop_npp</span> <span class="op">&lt;-</span> <span class="fu">Calculate_crop_NPP</span><span class="op">(</span><span class="va">crop_data</span>, <span class="va">harvest_index</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Trace impacts through supply chains</span></span>
+<span><span class="co"># Omit `dtm` for gross trade; pass `dtm = detailed_trade_matrix` for bilateral trade</span></span>
 <span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span></span>
-<span>  CBS <span class="op">=</span> <span class="va">commodity_balance_sheets</span>,</span>
-<span>  Primary_all <span class="op">=</span> <span class="va">primary_production</span>,</span>
-<span>  Impact_prod <span class="op">=</span> <span class="va">production_impacts</span>,</span>
-<span>  Crop_NPPr_NoFallow <span class="op">=</span> <span class="va">crop_npp</span>,</span>
-<span>  trade_mode <span class="op">=</span> <span class="st">"gt"</span>  <span class="co"># or "dtm" for bilateral trade</span></span>
+<span>  cbs <span class="op">=</span> <span class="va">commodity_balance_sheets</span>,</span>
+<span>  primary <span class="op">=</span> <span class="va">primary_production</span>,</span>
+<span>  impact_prod <span class="op">=</span> <span class="va">production_impacts</span>,</span>
+<span>  crop_nppr <span class="op">=</span> <span class="va">crop_npp</span>,</span>
+<span>  feed_intake <span class="op">=</span> <span class="va">feed_intake</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Access results</span></span>
@@ -261,15 +262,15 @@
 <span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 2. Prepare your input data</span></span>
-<span><span class="co"># (CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow)</span></span>
+<span><span class="co"># (cbs, primary, impact_prod, crop_nppr, feed_intake)</span></span>
 <span></span>
 <span><span class="co"># 3. Calculate complete footprints</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span></span>
-<span>  CBS <span class="op">=</span> <span class="va">my_cbs_data</span>,</span>
-<span>  Primary_all <span class="op">=</span> <span class="va">my_primary_data</span>,</span>
-<span>  Impact_prod <span class="op">=</span> <span class="va">my_impact_data</span>,</span>
-<span>  Crop_NPPr_NoFallow <span class="op">=</span> <span class="va">my_crop_npp</span>,</span>
-<span>  trade_mode <span class="op">=</span> <span class="st">"gt"</span></span>
+<span>  cbs <span class="op">=</span> <span class="va">my_cbs_data</span>,</span>
+<span>  primary <span class="op">=</span> <span class="va">my_primary_data</span>,</span>
+<span>  impact_prod <span class="op">=</span> <span class="va">my_impact_data</span>,</span>
+<span>  crop_nppr <span class="op">=</span> <span class="va">my_crop_npp</span>,</span>
+<span>  feed_intake <span class="op">=</span> <span class="va">my_feed_intake</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 4. Analyze results</span></span>
@@ -277,7 +278,7 @@
 <span></span>
 <span><span class="va">results</span><span class="op">$</span><span class="va">FP_final</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Impact</span> <span class="op">==</span> <span class="st">"GHG"</span>, <span class="va">Year</span> <span class="op">==</span> <span class="fl">2020</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">area</span>, y <span class="op">=</span> <span class="va">Impact_u</span>, fill <span class="op">=</span> <span class="va">Product_group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">area</span>, y <span class="op">=</span> <span class="va">Impact_u</span>, fill <span class="op">=</span> <span class="va">Element</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/theme_new.html">theme_new</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"GHG Footprint by Product Group, 2020"</span><span class="op">)</span></span></code></pre></div>

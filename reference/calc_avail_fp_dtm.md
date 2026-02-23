@@ -6,7 +6,7 @@ data (DTM).
 ## Usage
 
 ``` r
-calc_avail_fp_dtm(filtered_cbs, df)
+calc_avail_fp_dtm(filtered_cbs, df, cbs, dtm, impact_prod)
 ```
 
 ## Arguments
@@ -19,6 +19,19 @@ calc_avail_fp_dtm(filtered_cbs, df)
 
   Product footprint data frame
 
+- cbs:
+
+  Commodity balance sheet data
+
+- dtm:
+
+  Detailed trade matrix data
+
+- impact_prod:
+
+  Production impact table (new schema with `area`, not `area_code`; used
+  here only for `Year`/`Impact` coverage)
+
 ## Value
 
 A data frame with availability footprints including bilateral import
@@ -28,6 +41,6 @@ footprints
 
 ``` r
 if (FALSE) { # \dontrun{
-avail_fp <- calc_avail_fp_dtm(filtered_cbs, product_footprints)
+avail_fp <- calc_avail_fp_dtm(filtered_cbs, product_footprints, cbs, dtm, impact_prod)
 } # }
 ```

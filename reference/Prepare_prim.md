@@ -14,8 +14,8 @@ Prepare_prim(Prim_all)
 
 - Prim_all:
 
-  Primary production data frame with columns: unit, item, item_code,
-  Value
+  Primary production data frame with columns: unit, item_prod,
+  item_code_prod, Value
 
 ## Value
 

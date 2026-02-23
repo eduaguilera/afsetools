@@ -10,83 +10,71 @@ data frames.
 
 ``` r
 calculate_footprints(
-  CBS,
-  Primary_all,
-  Impact_prod,
-  Crop_NPPr_NoFallow,
-  DTM = NULL,
-  trade_mode = "gt"
+  cbs,
+  primary,
+  impact_prod,
+  crop_nppr,
+  feed_intake,
+  dtm = NULL
 )
 ```
 
 ## Arguments
 
-- CBS:
+- cbs:
 
-  Commodity Balance Sheets data frame with columns: Year, area,
-  area_code, item, item_code, Element, Value
+  Commodity Balance Sheets table. Required columns: `Year`, `area`,
+  `area_code`, `item`, `item_code`, `Element`, `Value`. This function
+  uses at least the following `Element` values: `Production`, `Import`,
+  `Export`, `Seed`, `Processing`, and `Domestic_supply`.
 
-- Primary_all:
+- primary:
 
-  Primary production data frame with crop areas and production
+  Primary production / co-product table (new schema). Required columns:
+  `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
+  `Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
+  `Relative_residue_price`. The workflow expects `unit == "tonnes"` rows
+  and (for draught allocation) `unit == "LU"` livestock rows.
 
-- Impact_prod:
+- impact_prod:
 
-  Impact data at production level with columns: Year, area_code,
-  item_code, Impact, Value, u_FU
+  Production impact table (new schema). Required columns: `Year`,
+  `area`, `item_prod`, `item_code_prod`, `Impact`, `Value`, `u_FU`.
+  `Value` is treated as the functional unit amount (`FU`) when joining
+  production impacts to primary production.
 
-- Crop_NPPr_NoFallow:
+- crop_nppr:
 
-  Crop NPP data excluding fallow periods
+  Crop NPP / residue table. Required columns: `Year`, `area`,
+  `item_prod`, `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`. Residue
+  flows are taken from rows where `Product_residue == "Residue"`.
 
-- DTM:
+- feed_intake:
 
-  Detailed Trade Matrix data (optional, depending on trade_mode)
+  Feed intake table (new schema). Required columns: `Year`, `area`,
+  `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
+  `Intake_DM`.
 
-- trade_mode:
+- dtm:
 
-  Character string: "gt" for gross trade or "dtm" for detailed trade
-  matrix. Default is "gt".
+  Optional detailed trade matrix. If `NULL` (default), the function uses
+  gross-trade mode
+  ([`calc_avail_fp_gt()`](https://eduaguilera.github.io/afsetools/reference/calc_avail_fp_gt.md)).
+  If provided, it automatically uses detailed bilateral trade mode
+  ([`calc_avail_fp_dtm()`](https://eduaguilera.github.io/afsetools/reference/calc_avail_fp_dtm.md)).
+  Required columns when provided: `Year`, `area_code`, `area_code_p`,
+  `area_p`, `item_code`, `Element`, `Impact`, `Country_share` (with
+  `Element == "Import"` rows used).
 
 ## Value
 
-A named list containing all footprint data frames:
-
-- FP_prim:
-
-  Primary production footprints with economic allocation
-
-- FP_prim_ds:
-
-  Primary product footprints including domestic supply
-
-- FP_processed_raw:
-
-  Processed product footprints (raw calculation)
-
-- FP_processed_ds:
-
-  Processed product footprints with domestic supply
-
-- FP_feed:
-
-  Feed product footprints
-
-- FP_feed_ds:
-
-  Feed product footprints with domestic supply
-
-- FP_final:
-
-  Final comprehensive footprint data frame
-
-- Seed_share:
-
-  Calculated seed shares by crop
-
-- draught_shares:
-
-  Draught animal allocation shares
+A named list of intermediate and final footprint tables, including:
+`FP_prim`, `FP_prim_i`, `FP_prim_i_global`, `FP_prim_ds`,
+`FP_prim_ds_i`, `FP_processed_raw`, `FP_processed_raw_i`,
+`FP_processed_ds`, `FP_processed_ds_i`, `FP_reprocessed_raw`,
+`FP_reprocessed_raw_i`, `FP_raw_all`, `FP_feed_raw`, `FP_feed`,
+`FP_feed_i`, `FP_feed_ds`, `FP_feed_ds_i`, `FP_ioc`, `FP_i`, `FP_final`,
+`Seed_share`, `draught_shares`, `Import_share`, and `Processing_shares`.
 
 ## Details
 
@@ -98,8 +86,8 @@ This function implements a complete footprint accounting system that:
 
 - Traces impacts through processing chains
 
-- Accounts for international trade (gross trade or bilateral trade
-  matrix)
+- Accounts for international trade (gross trade when `dtm` is `NULL`,
+  bilateral trade matrix when `dtm` is provided)
 
 - Handles feed products and livestock production
 
@@ -115,14 +103,16 @@ if (FALSE) { # \dontrun{
 library(afsetools)
 load_general_data()
 
-# Calculate footprints using gross trade
+# Calculate footprints using gross trade (omit dtm)
 footprints <- calculate_footprints(
-  CBS = my_cbs_data,
-  Primary_all = my_primary_data,
-  Impact_prod = my_impact_data,
-  Crop_NPPr_NoFallow = my_npp_data,
-  trade_mode = "gt"
+  cbs = my_cbs_data,
+  primary = my_primary_data,
+  impact_prod = my_impact_data,
+  crop_nppr = my_npp_data,
+  feed_intake = my_feed_intake
 )
+
+# To use bilateral trade, pass dtm = my_dtm_data
 
 # Access individual footprint tables
 fp_primary <- footprints$FP_prim

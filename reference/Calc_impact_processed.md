@@ -6,7 +6,7 @@ conversion coefficients.
 ## Usage
 
 ``` r
-Calc_impact_processed(df)
+Calc_impact_processed(df, processing_shares)
 ```
 
 ## Arguments
@@ -14,6 +14,10 @@ Calc_impact_processed(df)
 - df:
 
   Product footprint data frame
+
+- processing_shares:
+
+  Processing shares table
 
 ## Value
 
@@ -23,6 +27,6 @@ A data frame with processed product footprints
 
 ``` r
 if (FALSE) { # \dontrun{
-processed_fp <- Calc_impact_processed(primary_footprints)
+processed_fp <- Calc_impact_processed(primary_footprints, processing_shares)
 } # }
 ```

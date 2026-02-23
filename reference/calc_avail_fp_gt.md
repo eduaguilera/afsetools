@@ -6,7 +6,7 @@ using gross trade data (no bilateral trade detail).
 ## Usage
 
 ``` r
-calc_avail_fp_gt(filtered_cbs, df)
+calc_avail_fp_gt(filtered_cbs, df, cbs)
 ```
 
 ## Arguments
@@ -19,6 +19,10 @@ calc_avail_fp_gt(filtered_cbs, df)
 
   Product footprint data frame
 
+- cbs:
+
+  Commodity balance sheet data
+
 ## Value
 
 A data frame with availability footprints including imports
@@ -27,6 +31,6 @@ A data frame with availability footprints including imports
 
 ``` r
 if (FALSE) { # \dontrun{
-avail_fp <- calc_avail_fp_gt(filtered_cbs, product_footprints)
+avail_fp <- calc_avail_fp_gt(filtered_cbs, product_footprints, cbs)
 } # }
 ```

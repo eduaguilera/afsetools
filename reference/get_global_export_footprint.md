@@ -6,7 +6,7 @@ by export shares.
 ## Usage
 
 ``` r
-get_global_export_footprint(df)
+get_global_export_footprint(df, cbs)
 ```
 
 ## Arguments
@@ -14,6 +14,10 @@ get_global_export_footprint(df)
 - df:
 
   A data frame with product footprints
+
+- cbs:
+
+  Commodity balance sheet data used to calculate export shares
 
 ## Value
 
@@ -23,6 +27,6 @@ A data frame with global average footprints (u_ton_glob)
 
 ``` r
 if (FALSE) { # \dontrun{
-global_footprint <- get_global_export_footprint(product_footprints)
+global_footprint <- get_global_export_footprint(product_footprints, cbs)
 } # }
 ```

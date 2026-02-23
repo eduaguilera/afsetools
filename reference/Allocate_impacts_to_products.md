@@ -6,7 +6,7 @@ Performs economic allocation of environmental impacts among co-products
 ## Usage
 
 ``` r
-Allocate_impacts_to_products(df)
+Allocate_impacts_to_products(df, draught_shares)
 ```
 
 ## Arguments
@@ -14,6 +14,10 @@ Allocate_impacts_to_products(df)
 - df:
 
   A data frame with impact data for products
+
+- draught_shares:
+
+  Draught animal allocation shares by \`Year\`, \`area\`, \`Live_anim\`
 
 ## Value
 
@@ -24,6 +28,6 @@ added)
 
 ``` r
 if (FALSE) { # \dontrun{
-allocated_impacts <- Allocate_impacts_to_products(impact_data)
+allocated_impacts <- Allocate_impacts_to_products(impact_data, draught_shares)
 } # }
 ```
