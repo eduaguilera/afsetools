@@ -18,12 +18,6 @@
 #' primary_data <- Prepare_prim(Primary_all)
 #' }
 Prepare_prim <- function(Prim_all) {
-  Prim_all <- Prim_all |>
-    dplyr::rename(
-      item = item_prod,
-      item_code = item_code_prod
-    )
-
   Prim_all |>
     dplyr::filter(unit == "tonnes") |>
     dplyr::left_join(Primary_double |> # Joining code of corresponding primary product for double products
@@ -36,19 +30,17 @@ Prepare_prim <- function(Prim_all) {
           Item_area = item_prod,
           Item_code_area = item_code_prod
         ), by = c("Item_area")) |>
-      dplyr::rename(item_code = item_code_prod) |>
-      dplyr::select(item_code, Item_code_area, Multi_type), by = c("item_code")) |>
+      dplyr::select(item_code_prod, Item_code_area, Multi_type), by = c("item_code_prod")) |>
     dplyr::mutate(item_code_impact = dplyr::if_else(!is.na(Live_anim_code), # Code for joining impacts: same as product except for double products and animal products
       Live_anim_code,
       dplyr::if_else(!is.na(Item_code_area),
         Item_code_area,
-        item_code
+        item_code_prod
       )
     )) |>
     dplyr::anti_join(Primary_double |> # Removing primary double products (Seed cotton, Hemp, etc.)
       dplyr::filter(is.na(Item_area)) |>
-      dplyr::rename(item_code = item_code_prod) |>
-      dplyr::select(item_code), by = c("item_code"))
+      dplyr::select(item_code_prod), by = c("item_code_prod"))
 }
 
 #' Allocate Impacts to Products Based on Economic Value
@@ -82,16 +74,12 @@ Allocate_impacts_to_products <- function(df, draught_shares) {
         item_cbs = "Animal draught"
       ) |>
       dplyr::left_join(items_full |>
-        dplyr::select(item = item_cbs, item_code = item_code_cbs) |>
-        dplyr::rename(
-          item_cbs = item,
-          item_code_cbs = item_code
-        ), by = c("item_cbs")), # Add codes for draught items
+        dplyr::select(item_cbs, item_code_cbs), by = c("item_cbs")), # Add codes for draught items
     df |> # The rest of the products
       dplyr::left_join(draught_shares, by = c("Year", "area", "Live_anim")) |>
       dplyr::mutate(draught_share = tidyr::replace_na(draught_share, 0)) |>
       dplyr::left_join(Primary_prices |>
-        dplyr::select(Year, item_code, Price), by = c("Year", "item_code")) |>
+        dplyr::select(Year, item_code_prod = item_code, Price), by = c("Year", "item_code_prod")) |>
       dplyr::left_join(CBS_item_prices |>
         dplyr::filter(Element == "Export") |>
         dplyr::select(Year, item_code, Price) |>
@@ -149,7 +137,7 @@ Allocate_impacts_to_products <- function(df, draught_shares) {
 #' }
 get_global_export_footprint <- function(df, cbs) {
   df |>
-    dplyr::group_by(Year, area_code, item_code, item, Impact) |>
+    dplyr::group_by(Year, area_code, item_code_cbs, item_cbs, Impact) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE), # Aggregate origins in imported products
       Impact_u = sum(Impact_u, na.rm = TRUE),
@@ -167,19 +155,19 @@ get_global_export_footprint <- function(df, cbs) {
           1,
           Exp_share
         )
-      ), by = c("Year", "area_code", "item_code")) |>
+      ), by = c("Year", "area_code", "item_code_cbs")) |>
     dplyr::mutate(
       Value = Value * Exp_share,
       Impact_u = Impact_u * Exp_share
     ) |>
-    dplyr::group_by(Year, item, item_code, Impact) |>
+    dplyr::group_by(Year, item_cbs, item_code_cbs, Impact) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE), # Gets impact of exported product at global level
       Impact_u = sum(Impact_u, na.rm = TRUE),
       .groups = "drop"
     ) |>
     dplyr::mutate(u_ton_glob = Impact_u / Value) |>
-    dplyr::select(Year, item_code, Impact, u_ton_glob) |>
+    dplyr::select(Year, item_code_cbs, Impact, u_ton_glob) |>
     dplyr::mutate(
       Element = "Import",
       Origin = "Import"
@@ -207,7 +195,7 @@ calc_avail_fp_gt <- function(filtered_cbs, df, cbs) {
     df, # Production impact
     filtered_cbs |> # Import impact
       dplyr::filter(Element == "Import") |>
-      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code", "Impact"))
+      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code_cbs", "Impact"))
   ) |>
     dplyr::mutate(
       u_ton2 = dplyr::if_else(is.na(u_ton),
@@ -244,14 +232,14 @@ calc_avail_fp_dtm <- function(filtered_cbs, df, cbs, dtm, impact_prod) {
     df, # Production impact
     filtered_cbs |> # Import impact
       dplyr::filter(Element == "Import") |>
-      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code", "Impact")) |>
+      dplyr::left_join(get_global_export_footprint(df, cbs = cbs), by = c("Year", "item_code_cbs", "Impact")) |>
       dplyr::left_join(dtm |> # Get footprint in each partner
         dplyr::left_join(impact_prod |> dplyr::group_by(Year, Impact) |>
           dplyr::summarize(Year = mean(Year, na.rm = TRUE), .groups = "drop"), by = c("Year", "Impact")) |>
         dplyr::filter(Element == "Import") |>
-        dplyr::select(Year, area_code, area_code_p, area_p, item_code, Element, Impact, Country_share) |>
+        dplyr::select(Year, area_code, area_code_p, area_p, item_code_cbs = item_code, Element, Impact, Country_share) |>
         dplyr::left_join(df |>
-          dplyr::group_by(Year, area_code, item_code, item, Impact) |>
+          dplyr::group_by(Year, area_code, item_code_cbs, item_cbs, Impact) |>
           dplyr::summarize(
             Value = sum(Value, na.rm = TRUE), # Aggregate origins in imported products
             Impact_u = sum(Impact_u, na.rm = TRUE),
@@ -261,9 +249,9 @@ calc_avail_fp_dtm <- function(filtered_cbs, df, cbs, dtm, impact_prod) {
             u_ton_p = Impact_u / Value,
             area_code_p = area_code
           ) |>
-          dplyr::select(Year, area_code_p, item_code, Impact, u_ton_p), by = c("Year", "area_code_p", "item_code", "Impact")) |>
+          dplyr::select(Year, area_code_p, item_code_cbs, Impact, u_ton_p), by = c("Year", "area_code_p", "item_code_cbs", "Impact")) |>
         dplyr::mutate(Origin = "Import") |>
-        dplyr::filter(!is.na(Country_share)), by = c("Year", "area_code", "item_code", "Element", "Impact", "Origin"))
+        dplyr::filter(!is.na(Country_share)), by = c("Year", "area_code", "item_code_cbs", "Element", "Impact", "Origin"))
   ) |>
     dplyr::mutate(
       Country_share = tidyr::replace_na(Country_share, 1),
@@ -298,23 +286,23 @@ calc_avail_fp_dtm <- function(filtered_cbs, df, cbs, dtm, impact_prod) {
 #' }
 Calc_impact_processed <- function(df, processing_shares) {
   df |>
-    dplyr::group_by(Year, area, area_code, item, item_code, Origin, Impact) |>
+    dplyr::group_by(Year, area, area_code, item_cbs, item_code_cbs, Origin, Impact) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE),
       Impact_u = sum(Impact_u, na.rm = TRUE),
       .groups = "drop"
     ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
-    dplyr::inner_join(processing_shares, by = c("Year", "area", "area_code", "item", "item_code")) |>
-    dplyr::group_by(Year, area_code, item_code, Impact) |>
+    dplyr::inner_join(processing_shares, by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs")) |>
+    dplyr::group_by(Year, area_code, item_code_cbs, Impact) |>
     dplyr::left_join(Processing_coefs |>
-      dplyr::select(Year, area_code, item_code, Item, cf), by = c("Year", "area_code", "item_code")) |>
+      dplyr::select(Year, area_code, item_code_cbs = item_code, Item, cf), by = c("Year", "area_code", "item_code_cbs")) |>
     dplyr::left_join(CBS_item_prices |>
       dplyr::filter(Element == "Export") |>
       dplyr::rename(Item = item) |>
       dplyr::select(Year, Item, Price), by = c("Year", "Item")) |>
     dplyr::filter(Value != 0) |>
-    dplyr::group_by(Year, area_code, item_code, Origin, Impact) |>
+    dplyr::group_by(Year, area_code, item_code_cbs, Origin, Impact) |>
     dplyr::mutate(
       tons_proc = Value * Proc_share * cf, # Tons of resulting processed product
       Value_d = tons_proc * Price, # Monetary value of processed product
@@ -356,10 +344,6 @@ Agg_primary <- function(df) {
       .groups = "drop"
     ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
-    dplyr::rename(
-      item = item_cbs,
-      item_code = item_code_cbs
-    ) |>
     dplyr::mutate(Element = "Production")
 }
 
@@ -388,8 +372,8 @@ Agg_processed <- function(df) {
       u_ton = Impact_u / Value,
       Element = "Production"
     ) |>
-    dplyr::rename(item = Item) |>
+    dplyr::rename(item_cbs = Item) |>
     dplyr::left_join(items_full |>
-      dplyr::select(item = item_cbs, item_code = item_code_cbs), by = c("item")) |>
-    dplyr::filter(!is.na(item))
+      dplyr::select(item_cbs, item_code_cbs), by = c("item_cbs")) |>
+    dplyr::filter(!is.na(item_cbs))
 }

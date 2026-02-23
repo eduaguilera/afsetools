@@ -6,9 +6,9 @@
 #' and final footprint data frames.
 #'
 #' @param cbs Commodity Balance Sheets table. Required columns: `Year`, `area`,
-#'   `area_code`, `item`, `item_code`, `Element`, `Value`. This function uses at
-#'   least the following `Element` values: `Production`, `Import`, `Export`,
-#'   `Seed`, `Processing`, and `Domestic_supply`.
+#'   `area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`. This
+#'   function uses at least the following `Element` values: `Production`,
+#'   `Import`, `Export`, `Seed`, `Processing`, and `Domestic_supply`.
 #' @param primary Primary production / co-product table (new schema). Required
 #'   columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
 #'   `Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
@@ -81,19 +81,6 @@ calculate_footprints <- function(cbs,
                                   crop_nppr,
                                   feed_intake,
                                   dtm = NULL) {
-  
-  # Normalize external schemas to internal item/item_code conventions.
-  impact_prod <- impact_prod |>
-    dplyr::rename(
-      item = item_prod,
-      item_code = item_code_prod
-    )
-
-  feed_intake <- feed_intake |>
-    dplyr::rename(
-      item = item_cbs,
-      item_code = item_code_cbs
-    )
 
   # Select trade calculation method automatically from dtm availability.
   calc_avail_fp <- if (is.null(dtm)) {
@@ -143,11 +130,11 @@ calculate_footprints <- function(cbs,
       Seed = Production * Seed_share,
       Seed = tidyr::replace_na(Seed, 0)
     ) |>
-    dplyr::select(Year, area, area_code, item, item_code, Seed_share, Seed)
+    dplyr::select(Year, area, area_code, item_cbs, item_code_cbs, Seed_share, Seed)
   
   # Remove seeds from CBS
   CBS_NoSeeds <- cbs |>
-    dplyr::left_join(Seed_share, by = c("Year", "area", "area_code", "item", "item_code")) |>
+    dplyr::left_join(Seed_share, by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs")) |>
     dplyr::mutate(Value = dplyr::if_else(Element %in% c("Production", "Domestic_supply"),
       Value - Seed,
       dplyr::if_else(Element == "Seed", 0, Value)
@@ -169,8 +156,7 @@ calculate_footprints <- function(cbs,
       dplyr::rename(LU = Value) |>
       dplyr::select(Year, area, Live_anim, LU), by = c("Year", "area", "Live_anim")) |>
     dplyr::left_join(items_prod_full |>
-      dplyr::select(item_prod, Name_biomass) |>
-      dplyr::rename(item = item_prod), by = c("item")) |>
+      dplyr::select(item_prod, Name_biomass), by = c("item_prod")) |>
     dplyr::left_join(Biomass_coefs |>
       dplyr::select(Name_biomass, Product_kgDM_kgFM, Product_kgN_kgDM), by = c("Name_biomass")) |>
     dplyr::mutate(MgN = Value * Product_kgDM_kgFM * Product_kgN_kgDM) |>
@@ -197,15 +183,14 @@ calculate_footprints <- function(cbs,
   # Calculate footprint of primary items
   FP_prim <- Primary_raw |>
     dplyr::left_join(impact_prod |>
-      dplyr::select(Year, area, item_code, Impact, Value, u_FU) |>
+      dplyr::select(Year, area, item_code_prod, Impact, Value, u_FU) |>
       dplyr::rename(
-        item_code_impact = item_code,
+        item_code_impact = item_code_prod,
         FU = Value
       ), by = c("Year", "area", "item_code_impact", "Impact")) |>
     dplyr::mutate(Origin = "Production") |>
     dplyr::left_join(Seed_share |>
-      dplyr::select(Year, area_code, item_code, Seed_share) |>
-      dplyr::rename(item_code_cbs = item_code), by = c("Year", "area_code", "item_code_cbs")) |>
+      dplyr::select(Year, area_code, item_code_cbs, Seed_share), by = c("Year", "area_code", "item_code_cbs")) |>
     dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, Origin, Impact, item_code_impact, unit) |>
     dplyr::mutate(
       Seed_share = tidyr::replace_na(Seed_share, 0),
@@ -230,20 +215,11 @@ calculate_footprints <- function(cbs,
               dplyr::select(item_code_prod, item_prod), by = c("item_prod")) |>
             dplyr::rename(
               item_code_impact = item_code_prod,
-              item = item_cbs
-            ) |>
-            dplyr::select(-item_prod) |>
-            dplyr::left_join(items_full |>
-              dplyr::select(
-                item_code = item_code_cbs,
-                item = item_cbs,
-                group
-              ), by = c("item")) |>
-            dplyr::rename(
-              item_cbs = item,
-              item_code_cbs = item_code,
               Value = Prod_ygpit_Mg
-            ), by = c("Year", "area", "item_code_impact")) |>
+            ) |>
+            dplyr::left_join(items_full |>
+              dplyr::select(item_cbs, item_code_cbs, group), by = c("item_cbs")) |>
+            dplyr::select(-group), by = c("Year", "area", "item_code_impact")) |>
           dplyr::mutate(Product_residue = "Residue")
       )
     })() |>
@@ -251,8 +227,7 @@ calculate_footprints <- function(cbs,
     dplyr::left_join(items_prod_full |>
       dplyr::left_join(Biomass_coefs, by = c("Name_biomass")) |>
       dplyr::select(item_prod, Product_kgDM_kgFM, Product_kgN_kgDM) |>
-      dplyr::rename(item = item_prod) |>
-      dplyr::filter(!is.na(item)), by = c("item")) |>
+      dplyr::filter(!is.na(item_prod)), by = c("item_prod")) |>
     dplyr::mutate(
       Yield = Value / FU,
       Yield_DM = Yield * Product_kgDM_kgFM,
@@ -269,7 +244,7 @@ calculate_footprints <- function(cbs,
   
   # Global averages
   FP_prim_i_global <- FP_prim_i |>
-    dplyr::group_by(Year, Impact, item, item_code) |>
+    dplyr::group_by(Year, Impact, item_cbs, item_code_cbs) |>
     dplyr::summarize(
       Value = sum(Value),
       Impact_u = sum(Impact_u),
@@ -281,7 +256,7 @@ calculate_footprints <- function(cbs,
   FP_prim_ds <- calc_avail_fp(
     CBS_NoSeeds |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
+        dplyr::select(item_code_cbs, group), by = c("item_code_cbs")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
         group %in% c("Primary crops", "Livestock products", "Fish")
@@ -290,7 +265,7 @@ calculate_footprints <- function(cbs,
   )
   
   FP_prim_ds_i <- FP_prim_ds |>
-    dplyr::group_by(Year, area, area_code, Element, Origin, Impact, item) |>
+    dplyr::group_by(Year, area, area_code, Element, Origin, Impact, item_cbs) |>
     dplyr::summarize(
       Impact_Mu = sum(Impact_u, na.rm = TRUE) / 1000000,
       Value = sum(Value, na.rm = TRUE),
@@ -318,9 +293,9 @@ calculate_footprints <- function(cbs,
     dplyr::left_join(
       CBS_NoSeeds |>
         dplyr::filter(Element %in% c("Production", "Import")) |>
-        dplyr::group_by(Year, area_code, item_code) |>
+        dplyr::group_by(Year, area_code, item_code_cbs) |>
         dplyr::summarize(Value_ds = sum(Value, na.rm = TRUE), .groups = "drop"),
-      by = c("Year", "area_code", "item_code")
+      by = c("Year", "area_code", "item_code_cbs")
     ) |>
     dplyr::ungroup() |>
     dplyr::mutate(Proc_share = Value_proc / Value_ds)
@@ -332,7 +307,7 @@ calculate_footprints <- function(cbs,
   FP_processed_ds <- calc_avail_fp(
     CBS_NoSeeds |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
+        dplyr::select(item_code_cbs, group), by = c("item_code_cbs")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
         group %in% c("Crop products", "Processed")
@@ -350,7 +325,7 @@ calculate_footprints <- function(cbs,
     FP_reprocessed_raw_i |>
       dplyr::mutate(Cat_proc = "Reprocessed")
   ) |>
-    dplyr::group_by(Year, area, area_code, Element, Origin, Impact, item, Cat_proc) |>
+    dplyr::group_by(Year, area, area_code, Element, Origin, Impact, item_cbs, Cat_proc) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE),
       Impact_Mu = sum(Impact_u, na.rm = TRUE) / 1000000,
@@ -368,10 +343,10 @@ calculate_footprints <- function(cbs,
       FP_processed_ds,
       FP_reprocessed_raw_i
     ),
-    by_cols = c("Year", "area", "area_code", "Element", "Origin", "Impact", "item", "item_code")
+    by_cols = c("Year", "area", "area_code", "Element", "Origin", "Impact", "item_cbs", "item_code_cbs")
   ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
-    dplyr::group_by(Year, area, area_code, item, item_code, Impact) |>
+    dplyr::group_by(Year, area, area_code, item_cbs, item_code_cbs, Impact) |>
     dplyr::mutate(u_ton_scaled = Impact_u / sum(Value)) |>
     dplyr::ungroup()
 
@@ -379,18 +354,17 @@ calculate_footprints <- function(cbs,
   FP_feed_raw <- feed_intake |>
     dplyr::left_join(
       Animals_codes |>
-        dplyr::select(item = item_cbs, item_code = item_code_cbs) |>
-        dplyr::rename(
-          Live_anim = item,
-          Live_anim_code = item_code
+        dplyr::select(
+          Live_anim = item_cbs,
+          Live_anim_code = item_code_cbs
         ) |>
         dplyr::distinct(),
       by = c("Live_anim")
     ) |>
     dplyr::left_join(
       FP_raw_all |>
-        dplyr::select(Year, area, area_code, item, item_code, Impact, Origin, u_ton_scaled),
-      by = c("Year", "area", "area_code", "item", "item_code")
+        dplyr::select(Year, area, area_code, item_cbs, item_code_cbs, Impact, Origin, u_ton_scaled),
+      by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs")
     ) |>
     dplyr::mutate(FPFeed_u = Supply * u_ton_scaled) |>
     dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, Impact, Origin) |>
@@ -416,12 +390,8 @@ calculate_footprints <- function(cbs,
     ) |>
     dplyr::left_join(
       primary |>
-        dplyr::filter(unit == "tonnes") |>
-        dplyr::rename(
-          item = item_prod,
-          item_code = item_code_prod
-        ),
-      by = c("Year", "area", "area_code", "item", "item_code")
+        dplyr::filter(unit == "tonnes"),
+      by = c("Year", "area", "area_code", "Live_anim" = "item_prod", "Live_anim_code" = "item_code_prod")
     ) |>
     dplyr::mutate(
       Value_tot = Value,
@@ -435,12 +405,12 @@ calculate_footprints <- function(cbs,
     dplyr::filter(!is.na(Impact))
 
   FP_feed_i <- Agg_primary(FP_feed) |>
-    dplyr::filter(!is.na(item))
+    dplyr::filter(!is.na(item_cbs))
 
   FP_feed_ds <- calc_avail_fp(
     CBS_NoSeeds |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
+        dplyr::select(item_code_cbs, group), by = c("item_code_cbs")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
         group == "Livestock products"
@@ -451,7 +421,7 @@ calculate_footprints <- function(cbs,
 
   # Keep a summary table for package workflows that expected a summarized feed output.
   FP_feed_ds_i <- FP_feed_ds |>
-    dplyr::group_by(Year, area, area_code, item, item_code, Origin, Impact) |>
+    dplyr::group_by(Year, area, area_code, item_cbs, item_code_cbs, Origin, Impact) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE),
       Impact_u = sum(Impact_u, na.rm = TRUE),
@@ -462,7 +432,7 @@ calculate_footprints <- function(cbs,
   FP_ioc <- dplyr::bind_rows(
     FP_raw_all |>
       dplyr::left_join(items_full |>
-        dplyr::select(item_code = item_code_cbs, group), by = c("item_code")) |>
+        dplyr::select(item_code_cbs, group), by = c("item_code_cbs")) |>
       dplyr::mutate(Prod_class = dplyr::if_else(
         group == "Livestock products",
         "Animal",
@@ -475,34 +445,34 @@ calculate_footprints <- function(cbs,
 
   FP_ioc <- fast_sum_impact(
     FP_ioc,
-    by_cols = c("Year", "area", "area_code", "item", "item_code", "Element", "Impact", "Prod_class", "Origin")
+    by_cols = c("Year", "area", "area_code", "item_cbs", "item_code_cbs", "Element", "Impact", "Prod_class", "Origin")
   ) |>
     dplyr::left_join(
       CBS_NoSeeds,
-      by = c("Year", "area", "area_code", "item", "item_code", "Element")
+      by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs", "Element")
     ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
     dplyr::ungroup() |>
     dplyr::left_join(
       items_full |>
-        dplyr::select(item = item_cbs, item_code = item_code_cbs, group),
-      by = c("item", "item_code")
+        dplyr::select(item_cbs, item_code_cbs, group),
+      by = c("item_cbs", "item_code_cbs")
     )
 
   FP_i <- fast_sum_impact(
     FP_ioc,
-    by_cols = c("Year", "area", "area_code", "Prod_class", "item", "item_code", "Element", "Impact")
+    by_cols = c("Year", "area", "area_code", "Prod_class", "item_cbs", "item_code_cbs", "Element", "Impact")
   ) |>
     dplyr::left_join(
       CBS_NoSeeds,
-      by = c("Year", "area", "area_code", "item", "item_code", "Element")
+      by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs", "Element")
     ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
     dplyr::ungroup()
 
   FP_final <- fast_sum_value_impact(
     FP_ioc,
-    by_cols = c("Year", "Impact", "area", "area_code", "Element", "Origin", "item", "item_code", "group")
+    by_cols = c("Year", "Impact", "area", "area_code", "Element", "Origin", "item_cbs", "item_code_cbs", "group")
   ) |>
     dplyr::mutate(u_ton = Impact_u / Value) |>
     dplyr::left_join(
@@ -520,8 +490,8 @@ calculate_footprints <- function(cbs,
             Exp_share
           )
         ) |>
-        dplyr::select(Year, area, item, Exp_share),
-      by = c("Year", "area", "item")
+        dplyr::select(Year, area, item_cbs, Exp_share),
+      by = c("Year", "area", "item_cbs")
     ) |>
     dplyr::mutate(
       Export_u = Impact_u * Exp_share,

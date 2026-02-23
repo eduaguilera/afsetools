@@ -15,9 +15,9 @@ calculate_footprints(
 }
 \arguments{
 \item{cbs}{Commodity Balance Sheets table. Required columns: `Year`, `area`,
-`area_code`, `item`, `item_code`, `Element`, `Value`. This function uses at
-least the following `Element` values: `Production`, `Import`, `Export`,
-`Seed`, `Processing`, and `Domestic_supply`.}
+`area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`. This
+function uses at least the following `Element` values: `Production`,
+`Import`, `Export`, `Seed`, `Processing`, and `Domestic_supply`.}
 
 \item{primary}{Primary production / co-product table (new schema). Required
 columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
