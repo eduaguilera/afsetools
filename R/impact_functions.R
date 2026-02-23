@@ -134,7 +134,7 @@ Allocate_impacts_to_products <- function(df, draught_shares) {
 #' }
 get_global_export_footprint <- function(df, cbs) {
   df |>
-    dplyr::group_by(Year, area_code, item_code_cbs, item_cbs, Impact) |>
+    dplyr::group_by(Year, area_code, item_code_cbs, Impact) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE), # Aggregate origins in imported products
       Impact_u = sum(Impact_u, na.rm = TRUE),
@@ -157,7 +157,7 @@ get_global_export_footprint <- function(df, cbs) {
       Value = Value * Exp_share,
       Impact_u = Impact_u * Exp_share
     ) |>
-    dplyr::group_by(Year, item_cbs, item_code_cbs, Impact) |>
+    dplyr::group_by(Year, item_code_cbs, Impact) |>
     dplyr::summarize(
       Value = sum(Value, na.rm = TRUE), # Gets impact of exported product at global level
       Impact_u = sum(Impact_u, na.rm = TRUE),
