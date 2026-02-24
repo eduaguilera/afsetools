@@ -99,7 +99,7 @@ Required workflow objects (created outside
 - `Processing_coefs`:
 
   Processing conversion coefficients. Columns used: `Year`, `area_code`,
-  `item_code_cbs`, `Item`, `cf`.
+  `item_code_cbs`, `item_cbs`, `cf`.
 
 - `Relative_residue_price`:
 
