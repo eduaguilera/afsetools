@@ -64,14 +64,11 @@ npp <- Calc_NPP_potentials(climate_data)
 crop_npp <- Calculate_crop_NPP(crop_data, harvest_index)
 
 # Trace impacts through supply chains
+# Requires objects in the environment:
+# CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,
+# Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price
 # Omit `dtm` for gross trade; pass `dtm = detailed_trade_matrix` for bilateral trade
-footprints <- calculate_footprints(
-  cbs = commodity_balance_sheets,
-  primary = primary_production,
-  impact_prod = production_impacts,
-  crop_nppr = crop_npp,
-  feed_intake = feed_intake
-)
+footprints <- calculate_footprints()
 
 # Access results
 primary_fp <- footprints$FP_prim
@@ -186,17 +183,12 @@ library(dplyr)
 # 1. Load all data
 load_general_data()
 
-# 2. Prepare your input data
-# (cbs, primary, impact_prod, crop_nppr, feed_intake)
+# 2. Prepare your workflow objects in the environment
+# (CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,
+#  Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price)
 
 # 3. Calculate complete footprints
-results <- calculate_footprints(
-  cbs = my_cbs_data,
-  primary = my_primary_data,
-  impact_prod = my_impact_data,
-  crop_nppr = my_crop_npp,
-  feed_intake = my_feed_intake
-)
+results <- calculate_footprints()
 
 # 4. Analyze results
 library(ggplot2)

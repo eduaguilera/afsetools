@@ -5,30 +5,13 @@
 #' orchestrates the entire footprint calculation process and returns all intermediate
 #' and final footprint data frames.
 #'
-#' @param cbs Commodity Balance Sheets table. Required columns: `Year`, `area`,
-#'   `area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`. This
-#'   function uses at least the following `Element` values: `Production`,
-#'   `Import`, `Export`, `Seed`, `Processing`, and `Domestic_supply`.
-#' @param primary Primary production / co-product table (new schema). Required
-#'   columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
-#'   `Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
-#'   `Relative_residue_price`. The workflow expects `unit == "tonnes"` rows and
-#'   (for draught allocation) `unit == "LU"` livestock rows.
-#' @param impact_prod Production impact table (new schema). Required columns:
-#'   `Year`, `area`, `item_prod`, `item_code_prod`, `Impact`, `Value`,
-#'   `u_FU`. `Value` is treated as the functional unit amount (`FU`) when joining
-#'   production impacts to primary production.
-#' @param crop_nppr Crop NPP / residue table. Required columns: `Year`, `area`,
-#'   `item_prod`, `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`. Residue flows
-#'   are taken from rows where `Product_residue == "Residue"`.
-#' @param feed_intake Feed intake table (new schema). Required columns: `Year`,
-#'   `area`, `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
-#'   `Intake_DM`.
 #' @param dtm Optional detailed trade matrix. If `NULL` (default), the function
 #'   uses gross-trade mode (`calc_avail_fp_gt()`). If provided, it automatically
 #'   uses detailed bilateral trade mode (`calc_avail_fp_dtm()`). Required columns
-#'   when provided: `Year`, `area_code`, `area_code_p`, `area_p`, `item_code`,
-#'   `Element`, `Impact`, `Country_share` (with `Element == "Import"` rows used).
+#'   when provided: `Year`, `area_code`, `area_code_p`, `area_p`,
+#'   `item_code_cbs`, `Element`, `Country_share` (with `Element == "Import"`
+#'   rows used). `Impact` is generated internally by expanding `dtm` rows across
+#'   impacts present in `Impact_prod` for each year.
 #'
 #' @return A named list of intermediate and final footprint tables, including:
 #'   `FP_prim`, `FP_prim_i`, `FP_prim_i_global`, `FP_prim_ds`, `FP_prim_ds_i`,
@@ -50,8 +33,48 @@
 #'   \item Allocates draught animal services to crop production
 #' }
 #'
-#' The calculation requires that `load_general_data()` has been called first to load
-#' all necessary coefficient tables and classification data.
+#' `calculate_footprints()` only takes `dtm` explicitly. All other required
+#' inputs are read implicitly from objects in the calling environment.
+#'
+#' Required workflow objects (created outside `load_general_data()`):
+#' \describe{
+#'   \item{`CBS`}{Commodity balance table. Columns used: `Year`, `area`,
+#'   `area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`.}
+#'   \item{`Primary_all`}{Primary production / co-product table. Columns used:
+#'   `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
+#'   `Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`.}
+#'   \item{`Impact_prod`}{Production impact table. Columns used: `Year`, `area`,
+#'   `item_code_prod`, `Impact`, `Value`, `u_FU` (and optionally `item_prod`).}
+#'   \item{`Crop_NPPr_NoFallow`}{Crop NPP / residue table. Columns used:
+#'   `Year`, `area`, `item_prod`, `item_cbs`, `Product_residue`,
+#'   `Prod_ygpit_Mg`.}
+#'   \item{`Feed_intake`}{Feed intake table. Columns used: `Year`, `area`,
+#'   `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
+#'   `Intake_DM`.}
+#'   \item{`Primary_prices`}{Primary product prices. Columns used: `Year`,
+#'   `item_code_prod`, `Price`.}
+#'   \item{`CBS_item_prices`}{CBS item prices. Columns used: `Year`, `Element`,
+#'   `item_cbs`, `item_code_cbs`, `Price`.}
+#'   \item{`Processing_coefs`}{Processing conversion coefficients. Columns used:
+#'   `Year`, `area_code`, `item_code_cbs`, `Item`, `cf`.}
+#'   \item{`Relative_residue_price`}{Numeric scalar used to value residues
+#'   relative to product prices.}
+#' }
+#'
+#' Required auxiliary objects loaded by `load_general_data()`:
+#' \describe{
+#'   \item{`items_full` (sheet `items_full` in `Codes_coefs.xlsx`)}{Columns used:
+#'   `item_cbs`, `item_code_cbs`, `group`.}
+#'   \item{`items_prod_full` (sheet `items_prod_full` in `Codes_coefs.xlsx`)}{
+#'   Columns used: `item_prod`, `item_code_prod`, `Name_biomass`.}
+#'   \item{`Animals_codes` (sheet `Animals_codes` in `Codes_coefs.xlsx`)}{
+#'   Columns used: `item_cbs`, `item_code_cbs`.}
+#'   \item{`Primary_double` (sheet `Primary_double` in `Codes_coefs.xlsx`)}{
+#'   Columns used (via `Prepare_prim()`): `Item_area`, `item_prod`,
+#'   `item_code_prod`, `Multi_type`.}
+#'   \item{`Biomass_coefs` (`Biomass_coefs.xlsx`)}{Columns used:
+#'   `Name_biomass`, `Product_kgDM_kgFM`, `Product_kgN_kgDM`.}
+#' }
 #'
 #' @export
 #'
@@ -60,27 +83,26 @@
 #' library(afsetools)
 #' load_general_data()
 #'
-#' # Calculate footprints using gross trade (omit dtm)
-#' footprints <- calculate_footprints(
-#'   cbs = my_cbs_data,
-#'   primary = my_primary_data,
-#'   impact_prod = my_impact_data,
-#'   crop_nppr = my_npp_data,
-#'   feed_intake = my_feed_intake
-#' )
+#' # Requires workflow objects in the environment:
+#' # CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,
+#' # Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price
 #'
-#' # To use bilateral trade, pass dtm = my_dtm_data
+#' # Calculate footprints using gross trade (omit dtm)
+#' footprints <- calculate_footprints()
+#'
+#' # To use bilateral trade, pass dtm = my_dtm_data (or dtm = DTM)
 #'
 #' # Access individual footprint tables
 #' fp_primary <- footprints$FP_prim
 #' fp_final <- footprints$FP_final
 #' }
-calculate_footprints <- function(cbs,
-                                  primary,
-                                  impact_prod,
-                                  crop_nppr,
-                                  feed_intake,
-                                  dtm = NULL) {
+calculate_footprints <- function(dtm = NULL) {
+
+  cbs <- CBS
+  primary <- Primary_all
+  impact_prod <- Impact_prod
+  crop_nppr <- Crop_NPPr_NoFallow
+  feed_intake <- Feed_intake
 
   # Select trade calculation method automatically from dtm availability.
   calc_avail_fp <- if (is.null(dtm)) {

@@ -4,45 +4,16 @@
 \alias{calculate_footprints}
 \title{Calculate Complete Environmental Footprints Along Supply Chains}
 \usage{
-calculate_footprints(
-  cbs,
-  primary,
-  impact_prod,
-  crop_nppr,
-  feed_intake,
-  dtm = NULL
-)
+calculate_footprints(dtm = NULL)
 }
 \arguments{
-\item{cbs}{Commodity Balance Sheets table. Required columns: `Year`, `area`,
-`area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`. This
-function uses at least the following `Element` values: `Production`,
-`Import`, `Export`, `Seed`, `Processing`, and `Domestic_supply`.}
-
-\item{primary}{Primary production / co-product table (new schema). Required
-columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
-`Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
-`Relative_residue_price`. The workflow expects `unit == "tonnes"` rows and
-(for draught allocation) `unit == "LU"` livestock rows.}
-
-\item{impact_prod}{Production impact table (new schema). Required columns:
-`Year`, `area`, `item_prod`, `item_code_prod`, `Impact`, `Value`,
-`u_FU`. `Value` is treated as the functional unit amount (`FU`) when joining
-production impacts to primary production.}
-
-\item{crop_nppr}{Crop NPP / residue table. Required columns: `Year`, `area`,
-`item_prod`, `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`. Residue flows
-are taken from rows where `Product_residue == "Residue"`.}
-
-\item{feed_intake}{Feed intake table (new schema). Required columns: `Year`,
-`area`, `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
-`Intake_DM`.}
-
 \item{dtm}{Optional detailed trade matrix. If `NULL` (default), the function
 uses gross-trade mode (`calc_avail_fp_gt()`). If provided, it automatically
 uses detailed bilateral trade mode (`calc_avail_fp_dtm()`). Required columns
-when provided: `Year`, `area_code`, `area_code_p`, `area_p`, `item_code`,
-`Element`, `Impact`, `Country_share` (with `Element == "Import"` rows used).}
+when provided: `Year`, `area_code`, `area_code_p`, `area_p`,
+`item_code_cbs`, `Element`, `Country_share` (with `Element == "Import"`
+rows used). `Impact` is generated internally by expanding `dtm` rows across
+impacts present in `Impact_prod` for each year.}
 }
 \value{
 A named list of intermediate and final footprint tables, including:
@@ -71,24 +42,66 @@ This function implements a complete footprint accounting system that:
   \item Allocates draught animal services to crop production
 }
 
-The calculation requires that `load_general_data()` has been called first to load
-all necessary coefficient tables and classification data.
+\code{calculate_footprints()} only takes \code{dtm} explicitly. All other required
+inputs are read implicitly from objects in the calling environment.
+
+Required workflow objects (created outside \code{load_general_data()}):
+\describe{
+  \item{\code{CBS}}{Commodity balance table. Columns used: \code{Year},
+  \code{area}, \code{area_code}, \code{item_cbs}, \code{item_code_cbs},
+  \code{Element}, \code{Value}.}
+  \item{\code{Primary_all}}{Primary production / co-product table. Columns used:
+  \code{Year}, \code{area}, \code{area_code}, \code{item_prod},
+  \code{item_code_prod}, \code{unit}, \code{Value}, \code{item_cbs},
+  \code{item_code_cbs}, \code{Live_anim}, \code{Live_anim_code}.}
+  \item{\code{Impact_prod}}{Production impact table. Columns used: \code{Year},
+  \code{area}, \code{item_code_prod}, \code{Impact}, \code{Value},
+  \code{u_FU} (and optionally \code{item_prod}).}
+  \item{\code{Crop_NPPr_NoFallow}}{Crop NPP / residue table. Columns used:
+  \code{Year}, \code{area}, \code{item_prod}, \code{item_cbs},
+  \code{Product_residue}, \code{Prod_ygpit_Mg}.}
+  \item{\code{Feed_intake}}{Feed intake table. Columns used: \code{Year},
+  \code{area}, \code{area_code}, \code{Live_anim}, \code{item_cbs},
+  \code{item_code_cbs}, \code{Supply}, \code{Intake_DM}.}
+  \item{\code{Primary_prices}}{Primary product prices. Columns used:
+  \code{Year}, \code{item_code_prod}, \code{Price}.}
+  \item{\code{CBS_item_prices}}{CBS item prices. Columns used: \code{Year},
+  \code{Element}, \code{item_cbs}, \code{item_code_cbs}, \code{Price}.}
+  \item{\code{Processing_coefs}}{Processing conversion coefficients. Columns
+  used: \code{Year}, \code{area_code}, \code{item_code_cbs}, \code{Item},
+  \code{cf}.}
+  \item{\code{Relative_residue_price}}{Numeric scalar used to value residues
+  relative to product prices.}
+}
+
+Required auxiliary objects loaded by \code{load_general_data()}:
+\describe{
+  \item{\code{items_full} (sheet \code{items_full} in \code{Codes_coefs.xlsx})}{
+  Columns used: \code{item_cbs}, \code{item_code_cbs}, \code{group}.}
+  \item{\code{items_prod_full} (sheet \code{items_prod_full} in \code{Codes_coefs.xlsx})}{
+  Columns used: \code{item_prod}, \code{item_code_prod}, \code{Name_biomass}.}
+  \item{\code{Animals_codes} (sheet \code{Animals_codes} in \code{Codes_coefs.xlsx})}{
+  Columns used: \code{item_cbs}, \code{item_code_cbs}.}
+  \item{\code{Primary_double} (sheet \code{Primary_double} in \code{Codes_coefs.xlsx})}{
+  Columns used (via \code{Prepare_prim()}): \code{Item_area},
+  \code{item_prod}, \code{item_code_prod}, \code{Multi_type}.}
+  \item{\code{Biomass_coefs} (\code{Biomass_coefs.xlsx})}{Columns used:
+  \code{Name_biomass}, \code{Product_kgDM_kgFM}, \code{Product_kgN_kgDM}.}
+}
 }
 \examples{
 \dontrun{
 library(afsetools)
 load_general_data()
 
-# Calculate footprints using gross trade (omit dtm)
-footprints <- calculate_footprints(
-  cbs = my_cbs_data,
-  primary = my_primary_data,
-  impact_prod = my_impact_data,
-  crop_nppr = my_npp_data,
-  feed_intake = my_feed_intake
-)
+# Requires workflow objects in the environment:
+# CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,
+# Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price
 
-# To use bilateral trade, pass dtm = my_dtm_data
+# Calculate footprints using gross trade (omit dtm)
+footprints <- calculate_footprints()
+
+# To use bilateral trade, pass dtm = my_dtm_data (or dtm = DTM)
 
 # Access individual footprint tables
 fp_primary <- footprints$FP_prim
