@@ -299,7 +299,7 @@ Calc_impact_processed <- function(df, processing_shares) {
     dplyr::inner_join(processing_shares, by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs")) |>
     dplyr::group_by(Year, area_code, item_code_cbs, Impact) |>
     dplyr::left_join(Processing_coefs |>
-      dplyr::select(Year, area_code, item_code_cbs = item_code, Item, cf), by = c("Year", "area_code", "item_code_cbs")) |>
+      dplyr::select(Year, area_code, item_code_cbs, Item, cf), by = c("Year", "area_code", "item_code_cbs")) |>
     dplyr::left_join(CBS_item_prices |>
       dplyr::filter(Element == "Export") |>
       dplyr::select(Year, Item = item_cbs, Price), by = c("Year", "Item")) |>
