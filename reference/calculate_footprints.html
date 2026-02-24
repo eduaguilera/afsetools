@@ -47,60 +47,21 @@ and final footprint data frames.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_footprints</span><span class="op">(</span></span>
-<span>  <span class="va">cbs</span>,</span>
-<span>  <span class="va">primary</span>,</span>
-<span>  <span class="va">impact_prod</span>,</span>
-<span>  <span class="va">crop_nppr</span>,</span>
-<span>  <span class="va">feed_intake</span>,</span>
-<span>  dtm <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_footprints</span><span class="op">(</span>dtm <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-cbs">cbs<a class="anchor" aria-label="anchor" href="#arg-cbs"></a></dt>
-<dd><p>Commodity Balance Sheets table. Required columns: `Year`, `area`,
-`area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`. This
-function uses at least the following `Element` values: `Production`,
-`Import`, `Export`, `Seed`, `Processing`, and `Domestic_supply`.</p></dd>
-
-
-<dt id="arg-primary">primary<a class="anchor" aria-label="anchor" href="#arg-primary"></a></dt>
-<dd><p>Primary production / co-product table (new schema). Required
-columns: `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
-`Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`,
-`Relative_residue_price`. The workflow expects `unit == "tonnes"` rows and
-(for draught allocation) `unit == "LU"` livestock rows.</p></dd>
-
-
-<dt id="arg-impact-prod">impact_prod<a class="anchor" aria-label="anchor" href="#arg-impact-prod"></a></dt>
-<dd><p>Production impact table (new schema). Required columns:
-`Year`, `area`, `item_prod`, `item_code_prod`, `Impact`, `Value`,
-`u_FU`. `Value` is treated as the functional unit amount (`FU`) when joining
-production impacts to primary production.</p></dd>
-
-
-<dt id="arg-crop-nppr">crop_nppr<a class="anchor" aria-label="anchor" href="#arg-crop-nppr"></a></dt>
-<dd><p>Crop NPP / residue table. Required columns: `Year`, `area`,
-`item_prod`, `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`. Residue flows
-are taken from rows where `Product_residue == "Residue"`.</p></dd>
-
-
-<dt id="arg-feed-intake">feed_intake<a class="anchor" aria-label="anchor" href="#arg-feed-intake"></a></dt>
-<dd><p>Feed intake table (new schema). Required columns: `Year`,
-`area`, `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
-`Intake_DM`.</p></dd>
-
-
-<dt id="arg-dtm">dtm<a class="anchor" aria-label="anchor" href="#arg-dtm"></a></dt>
+<dl><dt id="arg-dtm">dtm<a class="anchor" aria-label="anchor" href="#arg-dtm"></a></dt>
 <dd><p>Optional detailed trade matrix. If `NULL` (default), the function
 uses gross-trade mode (`calc_avail_fp_gt()`). If provided, it automatically
 uses detailed bilateral trade mode (`calc_avail_fp_dtm()`). Required columns
-when provided: `Year`, `area_code`, `area_code_p`, `area_p`, `item_code`,
-`Element`, `Impact`, `Country_share` (with `Element == "Import"` rows used).</p></dd>
+when provided: `Year`, `area_code`, `area_code_p`, `area_p`,
+`item_code_cbs`, `Element`, `Country_share` (with `Element == "Import"`
+rows used). `Impact` is generated internally by expanding `dtm` rows across
+impacts present in `Impact_prod` for each year.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -122,9 +83,71 @@ when provided: `Year`, `area_code`, `area_code_p`, `area_p`, `item_code`,
     bilateral trade matrix when `dtm` is provided)</p></li>
 <li><p>Handles feed products and livestock production</p></li>
 <li><p>Allocates draught animal services to crop production</p></li>
-</ul><p>The calculation requires that `load_general_data()` has been called first to load
-all necessary coefficient tables and classification data.</p>
-    </div>
+</ul><p><code>calculate_footprints()</code> only takes <code>dtm</code> explicitly. All other required
+inputs are read implicitly from objects in the calling environment.</p>
+<p>Required workflow objects (created outside <code><a href="load_general_data.html">load_general_data()</a></code>):</p><dl><dt><code>CBS</code></dt>
+<dd><p>Commodity balance table. Columns used: <code>Year</code>,
+  <code>area</code>, <code>area_code</code>, <code>item_cbs</code>, <code>item_code_cbs</code>,
+  <code>Element</code>, <code>Value</code>.</p></dd>
+
+  <dt><code>Primary_all</code></dt>
+<dd><p>Primary production / co-product table. Columns used:
+  <code>Year</code>, <code>area</code>, <code>area_code</code>, <code>item_prod</code>,
+  <code>item_code_prod</code>, <code>unit</code>, <code>Value</code>, <code>item_cbs</code>,
+  <code>item_code_cbs</code>, <code>Live_anim</code>, <code>Live_anim_code</code>.</p></dd>
+
+  <dt><code>Impact_prod</code></dt>
+<dd><p>Production impact table. Columns used: <code>Year</code>,
+  <code>area</code>, <code>item_code_prod</code>, <code>Impact</code>, <code>Value</code>,
+  <code>u_FU</code> (and optionally <code>item_prod</code>).</p></dd>
+
+  <dt><code>Crop_NPPr_NoFallow</code></dt>
+<dd><p>Crop NPP / residue table. Columns used:
+  <code>Year</code>, <code>area</code>, <code>item_prod</code>, <code>item_cbs</code>,
+  <code>Product_residue</code>, <code>Prod_ygpit_Mg</code>.</p></dd>
+
+  <dt><code>Feed_intake</code></dt>
+<dd><p>Feed intake table. Columns used: <code>Year</code>,
+  <code>area</code>, <code>area_code</code>, <code>Live_anim</code>, <code>item_cbs</code>,
+  <code>item_code_cbs</code>, <code>Supply</code>, <code>Intake_DM</code>.</p></dd>
+
+  <dt><code>Primary_prices</code></dt>
+<dd><p>Primary product prices. Columns used:
+  <code>Year</code>, <code>item_code_prod</code>, <code>Price</code>.</p></dd>
+
+  <dt><code>CBS_item_prices</code></dt>
+<dd><p>CBS item prices. Columns used: <code>Year</code>,
+  <code>Element</code>, <code>item_cbs</code>, <code>item_code_cbs</code>, <code>Price</code>.</p></dd>
+
+  <dt><code>Processing_coefs</code></dt>
+<dd><p>Processing conversion coefficients. Columns
+  used: <code>Year</code>, <code>area_code</code>, <code>item_code_cbs</code>, <code>Item</code>,
+  <code>cf</code>.</p></dd>
+
+  <dt><code>Relative_residue_price</code></dt>
+<dd><p>Numeric scalar used to value residues
+  relative to product prices.</p></dd>
+
+
+</dl><p>Required auxiliary objects loaded by <code><a href="load_general_data.html">load_general_data()</a></code>:</p><dl><dt><code>items_full</code> (sheet <code>items_full</code> in <code>Codes_coefs.xlsx</code>)</dt>
+<dd><p>Columns used: <code>item_cbs</code>, <code>item_code_cbs</code>, <code>group</code>.</p></dd>
+
+  <dt><code>items_prod_full</code> (sheet <code>items_prod_full</code> in <code>Codes_coefs.xlsx</code>)</dt>
+<dd><p>Columns used: <code>item_prod</code>, <code>item_code_prod</code>, <code>Name_biomass</code>.</p></dd>
+
+  <dt><code>Animals_codes</code> (sheet <code>Animals_codes</code> in <code>Codes_coefs.xlsx</code>)</dt>
+<dd><p>Columns used: <code>item_cbs</code>, <code>item_code_cbs</code>.</p></dd>
+
+  <dt><code>Primary_double</code> (sheet <code>Primary_double</code> in <code>Codes_coefs.xlsx</code>)</dt>
+<dd><p>Columns used (via <code><a href="Prepare_prim.html">Prepare_prim()</a></code>): <code>Item_area</code>,
+  <code>item_prod</code>, <code>item_code_prod</code>, <code>Multi_type</code>.</p></dd>
+
+  <dt><code>Biomass_coefs</code> (<code>Biomass_coefs.xlsx</code>)</dt>
+<dd><p>Columns used:
+  <code>Name_biomass</code>, <code>Product_kgDM_kgFM</code>, <code>Product_kgN_kgDM</code>.</p></dd>
+
+
+</dl></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -132,16 +155,14 @@ all necessary coefficient tables and classification data.</p>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Calculate footprints using gross trade (omit dtm)</span></span></span>
-<span class="r-in"><span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu">calculate_footprints</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  cbs <span class="op">=</span> <span class="va">my_cbs_data</span>,</span></span>
-<span class="r-in"><span>  primary <span class="op">=</span> <span class="va">my_primary_data</span>,</span></span>
-<span class="r-in"><span>  impact_prod <span class="op">=</span> <span class="va">my_impact_data</span>,</span></span>
-<span class="r-in"><span>  crop_nppr <span class="op">=</span> <span class="va">my_npp_data</span>,</span></span>
-<span class="r-in"><span>  feed_intake <span class="op">=</span> <span class="va">my_feed_intake</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Requires workflow objects in the environment:</span></span></span>
+<span class="r-in"><span><span class="co"># CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,</span></span></span>
+<span class="r-in"><span><span class="co"># Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># To use bilateral trade, pass dtm = my_dtm_data</span></span></span>
+<span class="r-in"><span><span class="co"># Calculate footprints using gross trade (omit dtm)</span></span></span>
+<span class="r-in"><span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu">calculate_footprints</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># To use bilateral trade, pass dtm = my_dtm_data (or dtm = DTM)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Access individual footprint tables</span></span></span>
 <span class="r-in"><span><span class="va">fp_primary</span> <span class="op">&lt;-</span> <span class="va">footprints</span><span class="op">$</span><span class="va">FP_prim</span></span></span>

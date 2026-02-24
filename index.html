@@ -112,14 +112,11 @@
 <span><span class="va">crop_npp</span> <span class="op">&lt;-</span> <span class="fu">Calculate_crop_NPP</span><span class="op">(</span><span class="va">crop_data</span>, <span class="va">harvest_index</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Trace impacts through supply chains</span></span>
+<span><span class="co"># Requires objects in the environment:</span></span>
+<span><span class="co"># CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,</span></span>
+<span><span class="co"># Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price</span></span>
 <span><span class="co"># Omit `dtm` for gross trade; pass `dtm = detailed_trade_matrix` for bilateral trade</span></span>
-<span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span></span>
-<span>  cbs <span class="op">=</span> <span class="va">commodity_balance_sheets</span>,</span>
-<span>  primary <span class="op">=</span> <span class="va">primary_production</span>,</span>
-<span>  impact_prod <span class="op">=</span> <span class="va">production_impacts</span>,</span>
-<span>  crop_nppr <span class="op">=</span> <span class="va">crop_npp</span>,</span>
-<span>  feed_intake <span class="op">=</span> <span class="va">feed_intake</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Access results</span></span>
 <span><span class="va">primary_fp</span> <span class="op">&lt;-</span> <span class="va">footprints</span><span class="op">$</span><span class="va">FP_prim</span></span>
@@ -261,17 +258,12 @@
 <span><span class="co"># 1. Load all data</span></span>
 <span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 2. Prepare your input data</span></span>
-<span><span class="co"># (cbs, primary, impact_prod, crop_nppr, feed_intake)</span></span>
+<span><span class="co"># 2. Prepare your workflow objects in the environment</span></span>
+<span><span class="co"># (CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,</span></span>
+<span><span class="co">#  Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price)</span></span>
 <span></span>
 <span><span class="co"># 3. Calculate complete footprints</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span></span>
-<span>  cbs <span class="op">=</span> <span class="va">my_cbs_data</span>,</span>
-<span>  primary <span class="op">=</span> <span class="va">my_primary_data</span>,</span>
-<span>  impact_prod <span class="op">=</span> <span class="va">my_impact_data</span>,</span>
-<span>  crop_nppr <span class="op">=</span> <span class="va">my_crop_npp</span>,</span>
-<span>  feed_intake <span class="op">=</span> <span class="va">my_feed_intake</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 4. Analyze results</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
