@@ -68,7 +68,7 @@ Required workflow objects (created outside \code{load_general_data()}):
   \item{\code{CBS_item_prices}}{CBS item prices. Columns used: \code{Year},
   \code{Element}, \code{item_cbs}, \code{item_code_cbs}, \code{Price}.}
   \item{\code{Processing_coefs}}{Processing conversion coefficients. Columns
-  used: \code{Year}, \code{area_code}, \code{item_code_cbs}, \code{Item},
+  used: \code{Year}, \code{area_code}, \code{item_code_cbs}, \code{item_cbs},
   \code{cf}.}
   \item{\code{Relative_residue_price}}{Numeric scalar used to value residues
   relative to product prices.}

@@ -56,7 +56,7 @@
 #'   \item{`CBS_item_prices`}{CBS item prices. Columns used: `Year`, `Element`,
 #'   `item_cbs`, `item_code_cbs`, `Price`.}
 #'   \item{`Processing_coefs`}{Processing conversion coefficients. Columns used:
-#'   `Year`, `area_code`, `item_code_cbs`, `Item`, `cf`.}
+#'   `Year`, `area_code`, `item_code_cbs`, `item_cbs`, `cf`.}
 #'   \item{`Relative_residue_price`}{Numeric scalar used to value residues
 #'   relative to product prices.}
 #' }
