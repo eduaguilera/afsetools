@@ -125,20 +125,21 @@ calculate_footprints <- function(dtm = NULL) {
   fast_sum_value_impact <- function(df, by_cols) {
     by_cols <- as.character(unlist(by_cols, use.names = FALSE))
     dt <- data.table::as.data.table(df)
-    out <- dt[, lapply(.SD, sum, na.rm = TRUE),
-      by = by_cols,
-      .SDcols = c("Value", "Impact_u")
-    ]
+    out <- dt[, {
+      list(
+        Value = sum(.subset2(.SD, "Value"), na.rm = TRUE),
+        Impact_u = sum(.subset2(.SD, "Impact_u"), na.rm = TRUE)
+      )
+    }, by = by_cols]
     as.data.frame(out)
   }
 
   fast_sum_impact <- function(df, by_cols) {
     by_cols <- as.character(unlist(by_cols, use.names = FALSE))
     dt <- data.table::as.data.table(df)
-    out <- dt[, lapply(.SD, sum, na.rm = TRUE),
-      by = by_cols,
-      .SDcols = c("Impact_u")
-    ]
+    out <- dt[, {
+      list(Impact_u = sum(.subset2(.SD, "Impact_u"), na.rm = TRUE))
+    }, by = by_cols]
     as.data.frame(out)
   }
   
