@@ -124,7 +124,7 @@ calculate_footprints <- function(dtm = NULL) {
   # data.table fast path for large aggregations.
   fast_sum_value_impact <- function(df, by_cols) {
     dt <- data.table::as.data.table(df)
-    out <- dt[, .(
+    out <- dt[, list(
       Value = sum(Value, na.rm = TRUE),
       Impact_u = sum(Impact_u, na.rm = TRUE)
     ), by = by_cols]
@@ -133,7 +133,7 @@ calculate_footprints <- function(dtm = NULL) {
 
   fast_sum_impact <- function(df, by_cols) {
     dt <- data.table::as.data.table(df)
-    out <- dt[, .(Impact_u = sum(Impact_u, na.rm = TRUE)), by = by_cols]
+    out <- dt[, list(Impact_u = sum(Impact_u, na.rm = TRUE)), by = by_cols]
     as.data.frame(out)
   }
   
