@@ -238,7 +238,7 @@ calc_avail_fp_dtm <- function(filtered_cbs, df, cbs, dtm, impact_prod) {
       ) |>
       dplyr::left_join(dtm |> # Get footprint in each partner
         dplyr::left_join(impact_prod |> dplyr::group_by(Year, Impact) |>
-          dplyr::summarize(Year = mean(Year, na.rm = TRUE), .groups = "drop"), by = c("Year", "Impact")) |>
+          dplyr::summarize(Year = mean(Year, na.rm = TRUE), .groups = "drop"), by = c("Year")) |>
         dplyr::filter(Element == "Import") |>
         dplyr::select(Year, area_code, area_code_p, area_p, item_code_cbs = item_code, Element, Impact, Country_share) |>
         dplyr::left_join(df |>
