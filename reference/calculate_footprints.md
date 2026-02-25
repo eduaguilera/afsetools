@@ -83,8 +83,9 @@ Required workflow objects (created outside
 
 - `Feed_intake`:
 
-  Feed intake table. Columns used: `Year`, `area`, `area_code`,
-  `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`, `Intake_DM`.
+  Feed intake table. Columns used: `Year`, `area`, `Live_anim`,
+  `item_cbs`, `item_code_cbs`, `Supply`, `Intake_DM`. `area_code` is
+  recovered from footprint tables during the feed join.
 
 - `Primary_prices`:
 
