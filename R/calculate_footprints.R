@@ -124,23 +124,23 @@ calculate_footprints <- function(dtm = NULL) {
   # data.table fast path for large aggregations.
   fast_sum_value_impact <- function(df, by_cols) {
     by_cols <- as.character(unlist(by_cols, use.names = FALSE))
-    dt <- data.table::as.data.table(df)
-    out <- dt[, {
-      list(
-        Value = sum(.subset2(.SD, "Value"), na.rm = TRUE),
-        Impact_u = sum(.subset2(.SD, "Impact_u"), na.rm = TRUE)
+    df |>
+      dplyr::group_by(!!!rlang::syms(by_cols)) |>
+      dplyr::summarize(
+        Value = sum(Value, na.rm = TRUE),
+        Impact_u = sum(Impact_u, na.rm = TRUE),
+        .groups = "drop"
       )
-    }, by = by_cols]
-    as.data.frame(out)
   }
 
   fast_sum_impact <- function(df, by_cols) {
     by_cols <- as.character(unlist(by_cols, use.names = FALSE))
-    dt <- data.table::as.data.table(df)
-    out <- dt[, {
-      list(Impact_u = sum(.subset2(.SD, "Impact_u"), na.rm = TRUE))
-    }, by = by_cols]
-    as.data.frame(out)
+    df |>
+      dplyr::group_by(!!!rlang::syms(by_cols)) |>
+      dplyr::summarize(
+        Impact_u = sum(Impact_u, na.rm = TRUE),
+        .groups = "drop"
+      )
   }
   
   # Calculate share of seeds over production
