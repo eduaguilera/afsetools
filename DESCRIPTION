@@ -22,9 +22,11 @@ Imports:
     data.table,
     dplyr,
     ggplot2,
-    tidyr,
+    rlang,
     readxl,
-    openxlsx
+    openxlsx,
+    tibble,
+    tidyr
 Suggests:
     testthat (>= 3.0.0),
     knitr,
