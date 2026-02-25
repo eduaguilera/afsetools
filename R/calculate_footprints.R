@@ -430,6 +430,7 @@ calculate_footprints <- function(dtm = NULL) {
     ) |>
     dplyr::mutate(
       item_code_impact = Live_anim_code,
+      item_code_prod = Live_anim_code,
       Product_residue = "Product"
     ) |>
     Allocate_impacts_to_products(draught_shares = draught_shares) |>
