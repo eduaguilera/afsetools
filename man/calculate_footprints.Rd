@@ -61,8 +61,9 @@ Required workflow objects (created outside \code{load_general_data()}):
   \code{Year}, \code{area}, \code{item_prod}, \code{item_cbs},
   \code{Product_residue}, \code{Prod_ygpit_Mg}.}
   \item{\code{Feed_intake}}{Feed intake table. Columns used: \code{Year},
-  \code{area}, \code{area_code}, \code{Live_anim}, \code{item_cbs},
-  \code{item_code_cbs}, \code{Supply}, \code{Intake_DM}.}
+  \code{area}, \code{Live_anim}, \code{item_cbs}, \code{item_code_cbs},
+  \code{Supply}, \code{Intake_DM}. \code{area_code} is recovered from
+  footprint tables during the feed join.}
   \item{\code{Primary_prices}}{Primary product prices. Columns used:
   \code{Year}, \code{item_code_prod}, \code{Price}.}
   \item{\code{CBS_item_prices}}{CBS item prices. Columns used: \code{Year},

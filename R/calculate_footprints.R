@@ -49,8 +49,8 @@
 #'   `Year`, `area`, `item_prod`, `item_cbs`, `Product_residue`,
 #'   `Prod_ygpit_Mg`.}
 #'   \item{`Feed_intake`}{Feed intake table. Columns used: `Year`, `area`,
-#'   `area_code`, `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`,
-#'   `Intake_DM`.}
+#'   `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`, `Intake_DM`.
+#'   `area_code` is recovered from footprint tables during the feed join.}
 #'   \item{`Primary_prices`}{Primary product prices. Columns used: `Year`,
 #'   `item_code_prod`, `Price`.}
 #'   \item{`CBS_item_prices`}{CBS item prices. Columns used: `Year`, `Element`,
@@ -395,7 +395,7 @@ calculate_footprints <- function(dtm = NULL) {
     dplyr::left_join(
       FP_raw_all |>
         dplyr::select(Year, area, area_code, item_cbs, item_code_cbs, Impact, Origin, u_ton_scaled),
-      by = c("Year", "area", "area_code", "item_cbs", "item_code_cbs")
+      by = c("Year", "area", "item_cbs", "item_code_cbs")
     ) |>
     dplyr::mutate(FPFeed_u = Supply * u_ton_scaled) |>
     dplyr::group_by(Year, area, area_code, Live_anim, Live_anim_code, Impact, Origin) |>
