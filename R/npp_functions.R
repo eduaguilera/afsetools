@@ -200,3 +200,27 @@ calculate_crop_npp_components <- function(Crop_NPPpot, .by = NULL) {
     calculate_npp_dm_c_n() |>
     dplyr::select(-dplyr::any_of(biomass_coef_cols))
 }
+
+# Backward-compatible aliases for renamed functions ----
+# These ensure existing code in dependent repos (Global, Spain_Hist) continues
+# to work after function renaming.
+
+#' @rdname calculate_crop_npp
+#' @usage NULL
+#' @export
+Calculate_crop_NPP <- calculate_crop_npp
+
+#' @rdname calculate_crop_npp_components
+#' @usage NULL
+#' @export
+Calc_CropNPP_components <- calculate_crop_npp_components
+
+#' @rdname calculate_potential_npp
+#' @usage NULL
+#' @export
+Calc_NPP_potentials <- calculate_potential_npp
+
+#' @rdname calculate_npp_dm_c_n
+#' @usage NULL
+#' @export
+Calc_NPP_DM_C_N <- calculate_npp_dm_c_n

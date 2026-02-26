@@ -136,6 +136,36 @@ Calc_diets <- function(PIE_dest_df, Pop) {
       dplyr::select(Cat_1, Cat_0, Cat_diet_agg, Cat_animal), by = c("Cat_1"))
 }
 
+#' Filter and Aggregate Areas by Polity
+#'
+#' Harmonizes country-level data by joining with regions_full polity codes and
+#' aggregating values by polity groupings. Used internally to map FAO area codes
+#' to standardized polity areas.
+#'
+#' @param df Data frame with an area_code column and columns Year, unit, Element, Value
+#' @param ... Additional columns to include in grouping (bare column names)
+#'
+#' @return Data frame aggregated by polity with renamed area/area_code columns
+#'
+#' @details
+#' Requires regions_full object from load_general_data() with columns:
+#' code, polity_code, polity_name.
+#'
+#' @export
+filter_areas <- function(df, ...) {
+  df |>
+    dplyr::right_join(regions_full |>
+      dplyr::rename(area_code = code) |>
+      dplyr::select(area_code, polity_code, polity_name),
+      by = "area_code") |>
+    dplyr::group_by(Year, polity_code, polity_name, unit, Element, ...) |>
+    dplyr::summarize(Value = sum(Value, na.rm = TRUE), .groups = "drop") |>
+    dplyr::rename(
+      area_code = polity_code,
+      area = polity_name
+    )
+}
+
 #' Get Herbaceous and Woody Land from FAO
 #'
 #' Extracts herbaceous (arable) and woody (permanent crops) land area from FAO land use data.
@@ -149,7 +179,7 @@ Calc_diets <- function(PIE_dest_df, Pop) {
 #' }
 get_herbwoody_fao <- function() {
   LandUse_FAO |>
-    tidyr::pivot_longer(Y1961:Y2022,
+    tidyr::pivot_longer(dplyr::starts_with("Y"),
       names_to = "Year",
       values_to = "Value"
     ) |>

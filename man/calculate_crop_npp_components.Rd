@@ -2,6 +2,7 @@
 % Please edit documentation in R/npp_functions.R
 \name{calculate_crop_npp_components}
 \alias{calculate_crop_npp_components}
+\alias{Calc_CropNPP_components}
 \title{Calculate Cropland NPP Components Including Weeds}
 \usage{
 calculate_crop_npp_components(Crop_NPPpot, .by = NULL)

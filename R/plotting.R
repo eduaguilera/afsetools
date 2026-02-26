@@ -80,6 +80,7 @@ theme_nolabel <- function(base_size = 7, base_family = "") {
 #' @param fit A linear model object created with lm()
 #'
 #' @return A ggplot2 plot object
+#' @importFrom rlang .data
 #' @export
 #'
 #' @examples
@@ -88,7 +89,10 @@ theme_nolabel <- function(base_size = 7, base_family = "") {
 #' ggplotRegression(model)
 #' }
 ggplotRegression <- function(fit) {
-  ggplot2::ggplot(fit$model, ggplot2::aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) +
+  ggplot2::ggplot(fit$model, ggplot2::aes(
+    x = .data[[names(fit$model)[2]]],
+    y = .data[[names(fit$model)[1]]]
+  )) +
     ggplot2::geom_point() +
     ggplot2::stat_smooth(method = "lm", col = "red") +
     ggplot2::labs(title = paste(

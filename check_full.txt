@@ -1,0 +1,2548 @@
+══ Documenting ═════════════════════════════════════════════════════════════════
+
+══ Building ════════════════════════════════════════════════════════════════════
+Setting env vars:
+• CFLAGS    : -Wall -pedantic
+• CXXFLAGS  : -Wall -pedantic
+• CXX11FLAGS: -Wall -pedantic
+• CXX14FLAGS: -Wall -pedantic
+• CXX17FLAGS: -Wall -pedantic
+• CXX20FLAGS: -Wall -pedantic
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file 'C:\Users\53272530E\OneDrive\Documents\GitHub\afsetools/DESCRIPTION' ... OK
+* preparing 'afsetools':
+* checking DESCRIPTION meta-information ... OK
+Warning in person1(given = given[[i]], family = family[[i]], middle = middle[[i]],  :
+  Invalid ORCID iD: '0000-0002-0429-0883'.
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Removed empty directory 'afsetools/docs/articles'
+Removed empty directory 'afsetools/docs/news'
+Removed empty directory 'afsetools/docs/tutorials'
+Removed empty directory 'afsetools/tests/testthat/_snaps'
+Omitted 'LazyData' from DESCRIPTION
+* building 'afsetools_0.1.4.tar.gz'
+
+══ Checking ════════════════════════════════════════════════════════════════════
+Setting env vars:
+• _R_CHECK_CRAN_INCOMING_REMOTE_               : FALSE
+• _R_CHECK_CRAN_INCOMING_                      : FALSE
+• _R_CHECK_FORCE_SUGGESTS_                     : FALSE
+• _R_CHECK_PACKAGES_USED_IGNORE_UNUSED_IMPORTS_: FALSE
+• NOT_CRAN                                     : true
+── R CMD check ─────────────────────────────────────────────────────────────────
+* using log directory 'C:/Users/53272530E/AppData/Local/Temp/RtmpOa2t4d/filee5085cd12080/afsetools.Rcheck'
+* using R version 4.5.2 (2025-10-31 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.3.0
+    GNU Fortran (GCC) 14.3.0
+* running under: Windows 11 x64 (build 26200)
+* using session charset: UTF-8
+* using options '--no-manual --as-cran'
+* checking for file 'afsetools/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'afsetools' version '0.1.4'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... INFO
+Vignette dependency required without any vignettes: 'knitr'
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .doc_temp.R
+  .github
+  .vscode
+These were most likely included in error. See section 'Package
+structure' in the 'Writing R Extensions' manual.
+* checking for portable file names ... OK
+* checking whether package 'afsetools' can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... NOTE
+unable to verify current time
+* checking DESCRIPTION meta-information ... NOTE
+License stub is invalid DCF.
+* checking top-level files ... NOTE
+Non-standard files/directories found at top level:
+  'DATA_REFERENCE.md' '_pkgdown.yml' 'additional_files' 'build_docs.R'
+  'check_full.txt' 'docs'
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... WARNING
+Found the following file with non-ASCII characters:
+  R/feed_distribution_functions.R
+Portable packages must use only ASCII characters in their R code and
+NAMESPACE directives, except perhaps in comments.
+Use \uxxxx escapes for other characters.
+Function 'tools::showNonASCIIfile' can help in finding non-ASCII
+characters in files.
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' import not declared from: 'DescTools'
+Namespaces in Imports field not imported from:
+  'data.table' 'readxl'
+  All declared Imports should be used.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+Agg_primary: no visible binding for global variable 'Year'
+Agg_primary: no visible binding for global variable 'area'
+Agg_primary: no visible binding for global variable 'area_code'
+Agg_primary: no visible binding for global variable 'item_cbs'
+Agg_primary: no visible binding for global variable 'item_code_cbs'
+Agg_primary: no visible binding for global variable 'Origin'
+Agg_primary: no visible binding for global variable 'Impact'
+Agg_primary: no visible binding for global variable 'Value'
+Agg_primary: no visible binding for global variable 'Impact_u'
+Agg_processed: no visible binding for global variable 'Year'
+Agg_processed: no visible binding for global variable 'area'
+Agg_processed: no visible binding for global variable 'area_code'
+Agg_processed: no visible binding for global variable 'Item'
+Agg_processed: no visible binding for global variable 'Origin'
+Agg_processed: no visible binding for global variable 'Impact'
+Agg_processed: no visible binding for global variable 'tons_proc'
+Agg_processed: no visible binding for global variable 'Impact_u_proc'
+Agg_processed: no visible binding for global variable 'Impact_u'
+Agg_processed: no visible binding for global variable 'Value'
+Agg_processed: no visible binding for global variable 'items_full'
+Agg_processed: no visible binding for global variable 'item_cbs'
+Agg_processed: no visible binding for global variable 'item_code_cbs'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Year'
+Allocate_impacts_to_products: no visible binding for global variable
+  'area'
+Allocate_impacts_to_products: no visible binding for global variable
+  'area_code'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Live_anim'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Live_anim_code'
+Allocate_impacts_to_products: no visible binding for global variable
+  'item_code_impact'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Origin'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Impact'
+Allocate_impacts_to_products: no visible binding for global variable
+  'FU'
+Allocate_impacts_to_products: no visible binding for global variable
+  'u_FU'
+Allocate_impacts_to_products: no visible binding for global variable
+  'draught_share'
+Allocate_impacts_to_products: no visible binding for global variable
+  'items_full'
+Allocate_impacts_to_products: no visible binding for global variable
+  'item_cbs'
+Allocate_impacts_to_products: no visible binding for global variable
+  'item_code_cbs'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Primary_prices'
+Allocate_impacts_to_products: no visible binding for global variable
+  'item_code_prod'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Price'
+Allocate_impacts_to_products: no visible binding for global variable
+  'CBS_item_prices'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Element'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Product_residue'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Relative_residue_price'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Value'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Value_d'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Price_cbs'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Value_cbs'
+Allocate_impacts_to_products: no visible global function definition for
+  'n'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Alloc_raw1'
+Allocate_impacts_to_products: no visible binding for global variable
+  'n'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Alloc_cbs'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Alloc_raw2'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Allocation'
+Allocate_impacts_to_products: no visible binding for global variable
+  'Impact_u'
+Arrange_dates: no visible binding for global variable 'Month_numbers'
+Arrange_dates: no visible binding for global variable 'Month_names'
+Arrange_dates: no visible binding for global variable 'Year'
+Arrange_dates: no visible binding for global variable 'Month_number'
+Arrange_dates: no visible binding for global variable 'Date'
+Arrange_dates: no visible binding for global variable 'Month_order'
+Calc_N_fix: no visible binding for global variable 'Names_BNF'
+Calc_N_fix: no visible binding for global variable 'BNF'
+Calc_N_fix: no visible binding for global variable 'Ndfa'
+Calc_N_fix: no visible binding for global variable 'Crop_NPP_MgN'
+Calc_N_fix: no visible binding for global variable 'Leguminous_share'
+Calc_N_fix: no visible binding for global variable 'Prod_MgN'
+Calc_N_fix: no visible binding for global variable 'BGN'
+Calc_N_fix: no visible binding for global variable 'NHI'
+Calc_N_fix: no visible binding for global variable 'CropBNF'
+Calc_N_fix: no visible binding for global variable 'CropBNF2'
+Calc_N_fix: no visible binding for global variable 'Name_BNF'
+Calc_N_fix: no visible binding for global variable 'Legs_Seeded'
+Calc_N_fix: no visible binding for global variable 'LandUse'
+Calc_N_fix: no visible binding for global variable 'Seeded_CC_share'
+Calc_N_fix: no visible binding for global variable 'Legs_SpontWeeds'
+Calc_N_fix: no visible binding for global variable 'Weeds_NPP_MgN'
+Calc_N_fix: no visible binding for global variable 'Weeds_Ndfa'
+Calc_N_fix: no visible binding for global variable 'Weeds_leg_share'
+Calc_N_fix: no visible binding for global variable 'WeedsBNF'
+Calc_N_fix: no visible binding for global variable 'kgNha'
+Calc_N_fix: no visible binding for global variable 'Area_ygpit_ha'
+Calc_N_fix: no visible binding for global variable 'NSBNF'
+Calc_diets: no visible binding for global variable 'items_full'
+Calc_diets: no visible binding for global variable 'item_cbs'
+Calc_diets: no visible binding for global variable 'Name_biomass'
+Calc_diets: no visible binding for global variable 'Cat_1'
+Calc_diets: no visible binding for global variable 'Biomass_coefs'
+Calc_diets: no visible binding for global variable 'Product_kgDM_kgFM'
+Calc_diets: no visible binding for global variable 'Product_kgN_kgDM'
+Calc_diets: no visible binding for global variable 'GE_product_MJ_kgFM'
+Calc_diets: no visible binding for global variable 'Edible_portion'
+Calc_diets: no visible binding for global variable 'Lipids_g_kgFM'
+Calc_diets: no visible binding for global variable
+  'Carbohydrates_g_kgFM'
+Calc_diets: no visible binding for global variable 'Calcium_mg_kgFM'
+Calc_diets: no visible binding for global variable
+  'VitaminA_microg_kgFM'
+Calc_diets: no visible binding for global variable 'FM_Mg'
+Calc_diets: no visible binding for global variable 'Energy_TJ'
+Calc_diets: no visible binding for global variable 'Kcal_MJ'
+Calc_diets: no visible binding for global variable 'DM_Mg'
+Calc_diets: no visible binding for global variable 'N_MgN'
+Calc_diets: no visible binding for global variable 'Protein_N'
+Calc_diets: no visible binding for global variable 'Year'
+Calc_diets: no visible binding for global variable 'area'
+Calc_diets: no visible binding for global variable 'Element'
+Calc_diets: no visible binding for global variable 'Destiny'
+Calc_diets: no visible binding for global variable 'Pop_Mpeop'
+Calc_diets: no visible binding for global variable 'Energy_kcal'
+Calc_diets: no visible binding for global variable 'Protein_g'
+Calc_diets: no visible binding for global variable 'Lipids_g'
+Calc_diets: no visible binding for global variable 'Carbohydrates_g'
+Calc_diets: no visible binding for global variable 'Calcium_mg'
+Calc_diets: no visible binding for global variable 'VitaminA_microg'
+Calc_diets: no visible binding for global variable 'Availability'
+Calc_diets: no visible binding for global variable 'Avail_edible'
+Calc_diets: no visible binding for global variable 'Value_tot'
+Calc_diets: no visible binding for global variable 'Cats'
+Calc_diets: no visible binding for global variable 'Cat_0'
+Calc_diets: no visible binding for global variable 'Cat_diet_agg'
+Calc_diets: no visible binding for global variable 'Cat_animal'
+Calc_impact_processed: no visible binding for global variable 'Year'
+Calc_impact_processed: no visible binding for global variable 'area'
+Calc_impact_processed: no visible binding for global variable
+  'area_code'
+Calc_impact_processed: no visible binding for global variable
+  'item_cbs'
+Calc_impact_processed: no visible binding for global variable
+  'item_code_cbs'
+Calc_impact_processed: no visible binding for global variable 'Origin'
+Calc_impact_processed: no visible binding for global variable 'Impact'
+Calc_impact_processed: no visible binding for global variable 'Value'
+Calc_impact_processed: no visible binding for global variable
+  'Impact_u'
+Calc_impact_processed: no visible binding for global variable
+  'Processing_coefs'
+Calc_impact_processed: no visible binding for global variable 'cf'
+Calc_impact_processed: no visible binding for global variable
+  'CBS_item_prices'
+Calc_impact_processed: no visible binding for global variable 'Element'
+Calc_impact_processed: no visible binding for global variable 'Price'
+Calc_impact_processed: no visible binding for global variable
+  'Proc_share'
+Calc_impact_processed: no visible binding for global variable
+  'tons_proc'
+Calc_impact_processed: no visible binding for global variable 'Value_d'
+Calc_impact_processed: no visible global function definition for 'n'
+Calc_impact_processed: no visible binding for global variable 'Alloc'
+Calc_impact_processed: no visible binding for global variable 'n'
+Calc_impact_processed: no visible binding for global variable
+  'Allocation'
+Calc_impact_processed: no visible binding for global variable
+  'Impact_u_proc'
+Filling: no visible global function definition for ':='
+Filling: no visible binding for global variable 'Value_interpfilled'
+Filling: no visible binding for global variable 'Value_CarriedBackward'
+Filling: no visible binding for global variable 'Value_CarriedForward'
+FillingProxy: no visible binding for global variable 'Proxy_ratio'
+FillingProxy: no visible binding for global variable 'Year'
+FillingProxy: no visible global function definition for ':='
+FillingProxy: no visible binding for global variable
+  'Source_Proxy_ratio'
+Gases_GWP: no visible binding for global variable 'Gas_raw'
+Gases_GWP: no visible binding for global variable 'Gas_type'
+Gases_GWP: no visible binding for global variable 'Gas'
+Gases_GWP: no visible binding for global variable 'GWP'
+Gases_GWP: no visible binding for global variable 'GWP_100'
+Gases_GWP: no visible binding for global variable 'value'
+Prepare_prim: no visible binding for global variable 'unit'
+Prepare_prim: no visible binding for global variable 'Primary_double'
+Prepare_prim: no visible binding for global variable 'Item_area'
+Prepare_prim: no visible binding for global variable 'item_code_prod'
+Prepare_prim: no visible binding for global variable 'Multi_type'
+Prepare_prim: no visible binding for global variable 'item_prod'
+Prepare_prim: no visible binding for global variable 'Item_code_area'
+Prepare_prim: no visible binding for global variable 'Live_anim_code'
+calc_avail_fp_dtm: no visible binding for global variable 'Element'
+calc_avail_fp_dtm: no visible binding for global variable 'Year'
+calc_avail_fp_dtm: no visible binding for global variable 'Impact'
+calc_avail_fp_dtm: no visible binding for global variable 'area_code'
+calc_avail_fp_dtm: no visible binding for global variable 'area_code_p'
+calc_avail_fp_dtm: no visible binding for global variable 'area_p'
+calc_avail_fp_dtm: no visible binding for global variable
+  'item_code_cbs'
+calc_avail_fp_dtm: no visible binding for global variable
+  'Country_share'
+calc_avail_fp_dtm: no visible binding for global variable 'item_cbs'
+calc_avail_fp_dtm: no visible binding for global variable 'Value'
+calc_avail_fp_dtm: no visible binding for global variable 'Impact_u'
+calc_avail_fp_dtm: no visible binding for global variable 'u_ton_p'
+calc_avail_fp_dtm: no visible binding for global variable 'u_ton'
+calc_avail_fp_dtm: no visible binding for global variable 'u_ton_glob'
+calc_avail_fp_dtm: no visible binding for global variable 'u_ton2'
+calc_avail_fp_gt: no visible binding for global variable 'Element'
+calc_avail_fp_gt: no visible binding for global variable 'u_ton'
+calc_avail_fp_gt: no visible binding for global variable 'u_ton_glob'
+calc_avail_fp_gt: no visible binding for global variable 'Value'
+calc_avail_fp_gt: no visible binding for global variable 'Impact_u'
+calc_avail_fp_gt: no visible binding for global variable 'u_ton2'
+calculate_crop_npp: no visible binding for global variable
+  'Biomass_coefs'
+calculate_crop_npp: no visible binding for global variable
+  'Name_biomass'
+calculate_crop_npp: no visible binding for global variable
+  'Product_kgDM_kgFM'
+calculate_crop_npp: no visible binding for global variable
+  'Residue_kgDM_kgFM'
+calculate_crop_npp: no visible binding for global variable
+  'kg_residue_kg_product_FM'
+calculate_crop_npp: no visible binding for global variable
+  'Root_Shoot_ratio'
+calculate_crop_npp: no visible binding for global variable 'Root_ref'
+calculate_crop_npp: no visible binding for global variable
+  'Root_MghaDM_ref'
+calculate_crop_npp: no visible binding for global variable
+  'Prod_ygpit_Mg'
+calculate_crop_npp: no visible binding for global variable 'Dyn_HI'
+calculate_crop_npp: no visible binding for global variable
+  'Residue_MgFM'
+calculate_crop_npp: no visible binding for global variable 'Prod_MgDM'
+calculate_crop_npp: no visible binding for global variable
+  'Residue_MgDM'
+calculate_crop_npp: no visible binding for global variable 'Dyn_RS'
+calculate_crop_npp: no visible binding for global variable
+  'Aerial_MgDM'
+calculate_crop_npp: no visible binding for global variable
+  'Area_ygpit_ha'
+calculate_crop_npp: no visible binding for global variable
+  'Root_MgDM_RS'
+calculate_crop_npp: no visible binding for global variable
+  'Root_MgDM_ref'
+calculate_crop_npp: no visible binding for global variable 'Root_MgDM'
+calculate_crop_npp_components: no visible binding for global variable
+  'Biomass_coefs'
+calculate_crop_npp_components: no visible binding for global variable
+  'Weed_NPP_Scaling'
+calculate_crop_npp_components: no visible binding for global variable
+  'Residue_Shares'
+calculate_crop_npp_components: no visible binding for global variable
+  'Fallow_cover'
+calculate_crop_npp_components: no visible binding for global variable
+  'Scaling_weeds'
+calculate_crop_npp_components: no visible binding for global variable
+  'Name_biomass'
+calculate_crop_npp_components: no visible binding for global variable
+  'Area_ygpit_ha'
+calculate_crop_npp_components: no visible binding for global variable
+  'NPPpot_MgDMha'
+calculate_crop_npp_components: no visible binding for global variable
+  'Root_Shoot_ratio_W'
+calculate_crop_npp_components: no visible binding for global variable
+  'Fallow_cover_share'
+calculate_footprints: no visible binding for global variable 'CBS'
+calculate_footprints: no visible binding for global variable
+  'Primary_all'
+calculate_footprints: no visible binding for global variable
+  'Impact_prod'
+calculate_footprints: no visible binding for global variable
+  'Crop_NPPr_NoFallow'
+calculate_footprints: no visible binding for global variable
+  'Feed_intake'
+calculate_footprints : fast_sum_value_impact: no visible binding for
+  global variable 'Value'
+calculate_footprints : fast_sum_value_impact: no visible binding for
+  global variable 'Impact_u'
+calculate_footprints : fast_sum_impact: no visible binding for global
+  variable 'Impact_u'
+calculate_footprints: no visible binding for global variable 'Element'
+calculate_footprints: no visible binding for global variable 'Value'
+calculate_footprints: no visible binding for global variable 'Seed'
+calculate_footprints: no visible binding for global variable
+  'Production'
+calculate_footprints: no visible binding for global variable 'Year'
+calculate_footprints: no visible binding for global variable 'area'
+calculate_footprints: no visible binding for global variable
+  'area_code'
+calculate_footprints: no visible binding for global variable 'item_cbs'
+calculate_footprints: no visible binding for global variable
+  'item_code_cbs'
+calculate_footprints: no visible binding for global variable 'unit'
+calculate_footprints: no visible binding for global variable
+  'item_prod'
+calculate_footprints: no visible binding for global variable
+  'Live_anim'
+calculate_footprints: no visible binding for global variable 'LU'
+calculate_footprints: no visible binding for global variable
+  'items_prod_full'
+calculate_footprints: no visible binding for global variable
+  'Name_biomass'
+calculate_footprints: no visible binding for global variable
+  'Biomass_coefs'
+calculate_footprints: no visible binding for global variable
+  'Product_kgDM_kgFM'
+calculate_footprints: no visible binding for global variable
+  'Product_kgN_kgDM'
+calculate_footprints: no visible binding for global variable 'MgN'
+calculate_footprints: no visible binding for global variable 'N_yield'
+calculate_footprints: no visible global function definition for
+  'quantile'
+calculate_footprints: no visible binding for global variable 'Win'
+calculate_footprints: no visible binding for global variable
+  'min_yield'
+calculate_footprints: no visible binding for global variable
+  'Yield_share'
+calculate_footprints: no visible binding for global variable
+  'Yield_share_excess'
+calculate_footprints: no visible binding for global variable
+  'draught_share'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Year'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'area'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'area_code'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Live_anim'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Live_anim_code'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'unit'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Item_code_area'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Multi_type'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'item_code_impact'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Impact'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Origin'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'FU'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'u_FU'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Product_residue'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'item_prod'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'item_cbs'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'Prod_ygpit_Mg'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'items_prod_full'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'item_code_prod'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'items_full'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'item_code_cbs'
+calculate_footprints : <anonymous>: no visible binding for global
+  variable 'group'
+calculate_footprints: no visible binding for global variable
+  'item_code_impact'
+calculate_footprints: no visible binding for global variable
+  'item_code_prod'
+calculate_footprints: no visible binding for global variable 'Impact'
+calculate_footprints: no visible binding for global variable 'u_FU'
+calculate_footprints: no visible binding for global variable
+  'Live_anim_code'
+calculate_footprints: no visible binding for global variable 'Origin'
+calculate_footprints: no visible binding for global variable 'FU'
+calculate_footprints: no visible binding for global variable 'Yield'
+calculate_footprints: no visible binding for global variable 'Yield_DM'
+calculate_footprints: no visible global function definition for 'n'
+calculate_footprints: no visible binding for global variable 'Impact_u'
+calculate_footprints: no visible binding for global variable
+  'items_full'
+calculate_footprints: no visible binding for global variable 'group'
+calculate_footprints: no visible binding for global variable
+  'Impact_Mu'
+calculate_footprints: no visible binding for global variable
+  'Value_proc'
+calculate_footprints: no visible binding for global variable 'Value_ds'
+calculate_footprints: no visible binding for global variable 'Cat_proc'
+calculate_footprints: no visible binding for global variable
+  'Animals_codes'
+calculate_footprints: no visible binding for global variable
+  'u_ton_scaled'
+calculate_footprints: no visible binding for global variable 'Supply'
+calculate_footprints: no visible binding for global variable
+  'Intake_DM'
+calculate_footprints: no visible binding for global variable
+  'DM_origin'
+calculate_footprints: no visible binding for global variable
+  'DM_LiveAnim'
+calculate_footprints: no visible binding for global variable 'FPFeed_u'
+calculate_footprints: no visible binding for global variable
+  'Origin_share_DM'
+calculate_footprints: no visible binding for global variable
+  'Value_tot'
+calculate_footprints: no visible binding for global variable 'Export'
+calculate_footprints: no visible binding for global variable 'Import'
+calculate_footprints: no visible binding for global variable
+  'Exp_share'
+calculate_footprints: no visible binding for global variable 'Export_u'
+calculate_land_scaling: no visible binding for global variable
+  'Primary_all'
+calculate_land_scaling: no visible binding for global variable 'unit'
+calculate_land_scaling: no visible binding for global variable
+  'items_prod_full'
+calculate_land_scaling: no visible binding for global variable
+  'item_prod'
+calculate_land_scaling: no visible binding for global variable
+  'Herb_Woody'
+calculate_land_scaling: no visible binding for global variable 'Year'
+calculate_land_scaling: no visible binding for global variable 'area'
+calculate_land_scaling: no visible binding for global variable 'Value'
+calculate_land_scaling: no visible binding for global variable
+  'Land_HerbWoody'
+calculate_land_scaling: no visible binding for global variable
+  'Land_tot'
+calculate_land_scaling: no visible binding for global variable
+  'Land_Primary'
+calculate_land_scaling: no visible binding for global variable
+  'land_scaling'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_AG_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Root_Shoot_ratio_W'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_BG_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Prod_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Root_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Crop_NPP_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_NPP_MgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Product_kgN_kgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_kgDM_kgFM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_MgFM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Use_Share'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_kgN_kgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Root_kgN_kgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Rhizodeposits_N_kgN_kgRootN'
+calculate_npp_dm_c_n: no visible binding for global variable 'Prod_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable 'Root_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_kgN_kgDM_W'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Root_kgN_kgDM_W'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Rhizod_kgN_kgRootN_W'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_AG_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_BG_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Crop_NPP_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_NPP_MgN'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Soil_Share'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Product_kgC_kgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_kgC_kgDM'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Root_kgC_kgDM'
+calculate_npp_dm_c_n: no visible binding for global variable 'Prod_MgC'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_MgC'
+calculate_npp_dm_c_n: no visible binding for global variable 'Root_MgC'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Residue_kgC_kgDM_W'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Root_kgC_kgDM_W'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_AG_MgC'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_BG_MgC'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Crop_NPP_MgC'
+calculate_npp_dm_c_n: no visible binding for global variable
+  'Weeds_NPP_MgC'
+calculate_potential_npp: no visible binding for global variable 'TMP'
+calculate_potential_npp: no visible binding for global variable
+  'WaterInput_mm'
+calculate_potential_npp: no visible binding for global variable
+  'Residue_kgC_kgDM_Wo'
+calculate_potential_npp: no visible binding for global variable
+  'Residue_kgC_kgDM_W'
+calculate_potential_npp: no visible binding for global variable
+  'FMAP_TNPP_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'FMAT_TNPP_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'FMAP_ANPP_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'FMAT_ANPP_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'NPPT_Miami_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'NPPP_Miami_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'AET_mm'
+calculate_potential_npp: no visible binding for global variable
+  'TNPP_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'ANPP_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'TNPP_tree_NCEAS_MgDMha'
+calculate_potential_npp: no visible binding for global variable
+  'ANPP_tree_NCEAS_MgDMha'
+extract_luh2 : extract_C_stock: no visible binding for global variable
+  'RowName'
+extract_luh2 : extract_C_stock: no visible binding for global variable
+  'Region_name'
+extract_luh2 : extract_area: no visible binding for global variable
+  'RowName'
+extract_luh2 : extract_area: no visible binding for global variable
+  'Region_name'
+extract_luh2: no visible binding for global variable 'Year'
+extract_luh2: no visible binding for global variable 'C_stock_Tg'
+extract_luh2: no visible binding for global variable 'Area_Mha'
+filter_areas: no visible binding for global variable 'regions_full'
+filter_areas: no visible binding for global variable 'code'
+filter_areas: no visible binding for global variable 'area_code'
+filter_areas: no visible binding for global variable 'polity_code'
+filter_areas: no visible binding for global variable 'polity_name'
+filter_areas: no visible binding for global variable 'Year'
+filter_areas: no visible binding for global variable 'unit'
+filter_areas: no visible binding for global variable 'Element'
+filter_areas: no visible binding for global variable 'Value'
+get_global_export_footprint: no visible binding for global variable
+  'Year'
+get_global_export_footprint: no visible binding for global variable
+  'area_code'
+get_global_export_footprint: no visible binding for global variable
+  'item_code_cbs'
+get_global_export_footprint: no visible binding for global variable
+  'Impact'
+get_global_export_footprint: no visible binding for global variable
+  'Value'
+get_global_export_footprint: no visible binding for global variable
+  'Impact_u'
+get_global_export_footprint: no visible binding for global variable
+  'Element'
+get_global_export_footprint: no visible binding for global variable
+  'Export'
+get_global_export_footprint: no visible binding for global variable
+  'Production'
+get_global_export_footprint: no visible binding for global variable
+  'Import'
+get_global_export_footprint: no visible binding for global variable
+  'Exp_share'
+get_global_export_footprint: no visible binding for global variable
+  'u_ton_glob'
+get_herbwoody_fao: no visible binding for global variable 'LandUse_FAO'
+get_herbwoody_fao: no visible binding for global variable 'Year'
+get_herbwoody_fao: no visible binding for global variable 'Area.Code'
+get_herbwoody_fao: no visible binding for global variable 'Item.Code'
+get_herbwoody_fao: no visible binding for global variable 'Unit'
+get_herbwoody_fao: no visible binding for global variable 'Item'
+get_herbwoody_fao: no visible binding for global variable 'Element'
+get_herbwoody_fao: no visible binding for global variable 'Value'
+get_herbwoody_fao: no visible binding for global variable 'area'
+get_herbwoody_fao: no visible binding for global variable 'Herb_Woody'
+get_herbwoody_fao: no visible binding for global variable 'Land_tot'
+ggplotRegression: no visible binding for global variable '.data'
+integrate_fallow: no visible binding for global variable 'LandUse'
+integrate_fallow: no visible binding for global variable 'Name_biomass'
+integrate_fallow: no visible binding for global variable
+  'Names_biomass'
+integrate_fallow: no visible binding for global variable 'Names_cats'
+integrate_fallow: no visible binding for global variable 'Herb_Woody'
+integrate_fallow: no visible binding for global variable
+  'Area_ygpit_ha'
+integrate_fallow: no visible binding for global variable 'Area_herb'
+integrate_fallow: no visible binding for global variable 'Area_Fallow'
+integrate_fallow: no visible binding for global variable 'Area_share'
+integrate_fallow: no visible binding for global variable 'Name'
+integrate_fallow: no visible binding for global variable 'Cat_1'
+load_general_data: no visible binding for global variable 'uISO3c'
+load_general_data: no visible binding for global variable
+  'Name_biomass'
+load_general_data: no visible binding for global variable 'item_cbs'
+load_general_data: no visible binding for global variable 'Cat_1'
+load_general_data: no visible binding for global variable 'Order'
+load_general_data: no visible binding for global variable 'Farm_class'
+load_general_data: no visible binding for global variable 'item_prod'
+load_general_data: no visible binding for global variable
+  'item_code_prod'
+load_general_data: no visible binding for global variable
+  'item_code_cbs'
+load_general_data: no visible binding for global variable 'Cat_Labour'
+load_general_data: no visible binding for global variable 'Cat_FAO1'
+load_general_data: no visible binding for global variable 'comm_group'
+load_general_data: no visible binding for global variable 'group'
+load_general_data: no visible binding for global variable 'Farm_class2'
+load_general_data: no visible binding for global variable 'Cat_Labour2'
+load_general_data: no visible binding for global variable 'Cat_FAO12'
+load_general_data: no visible binding for global variable
+  'Residue_kgC_kgDM'
+load_general_data: no visible binding for global variable
+  'Root_kgC_kgDM'
+load_general_data: no visible binding for global variable
+  'Residue_humified_kgC_kgC'
+load_general_data: no visible binding for global variable
+  'Root_humified_kgC_kgC'
+load_general_data: no visible binding for global variable
+  'Root_mass_kgC_kgDM'
+load_general_data: no visible binding for global variable
+  'Rhizodeposits_mass_kgC_kgDM'
+load_general_data: no visible binding for global variable 'Residue_C_N'
+load_general_data: no visible binding for global variable
+  'Root_Shoot_ratio'
+load_general_data: no visible binding for global variable
+  'Residue_kgDM_kgFM'
+load_general_data: no visible binding for global variable
+  'Residue_kgN_kgDM'
+load_general_data: no visible binding for global variable
+  'Root_kgN_kgDM'
+load_general_data: no visible binding for global variable
+  'Rhizodeposits_N_kgN_kgRootN'
+load_general_data: no visible binding for global variable 'Gas'
+load_general_data: no visible binding for global variable 'GWP_100'
+load_vectors: no visible binding for global variable 'C_input_name'
+redistribute_feed: no visible binding for global variable '.data'
+redistribute_feed: no visible binding for global variable
+  'Livestock_cat'
+redistribute_feed: no visible binding for global variable 'item_cbs'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'avail_remaining'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'total'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'remaining'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'Year'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'Territory'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'Province_name'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'Livestock_cat'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'key'
+redistribute_feed : diag_snapshot: no visible binding for global
+  variable 'msg'
+redistribute_feed: no visible binding for global variable 'Territory'
+redistribute_feed: no visible binding for global variable
+  'Province_name'
+redistribute_feed: no visible binding for global variable 'demand_MgDM'
+redistribute_feed: no visible binding for global variable 'items_full'
+redistribute_feed: no visible binding for global variable 'Cat_1'
+redistribute_feed: no visible binding for global variable
+  'feedtype_graniv'
+redistribute_feed: no visible binding for global variable 'Cat_1_items'
+redistribute_feed: no visible binding for global variable 'Cat_feed'
+redistribute_feed: no visible binding for global variable 'Cats'
+redistribute_feed: no visible binding for global variable
+  'is_monogastric'
+redistribute_feed: no visible binding for global variable 'Year'
+redistribute_feed: no visible binding for global variable
+  'total_demand'
+redistribute_feed: no visible binding for global variable 'Feed_scale'
+redistribute_feed: no visible binding for global variable 'Avail_MgDM'
+redistribute_feed : ensure_item_metadata: no visible binding for global
+  variable 'items_full'
+redistribute_feed : ensure_item_metadata: no visible binding for global
+  variable 'item_cbs'
+redistribute_feed : ensure_item_metadata: no visible binding for global
+  variable 'Cat_1'
+redistribute_feed : ensure_item_metadata: no visible binding for global
+  variable 'Cat_1_lookup'
+redistribute_feed : ensure_item_metadata: no visible binding for global
+  variable 'Cats'
+redistribute_feed : ensure_item_metadata: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'intake_MgDM'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'Year'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'Territory'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'Province_name'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'Livestock_cat'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'remaining_cap'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'capped_intake'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'cumsum_intake'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'allocated_so_far'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'alloc'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'total_demand'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'demand_id'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'remaining'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'avail_id'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'used'
+redistribute_feed : add_alloc: no visible binding for global variable
+  'avail_remaining'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'remaining'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'avail_remaining'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'demand_group'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'avail_group'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'Province_name'
+redistribute_feed : allocate_cartesian: no visible global function
+  definition for ':='
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'demand_share'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'avail_share'
+redistribute_feed : allocate_cartesian: no visible binding for global
+  variable 'intake_MgDM'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'remaining'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'avail_remaining'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'demand_group'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'avail_group'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'scale_factor'
+redistribute_feed : allocate_grouped: no visible global function
+  definition for ':='
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'Province_name'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'intake_MgDM'
+redistribute_feed : allocate_grouped: no visible binding for global
+  variable 'share'
+redistribute_feed : execute_level: no visible binding for global
+  variable 'demand_id'
+redistribute_feed : execute_level: no visible binding for global
+  variable 'remaining'
+redistribute_feed : execute_level: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : execute_grouped: no visible binding for global
+  variable 'demand_id'
+redistribute_feed : execute_grouped: no visible binding for global
+  variable 'remaining'
+redistribute_feed : execute_grouped: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed: no visible binding for global variable 'avail_id'
+redistribute_feed: no visible binding for global variable 'avail_prov'
+redistribute_feed: no visible binding for global variable
+  'avail_id_prov'
+redistribute_feed: no visible binding for global variable
+  'scale_factor'
+redistribute_feed: no visible binding for global variable 'demand_id'
+redistribute_feed: no visible binding for global variable 'intake_MgDM'
+redistribute_feed: no visible binding for global variable
+  'hierarchy_level'
+redistribute_feed: no visible binding for global variable
+  'original_demand_item'
+redistribute_feed: no visible binding for global variable
+  'original_Province'
+redistribute_feed: no visible binding for global variable 'avail_nat'
+redistribute_feed: no visible binding for global variable
+  'avail_id_nat'
+redistribute_feed: no visible binding for global variable 'remaining'
+redistribute_feed : run_primary_levels : <anonymous>: no visible
+  binding for global variable 'Feed_scale'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'remaining'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'Province_name'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'Feed_scale'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'item_cbs'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'avail_remaining'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'avail_id'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'original_Province'
+redistribute_feed : allocate_trade: no visible binding for global
+  variable 'trade_origin'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'avail_remaining'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'Cat_feed'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'item_cbs'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'feed_rank'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'Cat_feed'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'priority_value'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'remaining'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'intake_MgDM'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'demand_id'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'Year'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'Territory'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'Province_name'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'Livestock_cat'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'original_demand_item'
+redistribute_feed : allocate_priority_pool : allocate_supply: no
+  visible binding for global variable 'original_Province'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'Year'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'Territory'
+redistribute_feed : allocate_priority_pool: no visible binding for
+  global variable 'remaining'
+redistribute_feed : run_release_pass: no visible binding for global
+  variable 'remaining'
+redistribute_feed : run_release_pass: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : run_release_pass: no visible binding for global
+  variable 'avail_remaining'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'remaining'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'fixed_demand'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'Province_name'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'demand_id'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'Year'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'Territory'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'Livestock_cat'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'item_cbs'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'Cat_1'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'intake_MgDM'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'hierarchy_level'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'original_demand_item'
+redistribute_feed : allocate_grassland: no visible binding for global
+  variable 'original_Province'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'avail_remaining'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'Year'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'Territory'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'demand_MgDM'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'weight'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'fixed_demand'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'intake_MgDM'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'demand_id'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'Province_name'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'Livestock_cat'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'item_cbs'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'Cat_1'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'hierarchy_level'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'original_demand_item'
+redistribute_feed : distribute_surplus: no visible binding for global
+  variable 'original_Province'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'Cat_feed'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'item_cbs'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'Year'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'Territory'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'Avail_MgDM'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'intake_MgDM'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'avail_limit'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'total_intake'
+redistribute_feed : reroute_excess_grass: no visible binding for global
+  variable 'excess'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'intake_MgDM'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'total_dm'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'limit_dm'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'item_dm'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'excess'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'Year'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'Territory'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'Province_name'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'Livestock_cat'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'item_cbs'
+redistribute_feed : apply_max_intake_caps: no visible binding for
+  global variable 'reduction_factor'
+redistribute_feed: no visible global function definition for ':='
+redistribute_feed: no visible binding for global variable
+  'fixed_demand'
+redistribute_feed: no visible binding for global variable
+  'scaling_factor'
+redistribute_feed: no visible binding for global variable
+  'zoot_scale_factor'
+residue_use: no visible binding for global variable 'item_cbs'
+residue_use: no visible binding for global variable 'Biomass_coefs'
+residue_use: no visible binding for global variable 'Name_biomass'
+residue_use: no visible binding for global variable 'Residue_kgDM_kgFM'
+residue_use: no visible binding for global variable 'Use_Share'
+residue_use: no visible binding for global variable 'Residue_MgDM'
+residue_use: no visible binding for global variable 'Prod_ygpit_Mg'
+residue_use: no visible binding for global variable 'Residue_Mg'
+residues_as_items: no visible binding for global variable
+  'Product_residue'
+residues_as_items: no visible binding for global variable 'Cat_1'
+residues_as_items: no visible binding for global variable 'LandUse'
+residues_as_items: no visible binding for global variable 'Herb_Woody'
+residues_as_items: no visible binding for global variable 'item_cbs'
+scale_land: no visible binding for global variable 'Primary_all'
+scale_land: no visible binding for global variable 'unit'
+scale_land: no visible binding for global variable 'Value'
+scale_land: no visible binding for global variable 'items_prod_full'
+scale_land: no visible binding for global variable 'item_prod'
+scale_land: no visible binding for global variable 'Herb_Woody'
+scale_land: no visible binding for global variable 'Land_scaling'
+scale_land: no visible binding for global variable 'land_scaling'
+scale_land: no visible binding for global variable 'ha'
+scale_land: no visible binding for global variable 'LU'
+scale_land: no visible binding for global variable 'Year'
+scale_land: no visible binding for global variable 'Impact'
+scale_land: no visible binding for global variable 'area'
+scale_land: no visible binding for global variable 'area_code'
+scale_land: no visible binding for global variable 'item_code_prod'
+scale_land: no visible binding for global variable 'u_FU'
+Undefined global functions or variables:
+  .data := AET_mm ANPP_NCEAS_MgDMha ANPP_tree_NCEAS_MgDMha Aerial_MgDM
+  Alloc Alloc_cbs Alloc_raw1 Alloc_raw2 Allocation Animals_codes
+  Area.Code Area_Fallow Area_Mha Area_herb Area_share Area_ygpit_ha
+  Avail_MgDM Avail_edible Availability BGN BNF Biomass_coefs CBS
+  CBS_item_prices C_input_name C_stock_Tg Calcium_mg Calcium_mg_kgFM
+  Carbohydrates_g Carbohydrates_g_kgFM Cat_0 Cat_1 Cat_1_items
+  Cat_1_lookup Cat_FAO1 Cat_FAO12 Cat_Labour Cat_Labour2 Cat_animal
+  Cat_diet_agg Cat_feed Cat_proc Cats Country_share CropBNF CropBNF2
+  Crop_NPP_MgC Crop_NPP_MgDM Crop_NPP_MgN Crop_NPPr_NoFallow
+  DM_LiveAnim DM_Mg DM_origin Date Destiny Dyn_HI Dyn_RS Edible_portion
+  Element Energy_TJ Energy_kcal Exp_share Export Export_u
+  FMAP_ANPP_NCEAS_MgDMha FMAP_TNPP_NCEAS_MgDMha FMAT_ANPP_NCEAS_MgDMha
+  FMAT_TNPP_NCEAS_MgDMha FM_Mg FPFeed_u FU Fallow_cover
+  Fallow_cover_share Farm_class Farm_class2 Feed_intake Feed_scale
+  GE_product_MJ_kgFM GWP GWP_100 Gas Gas_raw Gas_type Herb_Woody Impact
+  Impact_Mu Impact_prod Impact_u Impact_u_proc Import Intake_DM Item
+  Item.Code Item_area Item_code_area Kcal_MJ LU LandUse LandUse_FAO
+  Land_HerbWoody Land_Primary Land_scaling Land_tot Legs_Seeded
+  Legs_SpontWeeds Leguminous_share Lipids_g Lipids_g_kgFM Live_anim
+  Live_anim_code Livestock_cat MgN Month_names Month_number
+  Month_numbers Month_order Multi_type NHI NPPP_Miami_MgDMha
+  NPPT_Miami_MgDMha NPPpot_MgDMha NSBNF N_MgN N_yield Name Name_BNF
+  Name_biomass Names_BNF Names_biomass Names_cats Ndfa Order Origin
+  Origin_share_DM Pop_Mpeop Price Price_cbs Primary_all Primary_double
+  Primary_prices Proc_share Processing_coefs Prod_MgC Prod_MgDM
+  Prod_MgN Prod_ygpit_Mg Product_kgC_kgDM Product_kgDM_kgFM
+  Product_kgN_kgDM Product_residue Production Protein_N Protein_g
+  Province_name Proxy_ratio Region_name Relative_residue_price
+  Residue_C_N Residue_Mg Residue_MgC Residue_MgDM Residue_MgFM
+  Residue_MgN Residue_Shares Residue_humified_kgC_kgC Residue_kgC_kgDM
+  Residue_kgC_kgDM_W Residue_kgC_kgDM_Wo Residue_kgDM_kgFM
+  Residue_kgN_kgDM Residue_kgN_kgDM_W Rhizod_kgN_kgRootN_W
+  Rhizodeposits_N_kgN_kgRootN Rhizodeposits_mass_kgC_kgDM Root_MgC
+  Root_MgDM Root_MgDM_RS Root_MgDM_ref Root_MgN Root_MghaDM_ref
+  Root_Shoot_ratio Root_Shoot_ratio_W Root_humified_kgC_kgC
+  Root_kgC_kgDM Root_kgC_kgDM_W Root_kgN_kgDM Root_kgN_kgDM_W
+  Root_mass_kgC_kgDM Root_ref RowName Scaling_weeds Seed
+  Seeded_CC_share Soil_Share Source_Proxy_ratio Supply TMP
+  TNPP_NCEAS_MgDMha TNPP_tree_NCEAS_MgDMha Territory Unit Use_Share
+  Value Value_CarriedBackward Value_CarriedForward Value_cbs Value_d
+  Value_ds Value_interpfilled Value_proc Value_tot VitaminA_microg
+  VitaminA_microg_kgFM WaterInput_mm Weed_NPP_Scaling WeedsBNF
+  Weeds_AG_MgC Weeds_AG_MgDM Weeds_AG_MgN Weeds_BG_MgC Weeds_BG_MgDM
+  Weeds_BG_MgN Weeds_NPP_MgC Weeds_NPP_MgDM Weeds_NPP_MgN Weeds_Ndfa
+  Weeds_leg_share Win Year Yield Yield_DM Yield_share
+  Yield_share_excess alloc allocated_so_far area area_code area_code_p
+  area_p avail_group avail_id avail_id_nat avail_id_prov avail_limit
+  avail_nat avail_prov avail_remaining avail_share capped_intake cf
+  code comm_group cumsum_intake demand_MgDM demand_group demand_id
+  demand_share draught_share excess feed_rank feedtype_graniv
+  fixed_demand group ha hierarchy_level intake_MgDM is_monogastric
+  item_cbs item_code_cbs item_code_impact item_code_prod item_dm
+  item_prod items_full items_prod_full key kgNha
+  kg_residue_kg_product_FM land_scaling limit_dm min_yield msg n
+  original_Province original_demand_item polity_code polity_name
+  priority_value quantile reduction_factor regions_full remaining
+  remaining_cap scale_factor scaling_factor share tons_proc total
+  total_demand total_dm total_intake trade_origin uISO3c u_FU u_ton
+  u_ton2 u_ton_glob u_ton_p u_ton_scaled unit used value weight
+  zoot_scale_factor
+Consider adding
+  importFrom("stats", "quantile")
+to your NAMESPACE file.
+* checking Rd files ... WARNING
+checkRd: (5) grapes-not-in-grapes.Rd:3: \name should not contain !, | or @
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking examples ... OK
+* checking for unstated dependencies in 'tests' ... WARNING
+'::' or ':::' import not declared from: 'withr'
+* checking tests ...
+  Running 'testthat.R' [17s]
+ [17s] ERROR
+Running the tests in 'tests/testthat.R' failed.
+Last 13 lines of output:
+    1. └─afsetools::Arrange_dates(test_data) at test-utility_functions.R:265:3
+    2.   ├─dplyr::ungroup(...)
+    3.   ├─dplyr::mutate(...)
+    4.   ├─dplyr::arrange(...)
+    5.   ├─dplyr::mutate(...)
+    6.   ├─dplyr::left_join(x, Month_numbers, by = "Month_names")
+    7.   └─dplyr:::left_join.data.frame(x, Month_numbers, by = "Month_names")
+    8.     └─dplyr::auto_copy(x, y, copy = copy)
+    9.       ├─dplyr::same_src(x, y)
+   10.       └─dplyr:::same_src.data.frame(x, y)
+   11.         └─base::is.data.frame(y)
+  
+  [ FAIL 10 | WARN 0 | SKIP 0 | PASS 95 ]
+  Error: Test failures
+  Execution halted
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+
+Status: 1 ERROR, 4 WARNINGs, 5 NOTEs
+See
+  'C:/Users/53272530E/AppData/Local/Temp/RtmpOa2t4d/filee5085cd12080/afsetools.Rcheck/00check.log'
+for details.
+
+ERROR: Unknown command "TMPDIR=C:/Users/53272530E/AppData/Local/Temp/RtmpSWVE1u/file9b6857b63a6a". Did you mean command "install"?
+Warning in system2("quarto", "-V", stdout = TRUE, env = paste0("TMPDIR=",  :
+  running command '"quarto" TMPDIR=C:/Users/53272530E/AppData/Local/Temp/RtmpSWVE1u/file9b6857b63a6a -V' had status 1
+
+── R CMD check results ──────────────────────────────────── afsetools 0.1.4 ────
+Duration: 2m 3.5s
+
+❯ checking tests ...
+  See below...
+
+❯ checking code files for non-ASCII characters ... WARNING
+  Found the following file with non-ASCII characters:
+    R/feed_distribution_functions.R
+  Portable packages must use only ASCII characters in their R code and
+  NAMESPACE directives, except perhaps in comments.
+  Use \uxxxx escapes for other characters.
+  Function 'tools::showNonASCIIfile' can help in finding non-ASCII
+  characters in files.
+
+❯ checking dependencies in R code ... WARNING
+  '::' or ':::' import not declared from: 'DescTools'
+  Namespaces in Imports field not imported from:
+    'data.table' 'readxl'
+    All declared Imports should be used.
+
+❯ checking Rd files ... WARNING
+  checkRd: (5) grapes-not-in-grapes.Rd:3: \name should not contain !, | or @
+
+❯ checking for unstated dependencies in 'tests' ... WARNING
+  '::' or ':::' import not declared from: 'withr'
+
+❯ checking for hidden files and directories ... NOTE
+  Found the following hidden files and directories:
+    .doc_temp.R
+    .github
+    .vscode
+  These were most likely included in error. See section 'Package
+  structure' in the 'Writing R Extensions' manual.
+
+❯ checking for future file timestamps ... NOTE
+  unable to verify current time
+
+❯ checking DESCRIPTION meta-information ... NOTE
+  License stub is invalid DCF.
+
+❯ checking top-level files ... NOTE
+  Non-standard files/directories found at top level:
+    'DATA_REFERENCE.md' '_pkgdown.yml' 'additional_files' 'build_docs.R'
+    'check_full.txt' 'docs'
+
+❯ checking R code for possible problems ... NOTE
+  Agg_primary: no visible binding for global variable 'Year'
+  Agg_primary: no visible binding for global variable 'area'
+  Agg_primary: no visible binding for global variable 'area_code'
+  Agg_primary: no visible binding for global variable 'item_cbs'
+  Agg_primary: no visible binding for global variable 'item_code_cbs'
+  Agg_primary: no visible binding for global variable 'Origin'
+  Agg_primary: no visible binding for global variable 'Impact'
+  Agg_primary: no visible binding for global variable 'Value'
+  Agg_primary: no visible binding for global variable 'Impact_u'
+  Agg_processed: no visible binding for global variable 'Year'
+  Agg_processed: no visible binding for global variable 'area'
+  Agg_processed: no visible binding for global variable 'area_code'
+  Agg_processed: no visible binding for global variable 'Item'
+  Agg_processed: no visible binding for global variable 'Origin'
+  Agg_processed: no visible binding for global variable 'Impact'
+  Agg_processed: no visible binding for global variable 'tons_proc'
+  Agg_processed: no visible binding for global variable 'Impact_u_proc'
+  Agg_processed: no visible binding for global variable 'Impact_u'
+  Agg_processed: no visible binding for global variable 'Value'
+  Agg_processed: no visible binding for global variable 'items_full'
+  Agg_processed: no visible binding for global variable 'item_cbs'
+  Agg_processed: no visible binding for global variable 'item_code_cbs'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Year'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'area'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'area_code'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Live_anim'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Live_anim_code'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'item_code_impact'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Origin'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Impact'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'FU'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'u_FU'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'draught_share'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'items_full'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'item_cbs'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'item_code_cbs'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Primary_prices'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'item_code_prod'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Price'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'CBS_item_prices'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Element'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Product_residue'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Relative_residue_price'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Value'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Value_d'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Price_cbs'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Value_cbs'
+  Allocate_impacts_to_products: no visible global function definition for
+    'n'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Alloc_raw1'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'n'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Alloc_cbs'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Alloc_raw2'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Allocation'
+  Allocate_impacts_to_products: no visible binding for global variable
+    'Impact_u'
+  Arrange_dates: no visible binding for global variable 'Month_numbers'
+  Arrange_dates: no visible binding for global variable 'Month_names'
+  Arrange_dates: no visible binding for global variable 'Year'
+  Arrange_dates: no visible binding for global variable 'Month_number'
+  Arrange_dates: no visible binding for global variable 'Date'
+  Arrange_dates: no visible binding for global variable 'Month_order'
+  Calc_N_fix: no visible binding for global variable 'Names_BNF'
+  Calc_N_fix: no visible binding for global variable 'BNF'
+  Calc_N_fix: no visible binding for global variable 'Ndfa'
+  Calc_N_fix: no visible binding for global variable 'Crop_NPP_MgN'
+  Calc_N_fix: no visible binding for global variable 'Leguminous_share'
+  Calc_N_fix: no visible binding for global variable 'Prod_MgN'
+  Calc_N_fix: no visible binding for global variable 'BGN'
+  Calc_N_fix: no visible binding for global variable 'NHI'
+  Calc_N_fix: no visible binding for global variable 'CropBNF'
+  Calc_N_fix: no visible binding for global variable 'CropBNF2'
+  Calc_N_fix: no visible binding for global variable 'Name_BNF'
+  Calc_N_fix: no visible binding for global variable 'Legs_Seeded'
+  Calc_N_fix: no visible binding for global variable 'LandUse'
+  Calc_N_fix: no visible binding for global variable 'Seeded_CC_share'
+  Calc_N_fix: no visible binding for global variable 'Legs_SpontWeeds'
+  Calc_N_fix: no visible binding for global variable 'Weeds_NPP_MgN'
+  Calc_N_fix: no visible binding for global variable 'Weeds_Ndfa'
+  Calc_N_fix: no visible binding for global variable 'Weeds_leg_share'
+  Calc_N_fix: no visible binding for global variable 'WeedsBNF'
+  Calc_N_fix: no visible binding for global variable 'kgNha'
+  Calc_N_fix: no visible binding for global variable 'Area_ygpit_ha'
+  Calc_N_fix: no visible binding for global variable 'NSBNF'
+  Calc_diets: no visible binding for global variable 'items_full'
+  Calc_diets: no visible binding for global variable 'item_cbs'
+  Calc_diets: no visible binding for global variable 'Name_biomass'
+  Calc_diets: no visible binding for global variable 'Cat_1'
+  Calc_diets: no visible binding for global variable 'Biomass_coefs'
+  Calc_diets: no visible binding for global variable 'Product_kgDM_kgFM'
+  Calc_diets: no visible binding for global variable 'Product_kgN_kgDM'
+  Calc_diets: no visible binding for global variable 'GE_product_MJ_kgFM'
+  Calc_diets: no visible binding for global variable 'Edible_portion'
+  Calc_diets: no visible binding for global variable 'Lipids_g_kgFM'
+  Calc_diets: no visible binding for global variable
+    'Carbohydrates_g_kgFM'
+  Calc_diets: no visible binding for global variable 'Calcium_mg_kgFM'
+  Calc_diets: no visible binding for global variable
+    'VitaminA_microg_kgFM'
+  Calc_diets: no visible binding for global variable 'FM_Mg'
+  Calc_diets: no visible binding for global variable 'Energy_TJ'
+  Calc_diets: no visible binding for global variable 'Kcal_MJ'
+  Calc_diets: no visible binding for global variable 'DM_Mg'
+  Calc_diets: no visible binding for global variable 'N_MgN'
+  Calc_diets: no visible binding for global variable 'Protein_N'
+  Calc_diets: no visible binding for global variable 'Year'
+  Calc_diets: no visible binding for global variable 'area'
+  Calc_diets: no visible binding for global variable 'Element'
+  Calc_diets: no visible binding for global variable 'Destiny'
+  Calc_diets: no visible binding for global variable 'Pop_Mpeop'
+  Calc_diets: no visible binding for global variable 'Energy_kcal'
+  Calc_diets: no visible binding for global variable 'Protein_g'
+  Calc_diets: no visible binding for global variable 'Lipids_g'
+  Calc_diets: no visible binding for global variable 'Carbohydrates_g'
+  Calc_diets: no visible binding for global variable 'Calcium_mg'
+  Calc_diets: no visible binding for global variable 'VitaminA_microg'
+  Calc_diets: no visible binding for global variable 'Availability'
+  Calc_diets: no visible binding for global variable 'Avail_edible'
+  Calc_diets: no visible binding for global variable 'Value_tot'
+  Calc_diets: no visible binding for global variable 'Cats'
+  Calc_diets: no visible binding for global variable 'Cat_0'
+  Calc_diets: no visible binding for global variable 'Cat_diet_agg'
+  Calc_diets: no visible binding for global variable 'Cat_animal'
+  Calc_impact_processed: no visible binding for global variable 'Year'
+  Calc_impact_processed: no visible binding for global variable 'area'
+  Calc_impact_processed: no visible binding for global variable
+    'area_code'
+  Calc_impact_processed: no visible binding for global variable
+    'item_cbs'
+  Calc_impact_processed: no visible binding for global variable
+    'item_code_cbs'
+  Calc_impact_processed: no visible binding for global variable 'Origin'
+  Calc_impact_processed: no visible binding for global variable 'Impact'
+  Calc_impact_processed: no visible binding for global variable 'Value'
+  Calc_impact_processed: no visible binding for global variable
+    'Impact_u'
+  Calc_impact_processed: no visible binding for global variable
+    'Processing_coefs'
+  Calc_impact_processed: no visible binding for global variable 'cf'
+  Calc_impact_processed: no visible binding for global variable
+    'CBS_item_prices'
+  Calc_impact_processed: no visible binding for global variable 'Element'
+  Calc_impact_processed: no visible binding for global variable 'Price'
+  Calc_impact_processed: no visible binding for global variable
+    'Proc_share'
+  Calc_impact_processed: no visible binding for global variable
+    'tons_proc'
+  Calc_impact_processed: no visible binding for global variable 'Value_d'
+  Calc_impact_processed: no visible global function definition for 'n'
+  Calc_impact_processed: no visible binding for global variable 'Alloc'
+  Calc_impact_processed: no visible binding for global variable 'n'
+  Calc_impact_processed: no visible binding for global variable
+    'Allocation'
+  Calc_impact_processed: no visible binding for global variable
+    'Impact_u_proc'
+  Filling: no visible global function definition for ':='
+  Filling: no visible binding for global variable 'Value_interpfilled'
+  Filling: no visible binding for global variable 'Value_CarriedBackward'
+  Filling: no visible binding for global variable 'Value_CarriedForward'
+  FillingProxy: no visible binding for global variable 'Proxy_ratio'
+  FillingProxy: no visible binding for global variable 'Year'
+  FillingProxy: no visible global function definition for ':='
+  FillingProxy: no visible binding for global variable
+    'Source_Proxy_ratio'
+  Gases_GWP: no visible binding for global variable 'Gas_raw'
+  Gases_GWP: no visible binding for global variable 'Gas_type'
+  Gases_GWP: no visible binding for global variable 'Gas'
+  Gases_GWP: no visible binding for global variable 'GWP'
+  Gases_GWP: no visible binding for global variable 'GWP_100'
+  Gases_GWP: no visible binding for global variable 'value'
+  Prepare_prim: no visible binding for global variable 'unit'
+  Prepare_prim: no visible binding for global variable 'Primary_double'
+  Prepare_prim: no visible binding for global variable 'Item_area'
+  Prepare_prim: no visible binding for global variable 'item_code_prod'
+  Prepare_prim: no visible binding for global variable 'Multi_type'
+  Prepare_prim: no visible binding for global variable 'item_prod'
+  Prepare_prim: no visible binding for global variable 'Item_code_area'
+  Prepare_prim: no visible binding for global variable 'Live_anim_code'
+  calc_avail_fp_dtm: no visible binding for global variable 'Element'
+  calc_avail_fp_dtm: no visible binding for global variable 'Year'
+  calc_avail_fp_dtm: no visible binding for global variable 'Impact'
+  calc_avail_fp_dtm: no visible binding for global variable 'area_code'
+  calc_avail_fp_dtm: no visible binding for global variable 'area_code_p'
+  calc_avail_fp_dtm: no visible binding for global variable 'area_p'
+  calc_avail_fp_dtm: no visible binding for global variable
+    'item_code_cbs'
+  calc_avail_fp_dtm: no visible binding for global variable
+    'Country_share'
+  calc_avail_fp_dtm: no visible binding for global variable 'item_cbs'
+  calc_avail_fp_dtm: no visible binding for global variable 'Value'
+  calc_avail_fp_dtm: no visible binding for global variable 'Impact_u'
+  calc_avail_fp_dtm: no visible binding for global variable 'u_ton_p'
+  calc_avail_fp_dtm: no visible binding for global variable 'u_ton'
+  calc_avail_fp_dtm: no visible binding for global variable 'u_ton_glob'
+  calc_avail_fp_dtm: no visible binding for global variable 'u_ton2'
+  calc_avail_fp_gt: no visible binding for global variable 'Element'
+  calc_avail_fp_gt: no visible binding for global variable 'u_ton'
+  calc_avail_fp_gt: no visible binding for global variable 'u_ton_glob'
+  calc_avail_fp_gt: no visible binding for global variable 'Value'
+  calc_avail_fp_gt: no visible binding for global variable 'Impact_u'
+  calc_avail_fp_gt: no visible binding for global variable 'u_ton2'
+  calculate_crop_npp: no visible binding for global variable
+    'Biomass_coefs'
+  calculate_crop_npp: no visible binding for global variable
+    'Name_biomass'
+  calculate_crop_npp: no visible binding for global variable
+    'Product_kgDM_kgFM'
+  calculate_crop_npp: no visible binding for global variable
+    'Residue_kgDM_kgFM'
+  calculate_crop_npp: no visible binding for global variable
+    'kg_residue_kg_product_FM'
+  calculate_crop_npp: no visible binding for global variable
+    'Root_Shoot_ratio'
+  calculate_crop_npp: no visible binding for global variable 'Root_ref'
+  calculate_crop_npp: no visible binding for global variable
+    'Root_MghaDM_ref'
+  calculate_crop_npp: no visible binding for global variable
+    'Prod_ygpit_Mg'
+  calculate_crop_npp: no visible binding for global variable 'Dyn_HI'
+  calculate_crop_npp: no visible binding for global variable
+    'Residue_MgFM'
+  calculate_crop_npp: no visible binding for global variable 'Prod_MgDM'
+  calculate_crop_npp: no visible binding for global variable
+    'Residue_MgDM'
+  calculate_crop_npp: no visible binding for global variable 'Dyn_RS'
+  calculate_crop_npp: no visible binding for global variable
+    'Aerial_MgDM'
+  calculate_crop_npp: no visible binding for global variable
+    'Area_ygpit_ha'
+  calculate_crop_npp: no visible binding for global variable
+    'Root_MgDM_RS'
+  calculate_crop_npp: no visible binding for global variable
+    'Root_MgDM_ref'
+  calculate_crop_npp: no visible binding for global variable 'Root_MgDM'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Biomass_coefs'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Weed_NPP_Scaling'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Residue_Shares'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Fallow_cover'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Scaling_weeds'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Name_biomass'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Area_ygpit_ha'
+  calculate_crop_npp_components: no visible binding for global variable
+    'NPPpot_MgDMha'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Root_Shoot_ratio_W'
+  calculate_crop_npp_components: no visible binding for global variable
+    'Fallow_cover_share'
+  calculate_footprints: no visible binding for global variable 'CBS'
+  calculate_footprints: no visible binding for global variable
+    'Primary_all'
+  calculate_footprints: no visible binding for global variable
+    'Impact_prod'
+  calculate_footprints: no visible binding for global variable
+    'Crop_NPPr_NoFallow'
+  calculate_footprints: no visible binding for global variable
+    'Feed_intake'
+  calculate_footprints : fast_sum_value_impact: no visible binding for
+    global variable 'Value'
+  calculate_footprints : fast_sum_value_impact: no visible binding for
+    global variable 'Impact_u'
+  calculate_footprints : fast_sum_impact: no visible binding for global
+    variable 'Impact_u'
+  calculate_footprints: no visible binding for global variable 'Element'
+  calculate_footprints: no visible binding for global variable 'Value'
+  calculate_footprints: no visible binding for global variable 'Seed'
+  calculate_footprints: no visible binding for global variable
+    'Production'
+  calculate_footprints: no visible binding for global variable 'Year'
+  calculate_footprints: no visible binding for global variable 'area'
+  calculate_footprints: no visible binding for global variable
+    'area_code'
+  calculate_footprints: no visible binding for global variable 'item_cbs'
+  calculate_footprints: no visible binding for global variable
+    'item_code_cbs'
+  calculate_footprints: no visible binding for global variable 'unit'
+  calculate_footprints: no visible binding for global variable
+    'item_prod'
+  calculate_footprints: no visible binding for global variable
+    'Live_anim'
+  calculate_footprints: no visible binding for global variable 'LU'
+  calculate_footprints: no visible binding for global variable
+    'items_prod_full'
+  calculate_footprints: no visible binding for global variable
+    'Name_biomass'
+  calculate_footprints: no visible binding for global variable
+    'Biomass_coefs'
+  calculate_footprints: no visible binding for global variable
+    'Product_kgDM_kgFM'
+  calculate_footprints: no visible binding for global variable
+    'Product_kgN_kgDM'
+  calculate_footprints: no visible binding for global variable 'MgN'
+  calculate_footprints: no visible binding for global variable 'N_yield'
+  calculate_footprints: no visible global function definition for
+    'quantile'
+  calculate_footprints: no visible binding for global variable 'Win'
+  calculate_footprints: no visible binding for global variable
+    'min_yield'
+  calculate_footprints: no visible binding for global variable
+    'Yield_share'
+  calculate_footprints: no visible binding for global variable
+    'Yield_share_excess'
+  calculate_footprints: no visible binding for global variable
+    'draught_share'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Year'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'area'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'area_code'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Live_anim'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Live_anim_code'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'unit'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Item_code_area'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Multi_type'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'item_code_impact'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Impact'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Origin'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'FU'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'u_FU'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Product_residue'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'item_prod'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'item_cbs'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'Prod_ygpit_Mg'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'items_prod_full'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'item_code_prod'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'items_full'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'item_code_cbs'
+  calculate_footprints : <anonymous>: no visible binding for global
+    variable 'group'
+  calculate_footprints: no visible binding for global variable
+    'item_code_impact'
+  calculate_footprints: no visible binding for global variable
+    'item_code_prod'
+  calculate_footprints: no visible binding for global variable 'Impact'
+  calculate_footprints: no visible binding for global variable 'u_FU'
+  calculate_footprints: no visible binding for global variable
+    'Live_anim_code'
+  calculate_footprints: no visible binding for global variable 'Origin'
+  calculate_footprints: no visible binding for global variable 'FU'
+  calculate_footprints: no visible binding for global variable 'Yield'
+  calculate_footprints: no visible binding for global variable 'Yield_DM'
+  calculate_footprints: no visible global function definition for 'n'
+  calculate_footprints: no visible binding for global variable 'Impact_u'
+  calculate_footprints: no visible binding for global variable
+    'items_full'
+  calculate_footprints: no visible binding for global variable 'group'
+  calculate_footprints: no visible binding for global variable
+    'Impact_Mu'
+  calculate_footprints: no visible binding for global variable
+    'Value_proc'
+  calculate_footprints: no visible binding for global variable 'Value_ds'
+  calculate_footprints: no visible binding for global variable 'Cat_proc'
+  calculate_footprints: no visible binding for global variable
+    'Animals_codes'
+  calculate_footprints: no visible binding for global variable
+    'u_ton_scaled'
+  calculate_footprints: no visible binding for global variable 'Supply'
+  calculate_footprints: no visible binding for global variable
+    'Intake_DM'
+  calculate_footprints: no visible binding for global variable
+    'DM_origin'
+  calculate_footprints: no visible binding for global variable
+    'DM_LiveAnim'
+  calculate_footprints: no visible binding for global variable 'FPFeed_u'
+  calculate_footprints: no visible binding for global variable
+    'Origin_share_DM'
+  calculate_footprints: no visible binding for global variable
+    'Value_tot'
+  calculate_footprints: no visible binding for global variable 'Export'
+  calculate_footprints: no visible binding for global variable 'Import'
+  calculate_footprints: no visible binding for global variable
+    'Exp_share'
+  calculate_footprints: no visible binding for global variable 'Export_u'
+  calculate_land_scaling: no visible binding for global variable
+    'Primary_all'
+  calculate_land_scaling: no visible binding for global variable 'unit'
+  calculate_land_scaling: no visible binding for global variable
+    'items_prod_full'
+  calculate_land_scaling: no visible binding for global variable
+    'item_prod'
+  calculate_land_scaling: no visible binding for global variable
+    'Herb_Woody'
+  calculate_land_scaling: no visible binding for global variable 'Year'
+  calculate_land_scaling: no visible binding for global variable 'area'
+  calculate_land_scaling: no visible binding for global variable 'Value'
+  calculate_land_scaling: no visible binding for global variable
+    'Land_HerbWoody'
+  calculate_land_scaling: no visible binding for global variable
+    'Land_tot'
+  calculate_land_scaling: no visible binding for global variable
+    'Land_Primary'
+  calculate_land_scaling: no visible binding for global variable
+    'land_scaling'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_AG_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Root_Shoot_ratio_W'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_BG_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Prod_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Root_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Crop_NPP_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_NPP_MgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Product_kgN_kgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_kgDM_kgFM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_MgFM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Use_Share'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_kgN_kgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Root_kgN_kgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Rhizodeposits_N_kgN_kgRootN'
+  calculate_npp_dm_c_n: no visible binding for global variable 'Prod_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable 'Root_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_kgN_kgDM_W'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Root_kgN_kgDM_W'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Rhizod_kgN_kgRootN_W'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_AG_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_BG_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Crop_NPP_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_NPP_MgN'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Soil_Share'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Product_kgC_kgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_kgC_kgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Root_kgC_kgDM'
+  calculate_npp_dm_c_n: no visible binding for global variable 'Prod_MgC'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_MgC'
+  calculate_npp_dm_c_n: no visible binding for global variable 'Root_MgC'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Residue_kgC_kgDM_W'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Root_kgC_kgDM_W'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_AG_MgC'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_BG_MgC'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Crop_NPP_MgC'
+  calculate_npp_dm_c_n: no visible binding for global variable
+    'Weeds_NPP_MgC'
+  calculate_potential_npp: no visible binding for global variable 'TMP'
+  calculate_potential_npp: no visible binding for global variable
+    'WaterInput_mm'
+  calculate_potential_npp: no visible binding for global variable
+    'Residue_kgC_kgDM_Wo'
+  calculate_potential_npp: no visible binding for global variable
+    'Residue_kgC_kgDM_W'
+  calculate_potential_npp: no visible binding for global variable
+    'FMAP_TNPP_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'FMAT_TNPP_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'FMAP_ANPP_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'FMAT_ANPP_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'NPPT_Miami_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'NPPP_Miami_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'AET_mm'
+  calculate_potential_npp: no visible binding for global variable
+    'TNPP_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'ANPP_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'TNPP_tree_NCEAS_MgDMha'
+  calculate_potential_npp: no visible binding for global variable
+    'ANPP_tree_NCEAS_MgDMha'
+  extract_luh2 : extract_C_stock: no visible binding for global variable
+    'RowName'
+  extract_luh2 : extract_C_stock: no visible binding for global variable
+    'Region_name'
+  extract_luh2 : extract_area: no visible binding for global variable
+    'RowName'
+  extract_luh2 : extract_area: no visible binding for global variable
+    'Region_name'
+  extract_luh2: no visible binding for global variable 'Year'
+  extract_luh2: no visible binding for global variable 'C_stock_Tg'
+  extract_luh2: no visible binding for global variable 'Area_Mha'
+  filter_areas: no visible binding for global variable 'regions_full'
+  filter_areas: no visible binding for global variable 'code'
+  filter_areas: no visible binding for global variable 'area_code'
+  filter_areas: no visible binding for global variable 'polity_code'
+  filter_areas: no visible binding for global variable 'polity_name'
+  filter_areas: no visible binding for global variable 'Year'
+  filter_areas: no visible binding for global variable 'unit'
+  filter_areas: no visible binding for global variable 'Element'
+  filter_areas: no visible binding for global variable 'Value'
+  get_global_export_footprint: no visible binding for global variable
+    'Year'
+  get_global_export_footprint: no visible binding for global variable
+    'area_code'
+  get_global_export_footprint: no visible binding for global variable
+    'item_code_cbs'
+  get_global_export_footprint: no visible binding for global variable
+    'Impact'
+  get_global_export_footprint: no visible binding for global variable
+    'Value'
+  get_global_export_footprint: no visible binding for global variable
+    'Impact_u'
+  get_global_export_footprint: no visible binding for global variable
+    'Element'
+  get_global_export_footprint: no visible binding for global variable
+    'Export'
+  get_global_export_footprint: no visible binding for global variable
+    'Production'
+  get_global_export_footprint: no visible binding for global variable
+    'Import'
+  get_global_export_footprint: no visible binding for global variable
+    'Exp_share'
+  get_global_export_footprint: no visible binding for global variable
+    'u_ton_glob'
+  get_herbwoody_fao: no visible binding for global variable 'LandUse_FAO'
+  get_herbwoody_fao: no visible binding for global variable 'Year'
+  get_herbwoody_fao: no visible binding for global variable 'Area.Code'
+  get_herbwoody_fao: no visible binding for global variable 'Item.Code'
+  get_herbwoody_fao: no visible binding for global variable 'Unit'
+  get_herbwoody_fao: no visible binding for global variable 'Item'
+  get_herbwoody_fao: no visible binding for global variable 'Element'
+  get_herbwoody_fao: no visible binding for global variable 'Value'
+  get_herbwoody_fao: no visible binding for global variable 'area'
+  get_herbwoody_fao: no visible binding for global variable 'Herb_Woody'
+  get_herbwoody_fao: no visible binding for global variable 'Land_tot'
+  ggplotRegression: no visible binding for global variable '.data'
+  integrate_fallow: no visible binding for global variable 'LandUse'
+  integrate_fallow: no visible binding for global variable 'Name_biomass'
+  integrate_fallow: no visible binding for global variable
+    'Names_biomass'
+  integrate_fallow: no visible binding for global variable 'Names_cats'
+  integrate_fallow: no visible binding for global variable 'Herb_Woody'
+  integrate_fallow: no visible binding for global variable
+    'Area_ygpit_ha'
+  integrate_fallow: no visible binding for global variable 'Area_herb'
+  integrate_fallow: no visible binding for global variable 'Area_Fallow'
+  integrate_fallow: no visible binding for global variable 'Area_share'
+  integrate_fallow: no visible binding for global variable 'Name'
+  integrate_fallow: no visible binding for global variable 'Cat_1'
+  load_general_data: no visible binding for global variable 'uISO3c'
+  load_general_data: no visible binding for global variable
+    'Name_biomass'
+  load_general_data: no visible binding for global variable 'item_cbs'
+  load_general_data: no visible binding for global variable 'Cat_1'
+  load_general_data: no visible binding for global variable 'Order'
+  load_general_data: no visible binding for global variable 'Farm_class'
+  load_general_data: no visible binding for global variable 'item_prod'
+  load_general_data: no visible binding for global variable
+    'item_code_prod'
+  load_general_data: no visible binding for global variable
+    'item_code_cbs'
+  load_general_data: no visible binding for global variable 'Cat_Labour'
+  load_general_data: no visible binding for global variable 'Cat_FAO1'
+  load_general_data: no visible binding for global variable 'comm_group'
+  load_general_data: no visible binding for global variable 'group'
+  load_general_data: no visible binding for global variable 'Farm_class2'
+  load_general_data: no visible binding for global variable 'Cat_Labour2'
+  load_general_data: no visible binding for global variable 'Cat_FAO12'
+  load_general_data: no visible binding for global variable
+    'Residue_kgC_kgDM'
+  load_general_data: no visible binding for global variable
+    'Root_kgC_kgDM'
+  load_general_data: no visible binding for global variable
+    'Residue_humified_kgC_kgC'
+  load_general_data: no visible binding for global variable
+    'Root_humified_kgC_kgC'
+  load_general_data: no visible binding for global variable
+    'Root_mass_kgC_kgDM'
+  load_general_data: no visible binding for global variable
+    'Rhizodeposits_mass_kgC_kgDM'
+  load_general_data: no visible binding for global variable 'Residue_C_N'
+  load_general_data: no visible binding for global variable
+    'Root_Shoot_ratio'
+  load_general_data: no visible binding for global variable
+    'Residue_kgDM_kgFM'
+  load_general_data: no visible binding for global variable
+    'Residue_kgN_kgDM'
+  load_general_data: no visible binding for global variable
+    'Root_kgN_kgDM'
+  load_general_data: no visible binding for global variable
+    'Rhizodeposits_N_kgN_kgRootN'
+  load_general_data: no visible binding for global variable 'Gas'
+  load_general_data: no visible binding for global variable 'GWP_100'
+  load_vectors: no visible binding for global variable 'C_input_name'
+  redistribute_feed: no visible binding for global variable '.data'
+  redistribute_feed: no visible binding for global variable
+    'Livestock_cat'
+  redistribute_feed: no visible binding for global variable 'item_cbs'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'avail_remaining'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'total'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'Year'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'Territory'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'Province_name'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'Livestock_cat'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'key'
+  redistribute_feed : diag_snapshot: no visible binding for global
+    variable 'msg'
+  redistribute_feed: no visible binding for global variable 'Territory'
+  redistribute_feed: no visible binding for global variable
+    'Province_name'
+  redistribute_feed: no visible binding for global variable 'demand_MgDM'
+  redistribute_feed: no visible binding for global variable 'items_full'
+  redistribute_feed: no visible binding for global variable 'Cat_1'
+  redistribute_feed: no visible binding for global variable
+    'feedtype_graniv'
+  redistribute_feed: no visible binding for global variable 'Cat_1_items'
+  redistribute_feed: no visible binding for global variable 'Cat_feed'
+  redistribute_feed: no visible binding for global variable 'Cats'
+  redistribute_feed: no visible binding for global variable
+    'is_monogastric'
+  redistribute_feed: no visible binding for global variable 'Year'
+  redistribute_feed: no visible binding for global variable
+    'total_demand'
+  redistribute_feed: no visible binding for global variable 'Feed_scale'
+  redistribute_feed: no visible binding for global variable 'Avail_MgDM'
+  redistribute_feed : ensure_item_metadata: no visible binding for global
+    variable 'items_full'
+  redistribute_feed : ensure_item_metadata: no visible binding for global
+    variable 'item_cbs'
+  redistribute_feed : ensure_item_metadata: no visible binding for global
+    variable 'Cat_1'
+  redistribute_feed : ensure_item_metadata: no visible binding for global
+    variable 'Cat_1_lookup'
+  redistribute_feed : ensure_item_metadata: no visible binding for global
+    variable 'Cats'
+  redistribute_feed : ensure_item_metadata: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'intake_MgDM'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'Year'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'Territory'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'Province_name'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'Livestock_cat'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'remaining_cap'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'capped_intake'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'cumsum_intake'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'allocated_so_far'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'alloc'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'total_demand'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'demand_id'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'remaining'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'avail_id'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'used'
+  redistribute_feed : add_alloc: no visible binding for global variable
+    'avail_remaining'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'avail_remaining'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'demand_group'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'avail_group'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'Province_name'
+  redistribute_feed : allocate_cartesian: no visible global function
+    definition for ':='
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'demand_share'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'avail_share'
+  redistribute_feed : allocate_cartesian: no visible binding for global
+    variable 'intake_MgDM'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'avail_remaining'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'demand_group'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'avail_group'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'scale_factor'
+  redistribute_feed : allocate_grouped: no visible global function
+    definition for ':='
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'Province_name'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'intake_MgDM'
+  redistribute_feed : allocate_grouped: no visible binding for global
+    variable 'share'
+  redistribute_feed : execute_level: no visible binding for global
+    variable 'demand_id'
+  redistribute_feed : execute_level: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : execute_level: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : execute_grouped: no visible binding for global
+    variable 'demand_id'
+  redistribute_feed : execute_grouped: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : execute_grouped: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed: no visible binding for global variable 'avail_id'
+  redistribute_feed: no visible binding for global variable 'avail_prov'
+  redistribute_feed: no visible binding for global variable
+    'avail_id_prov'
+  redistribute_feed: no visible binding for global variable
+    'scale_factor'
+  redistribute_feed: no visible binding for global variable 'demand_id'
+  redistribute_feed: no visible binding for global variable 'intake_MgDM'
+  redistribute_feed: no visible binding for global variable
+    'hierarchy_level'
+  redistribute_feed: no visible binding for global variable
+    'original_demand_item'
+  redistribute_feed: no visible binding for global variable
+    'original_Province'
+  redistribute_feed: no visible binding for global variable 'avail_nat'
+  redistribute_feed: no visible binding for global variable
+    'avail_id_nat'
+  redistribute_feed: no visible binding for global variable 'remaining'
+  redistribute_feed : run_primary_levels : <anonymous>: no visible
+    binding for global variable 'Feed_scale'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'Province_name'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'Feed_scale'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'item_cbs'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'avail_remaining'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'avail_id'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'original_Province'
+  redistribute_feed : allocate_trade: no visible binding for global
+    variable 'trade_origin'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'avail_remaining'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'Cat_feed'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'item_cbs'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'feed_rank'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'Cat_feed'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'priority_value'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'remaining'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'intake_MgDM'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'demand_id'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'Year'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'Territory'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'Province_name'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'Livestock_cat'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'original_demand_item'
+  redistribute_feed : allocate_priority_pool : allocate_supply: no
+    visible binding for global variable 'original_Province'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'Year'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'Territory'
+  redistribute_feed : allocate_priority_pool: no visible binding for
+    global variable 'remaining'
+  redistribute_feed : run_release_pass: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : run_release_pass: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : run_release_pass: no visible binding for global
+    variable 'avail_remaining'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'remaining'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'fixed_demand'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'Province_name'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'demand_id'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'Year'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'Territory'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'Livestock_cat'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'item_cbs'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'Cat_1'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'intake_MgDM'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'hierarchy_level'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'original_demand_item'
+  redistribute_feed : allocate_grassland: no visible binding for global
+    variable 'original_Province'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'avail_remaining'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'Year'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'Territory'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'demand_MgDM'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'weight'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'fixed_demand'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'intake_MgDM'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'demand_id'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'Province_name'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'Livestock_cat'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'item_cbs'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'Cat_1'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'hierarchy_level'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'original_demand_item'
+  redistribute_feed : distribute_surplus: no visible binding for global
+    variable 'original_Province'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'Cat_feed'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'item_cbs'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'Year'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'Territory'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'Avail_MgDM'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'intake_MgDM'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'avail_limit'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'total_intake'
+  redistribute_feed : reroute_excess_grass: no visible binding for global
+    variable 'excess'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'intake_MgDM'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'total_dm'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'limit_dm'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'item_dm'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'excess'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'Year'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'Territory'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'Province_name'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'Livestock_cat'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'item_cbs'
+  redistribute_feed : apply_max_intake_caps: no visible binding for
+    global variable 'reduction_factor'
+  redistribute_feed: no visible global function definition for ':='
+  redistribute_feed: no visible binding for global variable
+    'fixed_demand'
+  redistribute_feed: no visible binding for global variable
+    'scaling_factor'
+  redistribute_feed: no visible binding for global variable
+    'zoot_scale_factor'
+  residue_use: no visible binding for global variable 'item_cbs'
+  residue_use: no visible binding for global variable 'Biomass_coefs'
+  residue_use: no visible binding for global variable 'Name_biomass'
+  residue_use: no visible binding for global variable 'Residue_kgDM_kgFM'
+  residue_use: no visible binding for global variable 'Use_Share'
+  residue_use: no visible binding for global variable 'Residue_MgDM'
+  residue_use: no visible binding for global variable 'Prod_ygpit_Mg'
+  residue_use: no visible binding for global variable 'Residue_Mg'
+  residues_as_items: no visible binding for global variable
+    'Product_residue'
+  residues_as_items: no visible binding for global variable 'Cat_1'
+  residues_as_items: no visible binding for global variable 'LandUse'
+  residues_as_items: no visible binding for global variable 'Herb_Woody'
+  residues_as_items: no visible binding for global variable 'item_cbs'
+  scale_land: no visible binding for global variable 'Primary_all'
+  scale_land: no visible binding for global variable 'unit'
+  scale_land: no visible binding for global variable 'Value'
+  scale_land: no visible binding for global variable 'items_prod_full'
+  scale_land: no visible binding for global variable 'item_prod'
+  scale_land: no visible binding for global variable 'Herb_Woody'
+  scale_land: no visible binding for global variable 'Land_scaling'
+  scale_land: no visible binding for global variable 'land_scaling'
+  scale_land: no visible binding for global variable 'ha'
+  scale_land: no visible binding for global variable 'LU'
+  scale_land: no visible binding for global variable 'Year'
+  scale_land: no visible binding for global variable 'Impact'
+  scale_land: no visible binding for global variable 'area'
+  scale_land: no visible binding for global variable 'area_code'
+  scale_land: no visible binding for global variable 'item_code_prod'
+  scale_land: no visible binding for global variable 'u_FU'
+  Undefined global functions or variables:
+    .data := AET_mm ANPP_NCEAS_MgDMha ANPP_tree_NCEAS_MgDMha Aerial_MgDM
+    Alloc Alloc_cbs Alloc_raw1 Alloc_raw2 Allocation Animals_codes
+    Area.Code Area_Fallow Area_Mha Area_herb Area_share Area_ygpit_ha
+    Avail_MgDM Avail_edible Availability BGN BNF Biomass_coefs CBS
+    CBS_item_prices C_input_name C_stock_Tg Calcium_mg Calcium_mg_kgFM
+    Carbohydrates_g Carbohydrates_g_kgFM Cat_0 Cat_1 Cat_1_items
+    Cat_1_lookup Cat_FAO1 Cat_FAO12 Cat_Labour Cat_Labour2 Cat_animal
+    Cat_diet_agg Cat_feed Cat_proc Cats Country_share CropBNF CropBNF2
+    Crop_NPP_MgC Crop_NPP_MgDM Crop_NPP_MgN Crop_NPPr_NoFallow
+    DM_LiveAnim DM_Mg DM_origin Date Destiny Dyn_HI Dyn_RS Edible_portion
+    Element Energy_TJ Energy_kcal Exp_share Export Export_u
+    FMAP_ANPP_NCEAS_MgDMha FMAP_TNPP_NCEAS_MgDMha FMAT_ANPP_NCEAS_MgDMha
+    FMAT_TNPP_NCEAS_MgDMha FM_Mg FPFeed_u FU Fallow_cover
+    Fallow_cover_share Farm_class Farm_class2 Feed_intake Feed_scale
+    GE_product_MJ_kgFM GWP GWP_100 Gas Gas_raw Gas_type Herb_Woody Impact
+    Impact_Mu Impact_prod Impact_u Impact_u_proc Import Intake_DM Item
+    Item.Code Item_area Item_code_area Kcal_MJ LU LandUse LandUse_FAO
+    Land_HerbWoody Land_Primary Land_scaling Land_tot Legs_Seeded
+    Legs_SpontWeeds Leguminous_share Lipids_g Lipids_g_kgFM Live_anim
+    Live_anim_code Livestock_cat MgN Month_names Month_number
+    Month_numbers Month_order Multi_type NHI NPPP_Miami_MgDMha
+    NPPT_Miami_MgDMha NPPpot_MgDMha NSBNF N_MgN N_yield Name Name_BNF
+    Name_biomass Names_BNF Names_biomass Names_cats Ndfa Order Origin
+    Origin_share_DM Pop_Mpeop Price Price_cbs Primary_all Primary_double
+    Primary_prices Proc_share Processing_coefs Prod_MgC Prod_MgDM
+    Prod_MgN Prod_ygpit_Mg Product_kgC_kgDM Product_kgDM_kgFM
+    Product_kgN_kgDM Product_residue Production Protein_N Protein_g
+    Province_name Proxy_ratio Region_name Relative_residue_price
+    Residue_C_N Residue_Mg Residue_MgC Residue_MgDM Residue_MgFM
+    Residue_MgN Residue_Shares Residue_humified_kgC_kgC Residue_kgC_kgDM
+    Residue_kgC_kgDM_W Residue_kgC_kgDM_Wo Residue_kgDM_kgFM
+    Residue_kgN_kgDM Residue_kgN_kgDM_W Rhizod_kgN_kgRootN_W
+    Rhizodeposits_N_kgN_kgRootN Rhizodeposits_mass_kgC_kgDM Root_MgC
+    Root_MgDM Root_MgDM_RS Root_MgDM_ref Root_MgN Root_MghaDM_ref
+    Root_Shoot_ratio Root_Shoot_ratio_W Root_humified_kgC_kgC
+    Root_kgC_kgDM Root_kgC_kgDM_W Root_kgN_kgDM Root_kgN_kgDM_W
+    Root_mass_kgC_kgDM Root_ref RowName Scaling_weeds Seed
+    Seeded_CC_share Soil_Share Source_Proxy_ratio Supply TMP
+    TNPP_NCEAS_MgDMha TNPP_tree_NCEAS_MgDMha Territory Unit Use_Share
+    Value Value_CarriedBackward Value_CarriedForward Value_cbs Value_d
+    Value_ds Value_interpfilled Value_proc Value_tot VitaminA_microg
+    VitaminA_microg_kgFM WaterInput_mm Weed_NPP_Scaling WeedsBNF
+    Weeds_AG_MgC Weeds_AG_MgDM Weeds_AG_MgN Weeds_BG_MgC Weeds_BG_MgDM
+    Weeds_BG_MgN Weeds_NPP_MgC Weeds_NPP_MgDM Weeds_NPP_MgN Weeds_Ndfa
+    Weeds_leg_share Win Year Yield Yield_DM Yield_share
+    Yield_share_excess alloc allocated_so_far area area_code area_code_p
+    area_p avail_group avail_id avail_id_nat avail_id_prov avail_limit
+    avail_nat avail_prov avail_remaining avail_share capped_intake cf
+    code comm_group cumsum_intake demand_MgDM demand_group demand_id
+    demand_share draught_share excess feed_rank feedtype_graniv
+    fixed_demand group ha hierarchy_level intake_MgDM is_monogastric
+    item_cbs item_code_cbs item_code_impact item_code_prod item_dm
+    item_prod items_full items_prod_full key kgNha
+    kg_residue_kg_product_FM land_scaling limit_dm min_yield msg n
+    original_Province original_demand_item polity_code polity_name
+    priority_value quantile reduction_factor regions_full remaining
+    remaining_cap scale_factor scaling_factor share tons_proc total
+    total_demand total_dm total_intake trade_origin uISO3c u_FU u_ton
+    u_ton2 u_ton_glob u_ton_p u_ton_scaled unit used value weight
+    zoot_scale_factor
+  Consider adding
+    importFrom("stats", "quantile")
+  to your NAMESPACE file.
+
+── Test failures ───────────────────────────────────────────────── testthat ────
+
+> # This file is part of the standard setup for testthat.
+> # It is recommended that you do not modify it.
+> #
+> # Where should you do additional test configuration?
+> # Learn more about the roles of various files in:
+> # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
+> # * https://testthat.r-lib.org/articles/special-files.html
+> 
+> library(testthat)
+> # Load afsetools without conflict warnings
+> # The package exports functions that may appear to mask data objects when
+> # load_general_data() is called, but this is expected and harmless
+> library(afsetools, warn.conflicts = FALSE)
+> 
+> test_check("afsetools")
+[ FAIL 10 | WARN 0 | SKIP 0 | PASS 95 ]
+
+══ Failed tests ════════════════════════════════════════════════════════════════
+── Error ('test-analysis_functions.R:14:3'): Calc_N_fix calculates biological nitrogen fixation realistically ──
+Error in `Calc_N_fix(test_data)`: object 'Names_BNF' not found
+Backtrace:
+    ▆
+ 1. └─afsetools::Calc_N_fix(test_data) at test-analysis_functions.R:14:3
+ 2.   ├─dplyr::mutate(...)
+ 3.   ├─dplyr::left_join(...)
+ 4.   ├─dplyr:::left_join.data.frame(...)
+ 5.   │ └─dplyr::auto_copy(x, y, copy = copy)
+ 6.   │   ├─dplyr::same_src(x, y)
+ 7.   │   └─dplyr:::same_src.data.frame(x, y)
+ 8.   │     └─base::is.data.frame(y)
+ 9.   └─dplyr::left_join(Names_BNF, BNF, by = c("Name_BNF"))
+── Error ('test-analysis_functions.R:50:3'): Calc_N_fix handles missing BNF parameters gracefully ──
+Error in `Calc_N_fix(test_data)`: object 'Names_BNF' not found
+Backtrace:
+    ▆
+ 1. └─afsetools::Calc_N_fix(test_data) at test-analysis_functions.R:50:3
+ 2.   ├─dplyr::mutate(...)
+ 3.   ├─dplyr::left_join(...)
+ 4.   ├─dplyr:::left_join.data.frame(...)
+ 5.   │ └─dplyr::auto_copy(x, y, copy = copy)
+ 6.   │   ├─dplyr::same_src(x, y)
+ 7.   │   └─dplyr:::same_src.data.frame(x, y)
+ 8.   │     └─base::is.data.frame(y)
+ 9.   └─dplyr::left_join(Names_BNF, BNF, by = c("Name_BNF"))
+── Error ('test-analysis_functions.R:74:3'): Gases_GWP classifies emissions and calculates CO2e correctly ──
+Error in `Gases_GWP(test_data)`: object 'GWP' not found
+Backtrace:
+    ▆
+ 1. └─afsetools::Gases_GWP(test_data) at test-analysis_functions.R:74:3
+ 2.   ├─dplyr::mutate(...)
+ 3.   ├─dplyr::left_join(...)
+ 4.   ├─dplyr:::left_join.data.frame(...)
+ 5.   │ └─dplyr::auto_copy(x, y, copy = copy)
+ 6.   │   ├─dplyr::same_src(x, y)
+ 7.   │   └─dplyr:::same_src.data.frame(x, y)
+ 8.   │     └─base::is.data.frame(y)
+ 9.   └─dplyr::select(GWP, Gas, GWP_100)
+── Error ('test-analysis_functions.R:112:3'): Gases_GWP handles unknown gas types ──
+Error in `Gases_GWP(test_data)`: object 'GWP' not found
+Backtrace:
+    ▆
+ 1. └─afsetools::Gases_GWP(test_data) at test-analysis_functions.R:112:3
+ 2.   ├─dplyr::mutate(...)
+ 3.   ├─dplyr::left_join(...)
+ 4.   ├─dplyr:::left_join.data.frame(...)
+ 5.   │ └─dplyr::auto_copy(x, y, copy = copy)
+ 6.   │   ├─dplyr::same_src(x, y)
+ 7.   │   └─dplyr:::same_src.data.frame(x, y)
+ 8.   │     └─base::is.data.frame(y)
+ 9.   └─dplyr::select(GWP, Gas, GWP_100)
+── Error ('test-analysis_functions.R:135:3'): Calc_diets calculates nutrient availability per capita in long format ──
+Error in `Calc_diets(pie_data, pop_data)`: object 'items_full' not found
+Backtrace:
+     ▆
+  1. └─afsetools::Calc_diets(pie_data, pop_data) at test-analysis_functions.R:135:3
+  2.   ├─dplyr::left_join(...)
+  3.   ├─dplyr::mutate(...)
+  4.   ├─tidyr::pivot_longer(...)
+  5.   ├─dplyr::mutate(...)
+  6.   ├─tidyr::pivot_longer(...)
+  7.   ├─dplyr::select(...)
+  8.   ├─dplyr::mutate(...)
+  9.   ├─dplyr::left_join(...)
+ 10.   ├─dplyr::left_join(...)
+ 11.   ├─dplyr::left_join(...)
+ 12.   ├─dplyr:::left_join.data.frame(...)
+ 13.   │ └─dplyr::auto_copy(x, y, copy = copy)
+ 14.   │   ├─dplyr::same_src(x, y)
+ 15.   │   └─dplyr:::same_src.data.frame(x, y)
+ 16.   │     └─base::is.data.frame(y)
+ 17.   └─dplyr::select(items_full, item_cbs, Name_biomass, Cat_1)
+── Error ('test-analysis_functions.R:169:3'): GWP calculations match IPCC AR5 values ──
+Error in `Gases_GWP(test_data)`: object 'GWP' not found
+Backtrace:
+    ▆
+ 1. └─afsetools::Gases_GWP(test_data) at test-analysis_functions.R:169:3
+ 2.   ├─dplyr::mutate(...)
+ 3.   ├─dplyr::left_join(...)
+ 4.   ├─dplyr:::left_join.data.frame(...)
+ 5.   │ └─dplyr::auto_copy(x, y, copy = copy)
+ 6.   │   ├─dplyr::same_src(x, y)
+ 7.   │   └─dplyr:::same_src.data.frame(x, y)
+ 8.   │     └─base::is.data.frame(y)
+ 9.   └─dplyr::select(GWP, Gas, GWP_100)
+── Error ('test-load_data.R:59:3'): Items and regions mappings are complete ────
+Error in `eval(code, test_env)`: object 'items_full' not found
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_true("item_cbs" %in% names(items_full)) at test-load_data.R:59:3
+ 2. │ └─testthat::quasi_label(enquo(object), label, arg = "object")
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. └─"item_cbs" %in% names(items_full)
+── Error ('test-npp_functions.R:15:3'): calculate_potential_npp calculates realistic NPP from climate data ──
+<dplyr:::mutate_error/rlang_error/error/condition>
+Error in `dplyr::mutate(Dataset, NPPT_Miami_MgDMha = (3000/(1 + exp(1.315 - 
+    0.119 * TMP)))/100, NPPP_Miami_MgDMha = (3000 * (1 - exp(-0.000664 * 
+    WaterInput_mm)))/100, FMAP_TNPP_NCEAS_MgDMha = ((0.551 * 
+    WaterInput_mm^1.055)/exp(0.000306 * WaterInput_mm))/(100 * 
+    Residue_kgC_kgDM_Wo), FMAT_TNPP_NCEAS_MgDMha = 2540/(1 + 
+    exp(1.584 - 0.0622 * TMP))/(100 * Residue_kgC_kgDM_Wo), FMAP_ANPP_NCEAS_MgDMha = ((0.1665 * 
+    WaterInput_mm^1.185)/exp(0.000414 * WaterInput_mm))/(100 * 
+    Residue_kgC_kgDM_Wo), FMAT_ANPP_NCEAS_MgDMha = 3139/(1 + 
+    exp(2.2 - 0.0307 * TMP))/(100 * Residue_kgC_kgDM_Wo), TNPP_NCEAS_MgDMha = 6116 * 
+    (1 - exp(-6.05 * 10^-5 * WaterInput_mm))/(100 * Residue_kgC_kgDM_W), 
+    ANPP_NCEAS_MgDMha = 4000 * (1 - exp(-4.77 * 10^-5 * WaterInput_mm))/(100 * 
+        Residue_kgC_kgDM_W), TNPP_tree_NCEAS_MgDMha = pmin(FMAP_TNPP_NCEAS_MgDMha, 
+        FMAT_TNPP_NCEAS_MgDMha), ANPP_tree_NCEAS_MgDMha = pmin(FMAP_ANPP_NCEAS_MgDMha, 
+        FMAT_ANPP_NCEAS_MgDMha), NPP_Miami_MgDMha = pmin(NPPT_Miami_MgDMha, 
+        NPPP_Miami_MgDMha), NPP_Rosenzweig_MgDMha = 10^(1.66 * 
+        log10(AET_mm) - 1.66)/100, RS_ratio_NCEAS = (TNPP_NCEAS_MgDMha - 
+        ANPP_NCEAS_MgDMha)/ANPP_NCEAS_MgDMha, RS_ratio_tree_NCEAS = (TNPP_tree_NCEAS_MgDMha - 
+        ANPP_tree_NCEAS_MgDMha)/ANPP_tree_NCEAS_MgDMha)`: ℹ In argument: `FMAP_TNPP_NCEAS_MgDMha = `/`(...)`.
+Caused by error:
+! object 'Residue_kgC_kgDM_Wo' not found
+Backtrace:
+     ▆
+  1. ├─afsetools::calculate_potential_npp(climate_data) at test-npp_functions.R:15:3
+  2. │ ├─dplyr::mutate(...)
+  3. │ └─dplyr:::mutate.data.frame(...)
+  4. │   └─dplyr:::mutate_cols(.data, dplyr_quosures(...), by)
+  5. │     ├─base::withCallingHandlers(...)
+  6. │     └─dplyr:::mutate_col(dots[[i]], data, mask, new_columns)
+  7. │       └─mask$eval_all_mutate(quo)
+  8. │         └─dplyr (local) eval()
+  9. └─base::.handleSimpleError(...)
+ 10.   └─dplyr (local) h(simpleError(msg, call))
+ 11.     └─rlang::abort(message, class = error_class, parent = parent, call = error_call)
+── Error ('test-npp_functions.R:130:3'): calculate_crop_npp_components drops Biomass_coefs helpers ──
+<dplyr:::mutate_error/rlang_error/error/condition>
+Error in `dplyr::mutate((function(x) base::replace(x, is.na(x), 0))(dplyr::mutate(dplyr::left_join(dplyr::left_join(dplyr::left_join(dplyr::left_join(Crop_NPPpot, 
+    dplyr::select(Biomass_coefs, dplyr::any_of(c("Name_biomass", 
+        biomass_coef_cols))), by = c("Name_biomass")), Weed_NPP_Scaling), 
+    Residue_Shares), Fallow_cover), .by = dplyr::all_of(.by), 
+    Scaling_weeds = dplyr::if_else(is.na(Scaling_weeds), mean(Scaling_weeds, 
+        na.rm = TRUE), Scaling_weeds))), .by = dplyr::all_of(.by), 
+    Weeds_AG_MgDM = dplyr::if_else(Name_biomass != "Fallow", 
+        Area_ygpit_ha * Scaling_weeds * NPPpot_MgDMha/(1 + Root_Shoot_ratio_W), 
+        Area_ygpit_ha * Fallow_cover_share * NPPpot_MgDMha/(1 + 
+            Root_Shoot_ratio_W)))`: ℹ In argument: `Weeds_AG_MgDM = dplyr::if_else(...)`.
+Caused by error:
+! object 'Root_Shoot_ratio_W' not found
+Backtrace:
+     ▆
+  1. ├─afsetools::calculate_crop_npp_components(crop_input) at test-npp_functions.R:130:3
+  2. │ ├─dplyr::select(...)
+  3. │ ├─afsetools::calculate_npp_dm_c_n(...)
+  4. │ │ └─dplyr::mutate(...)
+  5. │ ├─dplyr::mutate(...)
+  6. │ └─dplyr:::mutate.data.frame(...)
+  7. │   └─dplyr:::mutate_cols(.data, dplyr_quosures(...), by)
+  8. │     ├─base::withCallingHandlers(...)
+  9. │     └─dplyr:::mutate_col(dots[[i]], data, mask, new_columns)
+ 10. │       └─mask$eval_all_mutate(quo)
+ 11. │         └─dplyr (local) eval()
+ 12. ├─dplyr::if_else(...)
+ 13. └─base::.handleSimpleError(...)
+ 14.   └─dplyr (local) h(simpleError(msg, call))
+ 15.     └─rlang::abort(message, class = error_class, parent = parent, call = error_call)
+── Error ('test-utility_functions.R:265:3'): Arrange_dates creates and sorts by date ──
+Error in `Arrange_dates(test_data)`: object 'Month_numbers' not found
+Backtrace:
+     ▆
+  1. └─afsetools::Arrange_dates(test_data) at test-utility_functions.R:265:3
+  2.   ├─dplyr::ungroup(...)
+  3.   ├─dplyr::mutate(...)
+  4.   ├─dplyr::arrange(...)
+  5.   ├─dplyr::mutate(...)
+  6.   ├─dplyr::left_join(x, Month_numbers, by = "Month_names")
+  7.   └─dplyr:::left_join.data.frame(x, Month_numbers, by = "Month_names")
+  8.     └─dplyr::auto_copy(x, y, copy = copy)
+  9.       ├─dplyr::same_src(x, y)
+ 10.       └─dplyr:::same_src.data.frame(x, y)
+ 11.         └─base::is.data.frame(y)
+
+[ FAIL 10 | WARN 0 | SKIP 0 | PASS 95 ]
+Error: Test failures
+Execution halted
+
+1 error ✖ | 4 warnings ✖ | 5 notes ✖

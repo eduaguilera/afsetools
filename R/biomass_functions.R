@@ -51,8 +51,9 @@ integrate_fallow <- function(x,
       Name_biomass != "Fallow"
     ) |>
     dplyr::left_join(Names_biomass |>
-                       dplyr::left_join(Names_cats) |>
-                       dplyr::select(Name_biomass, Herb_Woody)) |>
+                       dplyr::left_join(Names_cats, by = "Name") |>
+                       dplyr::select(Name_biomass, Herb_Woody),
+                     by = "Name_biomass") |>
     dplyr::mutate(.by = dplyr::all_of(.by),
       Area_herb = dplyr::if_else(Herb_Woody == "Herbaceous",
                                  Area_ygpit_ha,
@@ -75,7 +76,8 @@ integrate_fallow <- function(x,
   dplyr::left_join(Names_biomass |>
              dplyr::select(Name_biomass, Name) |>
              dplyr::left_join(Names_cats |>
-                      dplyr::select(Name, Cat_1))) |>
+                      dplyr::select(Name, Cat_1), by = "Name"),
+             by = "Name_biomass") |>
     dplyr::mutate(Variable = "AreaProd")
 }
 
@@ -173,7 +175,8 @@ residue_use <- function(df) {
   df |>
     dplyr::ungroup() |>
     dplyr::left_join(Biomass_coefs |>
-                       dplyr::select(Name_biomass, Residue_kgDM_kgFM)) |>
+                       dplyr::select(Name_biomass, Residue_kgDM_kgFM),
+                     by = "Name_biomass") |>
     dplyr::mutate(
       Product_residue = "Residue",
       Residue_Mg = Use_Share * Residue_MgDM / Residue_kgDM_kgFM,

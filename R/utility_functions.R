@@ -218,7 +218,8 @@ FillingProxy <- function(data, var, proxyvar, Index) {
         {{ var }},
         Proxy_ratio * {{ proxyvar }}
       )
-    )
+    ) |>
+    dplyr::select(-Proxy_ratio, -Source_Proxy_ratio)
 }
 
 #' Fill gaps with accumulated sum

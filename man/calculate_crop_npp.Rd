@@ -2,6 +2,7 @@
 % Please edit documentation in R/npp_functions.R
 \name{calculate_crop_npp}
 \alias{calculate_crop_npp}
+\alias{Calculate_crop_NPP}
 \title{Calculate Crop Net Primary Production Components}
 \usage{
 calculate_crop_npp(Dataset, HI)

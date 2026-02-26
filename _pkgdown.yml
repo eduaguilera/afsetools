@@ -49,6 +49,7 @@ reference:
   - Calc_N_fix
   - Gases_GWP
   - Calc_diets
+  - filter_areas
   - get_herbwoody_fao
   - calculate_land_scaling
   - scale_land

@@ -2,6 +2,7 @@
 % Please edit documentation in R/npp_functions.R
 \name{calculate_potential_npp}
 \alias{calculate_potential_npp}
+\alias{Calc_NPP_potentials}
 \title{Calculate Potential Net Primary Production (NPP)}
 \usage{
 calculate_potential_npp(Dataset)

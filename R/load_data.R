@@ -174,9 +174,9 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
       by = "item_code_cbs"
     ) |>
     dplyr::mutate(
-      Farm_class = ifelse(is.na(Farm_class), Farm_class2, Farm_class),
-      Cat_Labour = ifelse(is.na(Cat_Labour), Cat_Labour2, Cat_Labour),
-      Cat_FAO1 = ifelse(is.na(Cat_FAO1), Cat_FAO12, Cat_FAO1)
+      Farm_class = dplyr::coalesce(Farm_class, Farm_class2),
+      Cat_Labour = dplyr::coalesce(Cat_Labour, Cat_Labour2),
+      Cat_FAO1 = dplyr::coalesce(Cat_FAO1, Cat_FAO12)
     ) |>
     dplyr::select(-Farm_class2, -Cat_Labour2, -Cat_FAO12)
   assign("items_prim", items_prim, envir = env)

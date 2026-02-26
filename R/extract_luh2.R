@@ -98,7 +98,8 @@ extract_luh2 <- function(L_files_path, RegionNames, studied_period) {
         by = "RowName"
       ) |>
       dplyr::select(-RowName) |>
-      tidyr::gather(-Region_name, key = "Year", value = "C_stock_Tg") |>
+      tidyr::pivot_longer(-Region_name, names_to = "Year",
+                           values_to = "C_stock_Tg") |>
       dplyr::mutate(Land_Use = y)
     
     return(C_stock)
@@ -120,7 +121,8 @@ extract_luh2 <- function(L_files_path, RegionNames, studied_period) {
         by = "RowName"
       ) |>
       dplyr::select(-RowName) |>
-      tidyr::gather(-Region_name, key = "Year", value = "Area_Mha") |>
+      tidyr::pivot_longer(-Region_name, names_to = "Year",
+                           values_to = "Area_Mha") |>
       dplyr::mutate(Land_Use = y)
     
     return(area)
@@ -330,7 +332,7 @@ extract_luh2 <- function(L_files_path, RegionNames, studied_period) {
     by = c("Region_name", "Year", "Land_Use")
   ) |>
     dplyr::mutate(
-      C_stock_Tg = ifelse(is.na(C_stock_Tg), 0, C_stock_Tg),
+      C_stock_Tg = dplyr::if_else(is.na(C_stock_Tg), 0, C_stock_Tg),
       C_density_Mg_ha = C_stock_Tg / Area_Mha
     ) |>
     dplyr::mutate(

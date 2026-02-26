@@ -2,6 +2,7 @@
 % Please edit documentation in R/npp_functions.R
 \name{calculate_npp_dm_c_n}
 \alias{calculate_npp_dm_c_n}
+\alias{Calc_NPP_DM_C_N}
 \title{Calculate NPP in Dry Matter, Carbon, and Nitrogen}
 \usage{
 calculate_npp_dm_c_n(AreaNPP)

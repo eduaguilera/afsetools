@@ -26,8 +26,12 @@ Imports:
     readxl,
     openxlsx,
     tibble,
-    tidyr
+    tidyr,
+    zoo
 Suggests:
+    methods,
+    raster,
+    sf,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
