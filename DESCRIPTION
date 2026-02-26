@@ -1,7 +1,7 @@
 Package: afsetools
 Type: Package
 Title: Agro-Food System and Environment Tools
-Version: 0.1.4
+Version: 0.2.0
 Authors@R: person("Eduardo", "Aguilera", 
                   email = "eduardo.aguilera@upm.es",
                   role = c("aut", "cre"),
@@ -26,8 +26,7 @@ Imports:
     readxl,
     openxlsx,
     tibble,
-    tidyr,
-    zoo
+    tidyr
 Suggests:
     methods,
     raster,

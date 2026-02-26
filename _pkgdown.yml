@@ -86,9 +86,6 @@ reference:
   - is_empty
   - Arrange_dates
   - add_xlsx_sheet
-  - Filling
-  - FillingProxy
-  - fill_na_with_sum
 
 - title: Visualization Functions
   desc: >

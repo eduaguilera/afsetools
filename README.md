@@ -196,9 +196,6 @@ catalogue of the 73+ objects created by `load_general_data()`.
 
 | Function | Description |
 |----------|-------------|
-| `Filling()` | Gap-fill time series using last-observation-carried-forward |
-| `FillingProxy()` | Gap-fill using proxy series |
-| `fill_na_with_sum()` | Replace NA with sum of other columns |
 | `%!in%` | Not-in operator (inverse of `%in%`) |
 | `drop_cols()` | Drop columns by name |
 | `is_empty()` | Test if object is empty |
