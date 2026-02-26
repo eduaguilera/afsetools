@@ -121,7 +121,7 @@ calculate_footprints <- function(dtm = NULL) {
     }
   }
 
-  # data.table fast path for large aggregations.
+  # Helper: aggregate Value and Impact_u by given columns.
   fast_sum_value_impact <- function(df, by_cols) {
     by_cols <- as.character(unlist(by_cols, use.names = FALSE))
     df |>
@@ -341,7 +341,7 @@ calculate_footprints <- function(dtm = NULL) {
         dplyr::select(item_code_cbs, group), by = c("item_code_cbs")) |>
       dplyr::filter(
         Element %in% c("Production", "Import"),
-        group %in% c("Crop products", "Processed")
+        group == "Crop products"
       ),
     FP_processed_raw_i
   )
