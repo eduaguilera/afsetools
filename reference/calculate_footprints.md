@@ -53,83 +53,85 @@ This function implements a complete footprint accounting system that:
 
 - Allocates draught animal services to crop production
 
-`calculate_footprints()` only takes `dtm` explicitly. All other required
-inputs are read implicitly from objects in the calling environment.
+\`calculate_footprints()\` only takes \`dtm\` explicitly. All other
+required inputs are read implicitly from objects in the calling
+environment.
 
-Required workflow objects (created outside
-[`load_general_data()`](https://eduaguilera.github.io/afsetools/reference/load_general_data.md)):
+Required workflow objects (created outside \`load_general_data()\`):
 
-- `CBS`:
+- \`CBS\`:
 
-  Commodity balance table. Columns used: `Year`, `area`, `area_code`,
-  `item_cbs`, `item_code_cbs`, `Element`, `Value`.
+  Commodity balance table. Columns used: \`Year\`, \`area\`,
+  \`area_code\`, \`item_cbs\`, \`item_code_cbs\`, \`Element\`,
+  \`Value\`.
 
-- `Primary_all`:
+- \`Primary_all\`:
 
-  Primary production / co-product table. Columns used: `Year`, `area`,
-  `area_code`, `item_prod`, `item_code_prod`, `unit`, `Value`,
-  `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`.
+  Primary production / co-product table. Columns used: \`Year\`,
+  \`area\`, \`area_code\`, \`item_prod\`, \`item_code_prod\`, \`unit\`,
+  \`Value\`, \`item_cbs\`, \`item_code_cbs\`, \`Live_anim\`,
+  \`Live_anim_code\`.
 
-- `Impact_prod`:
+- \`Impact_prod\`:
 
-  Production impact table. Columns used: `Year`, `area`,
-  `item_code_prod`, `Impact`, `Value`, `u_FU` (and optionally
-  `item_prod`).
+  Production impact table. Columns used: \`Year\`, \`area\`,
+  \`item_code_prod\`, \`Impact\`, \`Value\`, \`u_FU\` (and optionally
+  \`item_prod\`).
 
-- `Crop_NPPr_NoFallow`:
+- \`Crop_NPPr_NoFallow\`:
 
-  Crop NPP / residue table. Columns used: `Year`, `area`, `item_prod`,
-  `item_cbs`, `Product_residue`, `Prod_ygpit_Mg`.
+  Crop NPP / residue table. Columns used: \`Year\`, \`area\`,
+  \`item_prod\`, \`item_cbs\`, \`Product_residue\`, \`Prod_ygpit_Mg\`.
 
-- `Feed_intake`:
+- \`Feed_intake\`:
 
-  Feed intake table. Columns used: `Year`, `area`, `Live_anim`,
-  `item_cbs`, `item_code_cbs`, `Supply`, `Intake_DM`. `area_code` is
-  recovered from footprint tables during the feed join.
+  Feed intake table. Columns used: \`Year\`, \`area\`, \`Live_anim\`,
+  \`item_cbs\`, \`item_code_cbs\`, \`Supply\`, \`Intake_DM\`.
+  \`area_code\` is recovered from footprint tables during the feed join.
 
-- `Primary_prices`:
+- \`Primary_prices\`:
 
-  Primary product prices. Columns used: `Year`, `item_code_prod`,
-  `Price`.
+  Primary product prices. Columns used: \`Year\`, \`item_code_prod\`,
+  \`Price\`.
 
-- `CBS_item_prices`:
+- \`CBS_item_prices\`:
 
-  CBS item prices. Columns used: `Year`, `Element`, `item_cbs`,
-  `item_code_cbs`, `Price`.
+  CBS item prices. Columns used: \`Year\`, \`Element\`, \`item_cbs\`,
+  \`item_code_cbs\`, \`Price\`.
 
-- `Processing_coefs`:
+- \`Processing_coefs\`:
 
-  Processing conversion coefficients. Columns used: `Year`, `area_code`,
-  `item_code_cbs`, `item_cbs`, `cf`.
+  Processing conversion coefficients. Columns used: \`Year\`,
+  \`area_code\`, \`item_code_cbs\`, \`item_cbs\`, \`cf\`.
 
-- `Relative_residue_price`:
+- \`Relative_residue_price\`:
 
   Numeric scalar used to value residues relative to product prices.
 
-Required auxiliary objects loaded by
-[`load_general_data()`](https://eduaguilera.github.io/afsetools/reference/load_general_data.md):
+Required auxiliary objects loaded by \`load_general_data()\`:
 
-- `items_full` (sheet `items_full` in `Codes_coefs.xlsx`):
+- \`items_full\` (sheet \`items_full\` in \`Codes_coefs.xlsx\`):
 
-  Columns used: `item_cbs`, `item_code_cbs`, `group`.
+  Columns used: \`item_cbs\`, \`item_code_cbs\`, \`group\`.
 
-- `items_prod_full` (sheet `items_prod_full` in `Codes_coefs.xlsx`):
+- \`items_prod_full\` (sheet \`items_prod_full\` in
+  \`Codes_coefs.xlsx\`):
 
-  Columns used: `item_prod`, `item_code_prod`, `Name_biomass`.
+  Columns used: \`item_prod\`, \`item_code_prod\`, \`Name_biomass\`.
 
-- `Animals_codes` (sheet `Animals_codes` in `Codes_coefs.xlsx`):
+- \`Animals_codes\` (sheet \`Animals_codes\` in \`Codes_coefs.xlsx\`):
 
-  Columns used: `item_cbs`, `item_code_cbs`.
+  Columns used: \`item_cbs\`, \`item_code_cbs\`.
 
-- `Primary_double` (sheet `Primary_double` in `Codes_coefs.xlsx`):
+- \`Primary_double\` (sheet \`Primary_double\` in \`Codes_coefs.xlsx\`):
 
-  Columns used (via
-  [`Prepare_prim()`](https://eduaguilera.github.io/afsetools/reference/Prepare_prim.md)):
-  `Item_area`, `item_prod`, `item_code_prod`, `Multi_type`.
+  Columns used (via \`Prepare_prim()\`): \`Item_area\`, \`item_prod\`,
+  \`item_code_prod\`, \`Multi_type\`.
 
-- `Biomass_coefs` (`Biomass_coefs.xlsx`):
+- \`Biomass_coefs\` (\`Biomass_coefs.xlsx\`):
 
-  Columns used: `Name_biomass`, `Product_kgDM_kgFM`, `Product_kgN_kgDM`.
+  Columns used: \`Name_biomass\`, \`Product_kgDM_kgFM\`,
+  \`Product_kgN_kgDM\`.
 
 ## Examples
 

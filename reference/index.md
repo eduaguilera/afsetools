@@ -69,6 +69,14 @@ Complete footprint calculation pipelines.
 - [`extract_luh2()`](https://eduaguilera.github.io/afsetools/reference/extract_luh2.md)
   : Extract Data from Land-Use Harmonization 2 (LUH2) Dataset
 
+## Feed Distribution Functions
+
+Livestock feed demand redistribution and allocation.
+
+- [`redistribute_feed()`](https://eduaguilera.github.io/afsetools/reference/redistribute_feed.md)
+  : Redistribute available supply among Livestock_cat based on their
+  demand
+
 ## Biomass Processing Functions
 
 Functions for biomass data processing including fallow integration and
