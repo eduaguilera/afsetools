@@ -60,6 +60,12 @@ reference:
   - calculate_footprints
   - extract_luh2
 
+- title: Feed Distribution Functions
+  desc: >
+    Livestock feed demand redistribution and allocation.
+  contents:
+  - redistribute_feed
+
 - title: Biomass Processing Functions
   desc: >
     Functions for biomass data processing including fallow integration and residue handling.

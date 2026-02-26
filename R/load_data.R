@@ -135,6 +135,16 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   
   # Update items_prod_full with categorization
   items_prod_full <- get("items_prod_full", envir = env)
+  if (!"Fallow" %in% as.character(items_prod_full$item_code_prod)) {
+    fallow_row <- items_prod_full[1, ]
+    fallow_row[1, ] <- NA
+    fallow_row$item_prod <- "Fallow"
+    fallow_row$item_code_prod <- "Fallow"
+    fallow_row$Name <- "Fallow"
+    fallow_row$Name_biomass <- "Fallow"
+    fallow_row$group <- "Primary crops"
+    items_prod_full <- dplyr::bind_rows(items_prod_full, fallow_row)
+  }
   items_prod_full <- items_prod_full |>
     dplyr::left_join(Names_cats |> dplyr::select(-Order, -Farm_class), 
                      by = "Name")
@@ -178,40 +188,6 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   assign("Soil_depth_carbon", 0.3, envir = env) # Soil depth for C calculations
   assign("Protein_N", 6.25, envir = env) # Protein to N ratio
   assign("Kcal_MJ", 238.85, envir = env) # Kcal to MJ ratio
-
-  # Livestock feed redistribution coefficients ----
-  assign(
-    "Monogastric",
-    c("Pigs", "Poultry", "Other_birds", "Fur animals", "Other", "Pets", "Aquaculture"),
-    envir = env
-  )
-  assign(
-    "Ruminant",
-    c("Cattle_meat", "Cattle_milk", "Sheep", "Goats", "Horses", "Donkeys_mules", "Rabbits"),
-    envir = env
-  )
-
-  livestock_coefs_path <- file.path(data_path, "Livestock_coefs.xlsx")
-  max_intake_share <- tryCatch(
-    openxlsx::read.xlsx(
-      livestock_coefs_path,
-      sheet = "max_intake",
-      startRow = 1
-    ),
-    error = function(e) {
-      warning(
-        "Could not load `max_intake_share` from ", livestock_coefs_path,
-        " (sheet `max_intake`). Using empty table. Details: ", conditionMessage(e),
-        call. = FALSE
-      )
-      tibble::tibble(
-        Livestock_cat = character(),
-        item_cbs = character(),
-        max_intake_share = numeric()
-      )
-    }
-  )
-  assign("max_intake_share", max_intake_share, envir = env)
   
   # Biomass coefficients from Biomass_coefs.xlsx ----
   Biomass_coefs <- openxlsx::read.xlsx(

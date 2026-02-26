@@ -1,69 +1,102 @@
-#' Redistribute available supply among Livestock_cat based on their demand
+#' Redistribute available supply among Livestock_cat based on
+#' their demand
 #'
 #' @description
-#' `redistribute_feed()` matches livestock feed demand to available feed items through
-#' a hierarchical allocation that follows the remaining-share principle to avoid
-#' exceeding availability. The redistribution path adapts to the `fixed_demand`
-#' column in the demand table. `fixed_demand = TRUE` uses a six-level hierarchy that
-#' guarantees all demand of each Livestock_cat-Province_name-Year group is met
-#' (by resorting to provincial grassland), while `fixed_demand = FALSE` uses a
-#' five-level hierarchy that honours observed availability and can exceed the
-#' original demand when supply is abundant.
+#' `redistribute_feed()` matches livestock feed demand to
+#' available feed items through a hierarchical allocation that
+#' follows the remaining-share principle to avoid exceeding
+#' availability.The redistribution path adapts to the
+#' `fixed_demand` column in the demand table.
+#' `fixed_demand = TRUE` uses a six-level hierarchy that
+#' guarantees all demand of each
+#' Livestock_cat-Province_name-Year group is met (by resorting
+#' to provincial grassland), while `fixed_demand = FALSE` uses
+#' a five-level hierarchy that honours observed availability and
+#' can exceed the original demand when supply is abundant.
 #'
-#' The modes operate in each year following hierarchy levels in order:
+#' The modes operate in each year following hierarchy levels in
+#' order:
 #'
-#' * **Fixed demand (`fixed_demand = TRUE`)** – six levels:
+#' * **Fixed demand (`fixed_demand = TRUE`)** -- six levels:
 #'   1. Item-level matches (provincial then national)
-#'   2. Substitution within `Cat_1` (provincial then national)
-#'   3. Substitution within `Cat_feed` (provincial then national)
-#'   4. Inter-provincial trade of Provincial items, excluding those in `Cat_feed == "Grass"`
-#'   5. Substitution within all remaining non-grassland availability (provincial then national)
-#'   6. Fulfil any residual demand with unlimited provincial grassland
+#'   2. Substitution within `Cat_1` (prov. then national)
+#'   3. Substitution within `Cat_feed` (prov. then national)
+#'   4. Inter-provincial trade of Provincial items, excluding
+#'      those in `Cat_feed == "Grass"`
+#'   5. Substitution within all remaining non-grassland
+#'      availability (provincial then national)
+#'   6. Fulfil any residual demand with unlimited provincial
+#'      grassland
 #'
-#' * **Availability-driven (`fixed_demand = FALSE`)** – five levels:
+#' * **Availability-driven (`fixed_demand = FALSE`)** -- five
+#'   levels:
 #'   1. Item-level matches (provincial then national)
-#'   2. Substitution within `Cat_1` (provincial then national)
-#'   3. Substitution within `Cat_feed` (provincial then national)
-#'   4. Substitution within all remaining non-grassland availability (provincial then national)
-#'   5. Distribute any surplus availability of each `item_cbs` across all
-#'      Year–Province–Livestock demand combinations proportionally to their demand,
-#'      respecting the provincial or national nature of the item. Intake can exceed
-#'      the original demand at this stage.
+#'   2. Substitution within `Cat_1` (prov. then national)
+#'   3. Substitution within `Cat_feed` (prov. then national)
+#'   4. Substitution within all remaining non-grassland
+#'      availability (provincial then national)
+#'   5. Distribute any surplus availability of each `item_cbs`
+#'      across all Year-Province-Livestock demand combinations
+#'      proportionally to their demand, respecting the
+#'      provincial or national nature of the item. Intake can
+#'      exceed the original demand at this stage.
 #'
-#' @param Feed_demand A data frame with columns `Year`, `Livestock_cat`,
-#'   `item_cbs`, `Cat_1`, `Cat_feed`, `demand_MgDM`, and `fixed_demand` (logical),
-#'   plus the user-selected territory columns indicated by `territory_col` and
-#'   `sub_territory_col`. The `fixed_demand` column controls the redistribution
-#'   mode row-wise for each demand record, allowing mixed fixed and
+#' The function relies on the environment objects `items_full`,
+#' `Cats`, and optionally `Monogastric` (character vector of
+#' monogastric livestock categories). Call
+#' `load_general_data()` before using this function.
+#'
+#' @param Feed_demand A data frame with columns `Year`,
+#'   `Livestock_cat`, `item_cbs`, `Cat_1`, `Cat_feed`,
+#'   `demand_MgDM`, and `fixed_demand` (logical), plus the
+#'   user-selected territory columns indicated by
+#'   `territory_col` and `sub_territory_col`. The
+#'   `fixed_demand` column controls the redistribution mode
+#'   row-wise for each demand record, allowing mixed fixed and
 #'   availability-driven livestock categories within the same
 #'   `Year x Territory` combination.
-#' @param Feed_avail A data frame with columns `Year`, `item_cbs`, `Cat_1`,
-#'   `Cat_feed`, `Avail_MgDM`, plus the user-selected territory columns indicated
-#'   by `territory_col` and `sub_territory_col`.
-#'   `Feed_scale` is inferred in the function from `sub_territory_col`
-#'   (`"Provincial"` when present, `"National"` otherwise). The table must be
+#' @param Feed_avail A data frame with columns `Year`,
+#'   `item_cbs`, `Cat_1`, `Cat_feed`, `Avail_MgDM`, plus the
+#'   user-selected territory columns indicated by
+#'   `territory_col` and `sub_territory_col`.
+#'   `Feed_scale` is inferred in the function from
+#'   `sub_territory_col` (`"Provincial"` when present,
+#'   `"National"` otherwise). The table must be
 #'   pre-aggregated at the item level.
-#' @param zoot_fixed_max_multiplier Numeric multiplier (default 3) controlling the
-#'   maximum ratio of intake to availability for Zoot_fixed items. When availability
-#'   of Zoot_fixed is zero or NA, no cap is applied and intake equals demand.
-#' @param territory_col Character scalar indicating the broad territory column
-#'   name shared by `Feed_demand` and `Feed_avail`. Redistribution boundaries are
-#'   defined by `Year x territory_col`.
-#' @param sub_territory_col Character scalar indicating the local territory
-#'   column name shared by `Feed_demand` and `Feed_avail` (e.g., provinces).
+#' @param zoot_fixed_max_multiplier Numeric multiplier
+#'   (default 3) controlling the maximum ratio of intake to
+#'   availability for Zoot_fixed items. When availability of
+#'   Zoot_fixed is zero or NA, no cap is applied and intake
+#'   equals demand.
+#' @param territory_col Character scalar indicating the broad
+#'   territory column name shared by `Feed_demand` and
+#'   `Feed_avail`. Redistribution boundaries are defined by
+#'   `Year x territory_col`.
+#' @param sub_territory_col Character scalar indicating the
+#'   local territory column name shared by `Feed_demand` and
+#'   `Feed_avail` (e.g., provinces).
+#' @param verbose Logical (default `TRUE`). When `TRUE`,
+#'   prints stage-by-stage diagnostic messages. Set to
+#'   `FALSE` for silent operation.
 #'
-#' @return A tibble with the columns `Year`, `territory_col`, `sub_territory_col`, `Livestock_cat`,
-#'   `item_cbs`, `Cat_1`, `Cat_feed`, `demand_MgDM`, `intake_MgDM`,
-#'   `scaling_factor`, `hierarchy_level`, `original_demand_item`, `original_Province`,
-#'   and `fixed_demand`.
-#'   
-#'   `item_cbs` shows the actual item consumed (from availability), while 
-#'   `original_demand_item` shows what was originally requested. When substitution 
-#'   occurs, these differ. `original_Province` shows the province the feed came from
-#'   (NA for national items). `Cat_1` is appended at the end using the lookup table `items_full`,
-#'   and `Cat_feed` using the lookup table `Cats`.
-#'   
-#'   `hierarchy_level` values depend on the redistribution mode:
+#' @return A tibble with the columns `Year`, the column named
+#'   by `territory_col`, the column named by
+#'   `sub_territory_col`, `Livestock_cat`, `item_cbs`,
+#'   `Cat_1`, `Cat_feed`, `demand_MgDM`, `intake_MgDM`,
+#'   `scaling_factor`, `hierarchy_level`,
+#'   `original_demand_item`, `original_Province`, and
+#'   `fixed_demand`.
+#'
+#'   `item_cbs` shows the actual item consumed (from
+#'   availability), while `original_demand_item` shows what
+#'   was originally requested. When substitution occurs, these
+#'   differ. `original_Province` shows the province the feed
+#'   came from (NA for national items). `Cat_1` is appended at
+#'   the end using the lookup table `items_full`, and
+#'   `Cat_feed` using the lookup table `Cats`.
+#'
+#'   `hierarchy_level` values depend on the redistribution
+#'   mode:
 #'
 #'   * Fixed demand (`TRUE`):
 #'     1. `"1_item_exact"`
@@ -80,44 +113,61 @@
 #'     4. `"4_all_substitute"`
 #'     5. `"5_surplus_distribution"`
 #'
-#'   If both modes are present for any demand records in the same run, the
-#'   function executes the mixed workflow: fixed rows can reach
-#'   `"6_grassland_unlimited"`, while variable groups receive surplus allocation.
+#'   If both modes are present for any demand records in the
+#'   same run, the function executes the mixed workflow: fixed
+#'   rows can reach `"6_grassland_unlimited"`, while variable
+#'   groups receive surplus allocation.
 #'
 #' @details
 #' The allocation follows these rules:
 #'
-#' 1. Items in `Cat_feed == "Zoot_fixed"` are kept unchanged (intake equals demand, even
-#'    if availability is lower), but capped at `zoot_fixed_max_multiplier * availability` to 
-#'    prevent extreme violations. When availability is zero or NA, no cap is applied. If a cap is 
-#'    applied, the excess demand should be met through other available items following the hierarchy.
-#' 2. Monogastric categories are allocated first. `Monogastric` is a vector present 
-#'    in the environment defining which Livestock_cat are monogastric.
-#' 3. Items without a defined `feedtype_graniv` are ignored for monogastrics. `feedtype_graniv`
-#'    is joined from the `items_full` lookup table.
-#' 4. Ruminants Livestock_cat categories are processed with the remaining availability.
-#' 5. The availability of each item_cbs is redistributed based on demand, respecting
-#'    following the hierarchy levels and the provincial/national nature of each item.
-#' 6. During levels 1-3, it must be ensured that, if the availability of a given feed category 
-#'    is higher than the demand, all the demand should be satisfied before moving to the next level.
-#' 7. During overall redistribution at level 5 (fixed_demand=TRUE) or 4 (fixed_demand=FALSE),
-#'    available items are prioritized according to `catfeed_priority` (Lactation,
-#'    High_quality, Low_quality, Residues, Grass). This should result in all available
-#'    high-priority feedstuff being allocated before lower-priority items are considered.
+#' 1. Items in `Cat_feed == "Zoot_fixed"` are kept unchanged
+#'    (intake equals demand, even if availability is lower),
+#'    but capped at
+#'    `zoot_fixed_max_multiplier * availability` to prevent
+#'    extreme violations. When availability is zero or NA, no
+#'    cap is applied. If a cap is applied, the excess demand
+#'    should be met through other available items following
+#'    the hierarchy.
+#' 2. Monogastric categories are allocated first.
+#'    `Monogastric` is a vector present in the environment
+#'    defining which Livestock_cat are monogastric.
+#' 3. Items without a defined `feedtype_graniv` are ignored
+#'    for monogastrics. `feedtype_graniv` is joined from the
+#'    `items_full` lookup table.
+#' 4. Ruminant Livestock_cat categories are processed with
+#'    the remaining availability.
+#' 5. The availability of each item_cbs is redistributed
+#'    based on demand, respecting the hierarchy levels and
+#'    the provincial/national nature of each item.
+#' 6. During levels 1-3, it must be ensured that, if the
+#'    availability of a given feed category is higher than
+#'    the demand, all the demand should be satisfied before
+#'    moving to the next level.
+#' 7. During overall redistribution at level 5
+#'    (`fixed_demand=TRUE`) or 4 (`fixed_demand=FALSE`),
+#'    available items are prioritized according to
+#'    `catfeed_priority` (Lactation, High_quality,
+#'    Low_quality, Residues, Grass). This should result in
+#'    all available high-priority feedstuff being allocated
+#'    before lower-priority items are considered.
 #'
-#' `original_demand_item` always records the item requested in the input demand,
-#' even when intake is met by a different item after substitution. The resulting
-#' `scaling_factor` is computed per demand row as `sum(intake_MgDM) / demand_MgDM`.
+#' `original_demand_item` always records the item requested
+#' in the input demand, even when intake is met by a
+#' different item after substitution. The resulting
+#' `scaling_factor` is computed per demand row as
+#' `sum(intake_MgDM) / demand_MgDM`.
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' source("./R/common_data.r")
-#' source("./R/livestock_fun.r")
+#' library(afsetools)
+#' load_general_data()
 #'
 #' Feed_intake <- redistribute_feed(
-#'   Feed_demand = Feed_demand_ygiac |> dplyr::mutate(fixed_demand = TRUE),
+#'   Feed_demand = Feed_demand_ygiac |>
+#'     dplyr::mutate(fixed_demand = TRUE),
 #'   Feed_avail = Feed_avail_ygi
 #' )
 #' }
@@ -126,14 +176,17 @@ redistribute_feed <- function(
   Feed_avail,
   zoot_fixed_max_multiplier = 3,
   territory_col = "Territory",
-  sub_territory_col = "Sub_territory"
+  sub_territory_col = "Sub_territory",
+  verbose = TRUE
 ) {
   start_time <- Sys.time()
-  cat("\n╔═══════════════════════════════════════════════════════════════════════════╗\n")
-  cat("║                    redistribute_feed() diagnostics                         ║\n")
-  cat("╚═══════════════════════════════════════════════════════════════════════════╝\n")
-  cat("▶ Running redistribute_feed(): allocation engine engaged.\n")
-  cat("▶ Diagnostics active: stage-by-stage insights will print below while the function executes.\n")
+  if (verbose) {
+    cat("\n╔══════════════════════════════════════════════════════════╗\n")
+    cat("║          redistribute_feed() diagnostics                 ║\n")
+    cat("╚══════════════════════════════════════════════════════════╝\n")
+    cat("\u25b6 Running redistribute_feed(): allocation engine engaged.\n")
+    cat("\u25b6 Diagnostics active: stage-by-stage insights below.\n")
+  }
   
   # ============================================================================
   # 1. VALIDATION
@@ -208,13 +261,8 @@ redistribute_feed <- function(
     stop("`fixed_demand` cannot contain NA values")
   }
   
-  fixed_mode_vec <- unique(stats::na.omit(Feed_demand$fixed_demand))
-  if (length(fixed_mode_vec) == 0) {
-    stop("`fixed_demand` column contains only NA values")
-  }
-  
-  has_fixed <- any(Feed_demand$fixed_demand, na.rm = TRUE)
-  has_variable <- any(!Feed_demand$fixed_demand, na.rm = TRUE)
+  has_fixed <- any(Feed_demand$fixed_demand)
+  has_variable <- any(!Feed_demand$fixed_demand)
   
   allocation_mode <- dplyr::case_when(
     has_fixed && has_variable ~ "mixed",
@@ -222,16 +270,12 @@ redistribute_feed <- function(
     TRUE ~ "variable"
   )
   
-  # Legacy boolean for backward compatibility in internal checks if needed
-  fixed_mode <- (allocation_mode == "fixed")
-  
   diag_counter <- 1L
   allocations <- list()
   
   catfeed_priority <- c(
     "Lactation" = 1,
     "High_quality" = 1,
-    "Zoot_fixed" = 1,
     "Low_quality" = 2,
     "Residues" = 3,
     "Grass" = 4
@@ -249,17 +293,32 @@ redistribute_feed <- function(
   Monogastric <- get0(
     "Monogastric",
     envir = .GlobalEnv,
-    inherits = FALSE,
-    ifnotfound = c("Pigs", "Poultry", "Other_birds", "Fur animals", "Other", "Pets", "Aquaculture")
+    inherits = FALSE
   )
-  Ruminant <- get0(
-    "Ruminant",
-    envir = .GlobalEnv,
-    inherits = FALSE,
-    ifnotfound = c("Cattle_meat", "Cattle_milk", "Sheep", "Goats", "Horses", "Donkeys_mules", "Rabbits")
-  )
+  if (is.null(Monogastric)) {
+    livestock_coefs_path_m <- system.file(
+      "extdata", "Livestock_coefs.xlsx",
+      package = "afsetools"
+    )
+    Monogastric <- tryCatch(
+      openxlsx::read.xlsx(
+        livestock_coefs_path_m,
+        sheet = "Monogastric", startRow = 1
+      )[[1]],
+      error = function(e) {
+        warning(
+          "Could not read `Monogastric` from ",
+          "Livestock_coefs.xlsx, sheet `Monogastric`. ",
+          "Using built-in default. Details: ",
+          conditionMessage(e), call. = FALSE
+        )
+        c("Pigs", "Poultry", "Other_birds",
+          "Fur animals", "Other", "Pets",
+          "Aquaculture")
+      }
+    )
+  }
   Monogastric <- as.character(Monogastric)
-  Ruminant <- as.character(Ruminant)
 
   # max_intake_share can be pre-loaded (e.g., via load_general_data()) or read from package extdata.
   max_intake_share <- get0("max_intake_share", envir = .GlobalEnv, inherits = FALSE)
@@ -311,13 +370,13 @@ redistribute_feed <- function(
     hp_avail <- avail |>
       dplyr::filter(Cat_feed %in% c("Lactation", "High_quality")) |>
       dplyr::summarize(total = sum(avail_remaining, na.rm = TRUE)) |>
-      dplyr::pull(total, 1)
+      dplyr::pull(total)
     hp_avail <- dplyr::coalesce(hp_avail, 0)
     
     hp_unmet <- demand |>
       dplyr::filter(Cat_feed %in% c("Lactation", "High_quality"), remaining > 1e-6) |>
       dplyr::summarize(total = sum(remaining, na.rm = TRUE)) |>
-      dplyr::pull(total, 1)
+      dplyr::pull(total)
     hp_unmet <- dplyr::coalesce(hp_unmet, 0)
     
     top_unmet <- demand |>
@@ -328,16 +387,18 @@ redistribute_feed <- function(
       dplyr::transmute(msg = sprintf("%s (%.3f Tg)", key, remaining / 1e6)) |>
       dplyr::pull(msg)
     
-    cat(sprintf("\n[Diag %02d] Stage: %s (diagnostics live)\n", diag_counter, stage_label))
-    cat(sprintf("  • Demand satisfied: %s / %s (%.1f%%)\n",
-                format_tg(satisfied), format_tg(total_demand), satisfied_pct))
-    cat(sprintf("  • Remaining demand: %s | High-priority unmet: %s | High-priority avail: %s\n",
-                format_tg(remaining_demand), format_tg(hp_unmet), format_tg(hp_avail)))
-    if (length(top_unmet)) {
-      cat("  • Top unmet groups: ", paste(top_unmet, collapse = "; "), "\n", sep = "")
-    }
-    if (!is.null(note)) {
-      cat("  • Notes: ", note, "\n", sep = "")
+    if (verbose) {
+      cat(sprintf("\n[Diag %02d] Stage: %s\n", diag_counter, stage_label))
+      cat(sprintf("  • Demand satisfied: %s / %s (%.1f%%)\n",
+                  format_tg(satisfied), format_tg(total_demand), satisfied_pct))
+      cat(sprintf("  • Remaining demand: %s | HP unmet: %s | HP avail: %s\n",
+                  format_tg(remaining_demand), format_tg(hp_unmet), format_tg(hp_avail)))
+      if (length(top_unmet)) {
+        cat("  • Top unmet groups: ", paste(top_unmet, collapse = "; "), "\n", sep = "")
+      }
+      if (!is.null(note)) {
+        cat("  • Notes: ", note, "\n", sep = "")
+      }
     }
     diag_counter <<- diag_counter + 1L
   }
@@ -579,17 +640,18 @@ redistribute_feed <- function(
     item_cols <- c("item_cbs", "Cat_1", "Cat_feed")
     rename_cols <- setdiff(item_cols, group_cols)
     avail_weighted <- avail_weighted |>
-      dplyr::mutate(original_Province = Province_name)
+      dplyr::mutate(source_Province = Province_name)
     for (nm in rename_cols) {
       avail_weighted <- dplyr::rename(avail_weighted, !!paste0(nm, "_sub") := !!rlang::sym(nm))
     }
     
     extra_cols <- intersect(paste0(item_cols, "_sub"), names(avail_weighted))
     result <- demand_weighted |>
+      dplyr::select(-dplyr::any_of("original_Province")) |>
       dplyr::inner_join(
         avail_weighted |>
           dplyr::select(dplyr::all_of(c(group_cols, "avail_id", extra_cols,
-                                        "avail_share", "original_Province"))),
+                                        "avail_share", "source_Province"))),
         by = group_cols,
         relationship = "many-to-many"
       ) |>
@@ -630,7 +692,7 @@ redistribute_feed <- function(
       intake_MgDM = result$intake_MgDM,
       hierarchy_level = result$hierarchy_level,
       original_demand_item = result$original_demand_item,
-      original_Province = result$original_Province,
+      original_Province = result$source_Province,
       avail_id = result$avail_id
     )
     out
@@ -679,15 +741,16 @@ redistribute_feed <- function(
       dplyr::inner_join(matched, by = group_cols) |>
       dplyr::mutate(
         share = avail_remaining / avail_group,
-        original_Province = Province_name
+        source_Province = Province_name
       )
     
     extra_cols <- intersect(paste0(item_cols, "_sub"), names(avail_weighted))
     result <- demand_scaled |>
+      dplyr::select(-dplyr::any_of("original_Province")) |>
       dplyr::inner_join(
         avail_weighted |>
           dplyr::select(dplyr::all_of(c(group_cols, "avail_id", extra_cols,
-                                        "share", "original_Province"))),
+                                        "share", "source_Province"))),
         by = group_cols,
         relationship = "many-to-many"
       ) |>
@@ -728,7 +791,7 @@ redistribute_feed <- function(
       intake_MgDM = result$intake_MgDM,
       hierarchy_level = result$hierarchy_level,
       original_demand_item = result$original_demand_item,
-      original_Province = result$original_Province,
+      original_Province = result$source_Province,
       avail_id = result$avail_id
     )
   }
@@ -965,7 +1028,7 @@ redistribute_feed <- function(
       ) |>
       dplyr::filter(
         !is.na(original_Province),
-        original_Province != Province_name
+        is.na(Province_name) | original_Province != Province_name
       ) |>
       dplyr::select(-trade_origin)
     
@@ -1211,6 +1274,11 @@ redistribute_feed <- function(
           dplyr::mutate(avail_id = current$avail_id)
         
         add_alloc(alloc, respect_cap = FALSE)
+        
+        # Refresh local demand weights from parent demand
+        refreshed <- demand[demand$demand_id %in% demand_subset$demand_id, ]
+        demand_subset$weight[match(refreshed$demand_id, demand_subset$demand_id)] <-
+          refreshed$demand_MgDM
       }
     }
   }
@@ -1364,27 +1432,8 @@ redistribute_feed <- function(
     
     if (nrow(rows_to_reduce) == 0) return(result_tbl)
     
-    # Calculate reduction factor: we need to reduce total item_dm by 'excess'
-    # New total = item_dm - excess
-    # Factor = (item_dm - excess) / item_dm
-    
-    reduced_rows <- rows_to_reduce |>
-      dplyr::mutate(
-        reduction_factor = pmax(0, (item_dm - excess) / item_dm),
-        intake_MgDM = intake_MgDM * reduction_factor
-      ) |>
-      dplyr::select(-excess, -item_dm, -reduction_factor)
-    
-    # Update result_tbl with reduced values
-    # We can't easily update in-place with a join in base R or dplyr without row IDs or a full join
-    # But we have all columns. Let's use a left_join on a temporary ID or just bind and summarize?
-    # Better: Use the fact that we have unique keys? No, result_tbl might have multiple rows per key (different hierarchy levels)
-    # But rows_to_reduce has the same structure.
-    
-    # Let's use a row index approach for speed
-    # We need to match rows in result_tbl that correspond to violations
-    
-    # Create a key for matching
+    # Use row-index approach: join violations back and
+    # scale intake proportionally so total equals the cap.
     result_tbl$row_id <- seq_len(nrow(result_tbl))
     
     keys <- violations |> 
@@ -1615,6 +1664,11 @@ redistribute_feed <- function(
   }
   
   total_runtime <- difftime(Sys.time(), start_time, units = "secs")
-  cat(sprintf("\nCompleted redistribute_feed() in %.1f seconds\n", as.numeric(total_runtime)))
+  if (verbose) {
+    cat(sprintf(
+      "\nCompleted redistribute_feed() in %.1f seconds\n",
+      as.numeric(total_runtime)
+    ))
+  }
   result
 }

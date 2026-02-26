@@ -42,52 +42,47 @@ This function implements a complete footprint accounting system that:
   \item Allocates draught animal services to crop production
 }
 
-\code{calculate_footprints()} only takes \code{dtm} explicitly. All other required
+`calculate_footprints()` only takes `dtm` explicitly. All other required
 inputs are read implicitly from objects in the calling environment.
 
-Required workflow objects (created outside \code{load_general_data()}):
+Required workflow objects (created outside `load_general_data()`):
 \describe{
-  \item{\code{CBS}}{Commodity balance table. Columns used: \code{Year},
-  \code{area}, \code{area_code}, \code{item_cbs}, \code{item_code_cbs},
-  \code{Element}, \code{Value}.}
-  \item{\code{Primary_all}}{Primary production / co-product table. Columns used:
-  \code{Year}, \code{area}, \code{area_code}, \code{item_prod},
-  \code{item_code_prod}, \code{unit}, \code{Value}, \code{item_cbs},
-  \code{item_code_cbs}, \code{Live_anim}, \code{Live_anim_code}.}
-  \item{\code{Impact_prod}}{Production impact table. Columns used: \code{Year},
-  \code{area}, \code{item_code_prod}, \code{Impact}, \code{Value},
-  \code{u_FU} (and optionally \code{item_prod}).}
-  \item{\code{Crop_NPPr_NoFallow}}{Crop NPP / residue table. Columns used:
-  \code{Year}, \code{area}, \code{item_prod}, \code{item_cbs},
-  \code{Product_residue}, \code{Prod_ygpit_Mg}.}
-  \item{\code{Feed_intake}}{Feed intake table. Columns used: \code{Year},
-  \code{area}, \code{Live_anim}, \code{item_cbs}, \code{item_code_cbs},
-  \code{Supply}, \code{Intake_DM}. \code{area_code} is recovered from
-  footprint tables during the feed join.}
-  \item{\code{Primary_prices}}{Primary product prices. Columns used:
-  \code{Year}, \code{item_code_prod}, \code{Price}.}
-  \item{\code{CBS_item_prices}}{CBS item prices. Columns used: \code{Year},
-  \code{Element}, \code{item_cbs}, \code{item_code_cbs}, \code{Price}.}
-  \item{\code{Processing_coefs}}{Processing conversion coefficients. Columns
-  used: \code{Year}, \code{area_code}, \code{item_code_cbs}, \code{item_cbs},
-  \code{cf}.}
-  \item{\code{Relative_residue_price}}{Numeric scalar used to value residues
+  \item{`CBS`}{Commodity balance table. Columns used: `Year`, `area`,
+  `area_code`, `item_cbs`, `item_code_cbs`, `Element`, `Value`.}
+  \item{`Primary_all`}{Primary production / co-product table. Columns used:
+  `Year`, `area`, `area_code`, `item_prod`, `item_code_prod`, `unit`,
+  `Value`, `item_cbs`, `item_code_cbs`, `Live_anim`, `Live_anim_code`.}
+  \item{`Impact_prod`}{Production impact table. Columns used: `Year`, `area`,
+  `item_code_prod`, `Impact`, `Value`, `u_FU` (and optionally `item_prod`).}
+  \item{`Crop_NPPr_NoFallow`}{Crop NPP / residue table. Columns used:
+  `Year`, `area`, `item_prod`, `item_cbs`, `Product_residue`,
+  `Prod_ygpit_Mg`.}
+  \item{`Feed_intake`}{Feed intake table. Columns used: `Year`, `area`,
+  `Live_anim`, `item_cbs`, `item_code_cbs`, `Supply`, `Intake_DM`.
+  `area_code` is recovered from footprint tables during the feed join.}
+  \item{`Primary_prices`}{Primary product prices. Columns used: `Year`,
+  `item_code_prod`, `Price`.}
+  \item{`CBS_item_prices`}{CBS item prices. Columns used: `Year`, `Element`,
+  `item_cbs`, `item_code_cbs`, `Price`.}
+  \item{`Processing_coefs`}{Processing conversion coefficients. Columns used:
+  `Year`, `area_code`, `item_code_cbs`, `item_cbs`, `cf`.}
+  \item{`Relative_residue_price`}{Numeric scalar used to value residues
   relative to product prices.}
 }
 
-Required auxiliary objects loaded by \code{load_general_data()}:
+Required auxiliary objects loaded by `load_general_data()`:
 \describe{
-  \item{\code{items_full} (sheet \code{items_full} in \code{Codes_coefs.xlsx})}{
-  Columns used: \code{item_cbs}, \code{item_code_cbs}, \code{group}.}
-  \item{\code{items_prod_full} (sheet \code{items_prod_full} in \code{Codes_coefs.xlsx})}{
-  Columns used: \code{item_prod}, \code{item_code_prod}, \code{Name_biomass}.}
-  \item{\code{Animals_codes} (sheet \code{Animals_codes} in \code{Codes_coefs.xlsx})}{
-  Columns used: \code{item_cbs}, \code{item_code_cbs}.}
-  \item{\code{Primary_double} (sheet \code{Primary_double} in \code{Codes_coefs.xlsx})}{
-  Columns used (via \code{Prepare_prim()}): \code{Item_area},
-  \code{item_prod}, \code{item_code_prod}, \code{Multi_type}.}
-  \item{\code{Biomass_coefs} (\code{Biomass_coefs.xlsx})}{Columns used:
-  \code{Name_biomass}, \code{Product_kgDM_kgFM}, \code{Product_kgN_kgDM}.}
+  \item{`items_full` (sheet `items_full` in `Codes_coefs.xlsx`)}{Columns used:
+  `item_cbs`, `item_code_cbs`, `group`.}
+  \item{`items_prod_full` (sheet `items_prod_full` in `Codes_coefs.xlsx`)}{
+  Columns used: `item_prod`, `item_code_prod`, `Name_biomass`.}
+  \item{`Animals_codes` (sheet `Animals_codes` in `Codes_coefs.xlsx`)}{
+  Columns used: `item_cbs`, `item_code_cbs`.}
+  \item{`Primary_double` (sheet `Primary_double` in `Codes_coefs.xlsx`)}{
+  Columns used (via `Prepare_prim()`): `Item_area`, `item_prod`,
+  `item_code_prod`, `Multi_type`.}
+  \item{`Biomass_coefs` (`Biomass_coefs.xlsx`)}{Columns used:
+  `Name_biomass`, `Product_kgDM_kgFM`, `Product_kgN_kgDM`.}
 }
 }
 \examples{
