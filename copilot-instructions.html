@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">afsetools</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -141,7 +141,7 @@
 <span><span class="co"># For Filling() and FillingProxy(): Must use group_by/ungroup</span></span>
 <span><span class="va">df</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">Region</span>, <span class="va">Item</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/Filling.html">Filling</a></span><span class="op">(</span><span class="va">Production</span>, <span class="va">Year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">Filling</span><span class="op">(</span><span class="va">Production</span>, <span class="va">Year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span>  <span class="co"># REQUIRED - prevents grouped data flowing downstream</span></span></code></pre></div>
 </div>
 </div>
@@ -184,7 +184,7 @@
 <strong>Analysis</strong> (<code>analysis_functions.R</code>): <code><a href="reference/Calc_N_fix.html">Calc_N_fix()</a></code>, <code><a href="reference/Gases_GWP.html">Gases_GWP()</a></code>, <code><a href="reference/Calc_diets.html">Calc_diets()</a></code>, <code><a href="reference/calculate_land_scaling.html">calculate_land_scaling()</a></code>
 </li>
 <li>
-<strong>Utilities</strong> (<code>utility_functions.R</code>): <code><a href="reference/Filling.html">Filling()</a></code>, <code><a href="reference/FillingProxy.html">FillingProxy()</a></code>, <code>%!in%</code>, <code><a href="reference/drop_cols.html">drop_cols()</a></code>
+<strong>Utilities</strong> (<code>utility_functions.R</code>): <code>Filling()</code>, <code>FillingProxy()</code>, <code>%!in%</code>, <code><a href="reference/drop_cols.html">drop_cols()</a></code>
 </li>
 <li>
 <strong>Visualization</strong> (<code>plotting.R</code>): <code><a href="reference/theme_new.html">theme_new()</a></code>, <code><a href="reference/theme_nolabel.html">theme_nolabel()</a></code>, <code><a href="reference/ggplotRegression.html">ggplotRegression()</a></code>
@@ -236,7 +236,7 @@
 </div>
 <div class="section level2">
 <h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a></h2>
-<p><strong>Core tidyverse</strong>: dplyr, tidyr, ggplot2<br><strong>Data I/O</strong>: readxl, openxlsx<br><strong>Utilities</strong>: zoo (for <code><a href="reference/Filling.html">Filling()</a></code> functions)</p>
+<p><strong>Core tidyverse</strong>: dplyr, tidyr, ggplot2<br><strong>Data I/O</strong>: readxl, openxlsx<br><strong>Utilities</strong>: zoo (for <code>Filling()</code> functions)</p>
 <p><strong>Dependency pattern</strong>: Always use explicit <code>package::function()</code> syntax in function code.</p>
 </div>
 <div class="section level2">

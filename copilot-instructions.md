@@ -191,10 +191,8 @@ df |>
     [`Gases_GWP()`](https://eduaguilera.github.io/afsetools/reference/Gases_GWP.md),
     [`Calc_diets()`](https://eduaguilera.github.io/afsetools/reference/Calc_diets.md),
     [`calculate_land_scaling()`](https://eduaguilera.github.io/afsetools/reference/calculate_land_scaling.md)
-5.  **Utilities** (`utility_functions.R`):
-    [`Filling()`](https://eduaguilera.github.io/afsetools/reference/Filling.md),
-    [`FillingProxy()`](https://eduaguilera.github.io/afsetools/reference/FillingProxy.md),
-    `%!in%`,
+5.  **Utilities** (`utility_functions.R`): `Filling()`,
+    `FillingProxy()`, `%!in%`,
     [`drop_cols()`](https://eduaguilera.github.io/afsetools/reference/drop_cols.md)
 6.  **Visualization** (`plotting.R`):
     [`theme_new()`](https://eduaguilera.github.io/afsetools/reference/theme_new.md),
@@ -264,9 +262,7 @@ expect_true(all(Biomass_coefs$Product_kgDM_kgFM >= 0 &
 
 **Core tidyverse**: dplyr, tidyr, ggplot2  
 **Data I/O**: readxl, openxlsx  
-**Utilities**: zoo (for
-[`Filling()`](https://eduaguilera.github.io/afsetools/reference/Filling.md)
-functions)
+**Utilities**: zoo (for `Filling()` functions)
 
 **Dependency pattern**: Always use explicit `package::function()` syntax
 in function code.

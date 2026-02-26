@@ -194,16 +194,13 @@ for the full catalogue of the 73+ objects created by
 
 ### Utilities
 
-| Function                                                                                      | Description                                                 |
-|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`Filling()`](https://eduaguilera.github.io/afsetools/reference/Filling.md)                   | Gap-fill time series using last-observation-carried-forward |
-| [`FillingProxy()`](https://eduaguilera.github.io/afsetools/reference/FillingProxy.md)         | Gap-fill using proxy series                                 |
-| [`fill_na_with_sum()`](https://eduaguilera.github.io/afsetools/reference/fill_na_with_sum.md) | Replace NA with sum of other columns                        |
-| `%!in%`                                                                                       | Not-in operator (inverse of `%in%`)                         |
-| [`drop_cols()`](https://eduaguilera.github.io/afsetools/reference/drop_cols.md)               | Drop columns by name                                        |
-| [`is_empty()`](https://eduaguilera.github.io/afsetools/reference/is_empty.md)                 | Test if object is empty                                     |
-| [`Arrange_dates()`](https://eduaguilera.github.io/afsetools/reference/Arrange_dates.md)       | Sort data frames by date columns                            |
-| [`add_xlsx_sheet()`](https://eduaguilera.github.io/afsetools/reference/add_xlsx_sheet.md)     | Add sheets to Excel workbooks                               |
+| Function                                                                                  | Description                         |
+|-------------------------------------------------------------------------------------------|-------------------------------------|
+| `%!in%`                                                                                   | Not-in operator (inverse of `%in%`) |
+| [`drop_cols()`](https://eduaguilera.github.io/afsetools/reference/drop_cols.md)           | Drop columns by name                |
+| [`is_empty()`](https://eduaguilera.github.io/afsetools/reference/is_empty.md)             | Test if object is empty             |
+| [`Arrange_dates()`](https://eduaguilera.github.io/afsetools/reference/Arrange_dates.md)   | Sort data frames by date columns    |
+| [`add_xlsx_sheet()`](https://eduaguilera.github.io/afsetools/reference/add_xlsx_sheet.md) | Add sheets to Excel workbooks       |
 
 ### Visualization
 
@@ -460,12 +457,6 @@ Helper functions for data manipulation and gap-filling.
   : Arrange data by dates
 - [`add_xlsx_sheet()`](https://eduaguilera.github.io/afsetools/reference/add_xlsx_sheet.md)
   : Add sheet to existing Excel workbook
-- [`Filling()`](https://eduaguilera.github.io/afsetools/reference/Filling.md)
-  : Fill gaps in time series
-- [`FillingProxy()`](https://eduaguilera.github.io/afsetools/reference/FillingProxy.md)
-  : Fill gaps using proxy variable
-- [`fill_na_with_sum()`](https://eduaguilera.github.io/afsetools/reference/fill_na_with_sum.md)
-  : Fill gaps with accumulated sum
 
 ## Visualization Functions
 

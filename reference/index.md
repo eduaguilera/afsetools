@@ -109,12 +109,6 @@ Helper functions for data manipulation and gap-filling.
   : Arrange data by dates
 - [`add_xlsx_sheet()`](https://eduaguilera.github.io/afsetools/reference/add_xlsx_sheet.md)
   : Add sheet to existing Excel workbook
-- [`Filling()`](https://eduaguilera.github.io/afsetools/reference/Filling.md)
-  : Fill gaps in time series
-- [`FillingProxy()`](https://eduaguilera.github.io/afsetools/reference/FillingProxy.md)
-  : Fill gaps using proxy variable
-- [`fill_na_with_sum()`](https://eduaguilera.github.io/afsetools/reference/fill_na_with_sum.md)
-  : Fill gaps with accumulated sum
 
 ## Visualization Functions
 
