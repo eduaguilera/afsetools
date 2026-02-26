@@ -53,6 +53,8 @@ Specialized environmental impact calculations.
   : Classify GHG Emissions and Calculate Global Warming Potential
 - [`Calc_diets()`](https://eduaguilera.github.io/afsetools/reference/Calc_diets.md)
   : Calculate Nutrient Composition of Diets
+- [`filter_areas()`](https://eduaguilera.github.io/afsetools/reference/filter_areas.md)
+  : Filter and Aggregate Areas by Polity
 - [`get_herbwoody_fao()`](https://eduaguilera.github.io/afsetools/reference/get_herbwoody_fao.md)
   : Get Herbaceous and Woody Land from FAO
 - [`calculate_land_scaling()`](https://eduaguilera.github.io/afsetools/reference/calculate_land_scaling.md)

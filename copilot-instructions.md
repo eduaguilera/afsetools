@@ -176,9 +176,11 @@ df |>
 1.  **Data Loading** (`load_data.R`):
     [`load_general_data()`](https://eduaguilera.github.io/afsetools/reference/load_general_data.md) -
     loads 73+ objects
-2.  **NPP Calculation** (`npp_functions.R`): `Calc_NPP_potentials()`,
-    `Calculate_crop_NPP()`, `Calc_NPP_DM_C_N()`,
-    `Calc_CropNPP_components()`
+2.  **NPP Calculation** (`npp_functions.R`):
+    [`Calc_NPP_potentials()`](https://eduaguilera.github.io/afsetools/reference/calculate_potential_npp.md),
+    [`Calculate_crop_NPP()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md),
+    [`Calc_NPP_DM_C_N()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md),
+    [`Calc_CropNPP_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md)
 3.  **Impact Tracing** (`impact_functions.R`):
     [`Prepare_prim()`](https://eduaguilera.github.io/afsetools/reference/Prepare_prim.md),
     [`Allocate_impacts_to_products()`](https://eduaguilera.github.io/afsetools/reference/Allocate_impacts_to_products.md),

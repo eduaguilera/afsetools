@@ -50,247 +50,550 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>This package provides coefficients, classifications, and functions for assessing environmental impacts of agro-food systems and tracing them through global supply chains.</p>
+<p><code>afsetools</code> (<strong>A</strong>gro-<strong>F</strong>ood <strong>S</strong>ystem and <strong>E</strong>nvironment <strong>Tools</strong>) is an R package that bundles standardized coefficients, classifications, and functions for calculating environmental footprints of agro-food systems and tracing them through global supply chains. It is the shared analytical backbone for several research projects on global and national food-system sustainability.</p>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p><code>afsetools</code> contains:</p>
-<ul>
-<li>
-<strong>73 data objects</strong>: Biomass coefficients, codes, classifications, and conversion factors from harmonized datasets</li>
-<li>
-<strong>35+ functions</strong>: NPP calculation, impact allocation, supply chain tracing, biological N fixation, GHG emissions, and more</li>
-<li>
-<strong>Workflow functions</strong>: Complete footprint calculation pipelines</li>
-<li>
-<strong>Standardized visualizations</strong>: Color palettes and plotting themes for consistent figures</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="45%">
+<col width="54%">
+</colgroup>
+<thead><tr class="header">
+<th>Component</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>73+ data objects</strong></td>
+<td>Biomass coefficients, FAO commodity codes, regional classifications, conversion factors, GWP values, BNF parameters</td>
+</tr>
+<tr class="even">
+<td><strong>35+ functions</strong></td>
+<td>NPP calculation, impact allocation, supply-chain tracing, biological N fixation, GHG accounting, diet analysis</td>
+</tr>
+<tr class="odd">
+<td><strong>Workflow functions</strong></td>
+<td>End-to-end footprint calculation pipelines (primary production to final consumption)</td>
+</tr>
+<tr class="even">
+<td><strong>Visualization</strong></td>
+<td>Consistent ggplot2 themes and color palettes for scientific figures</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<div class="section level3">
+<h3 id="from-github-recommended">From GitHub (recommended)<a class="anchor" aria-label="anchor" href="#from-github-recommended"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install from GitHub</span></span>
-<span><span class="co"># install.packages("devtools")</span></span>
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"eduaguilera/afsetools"</span><span class="op">)</span></span></code></pre></div>
 </div>
+<div class="section level3">
+<h3 id="from-source-development">From source (development)<a class="anchor" aria-label="anchor" href="#from-source-development"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>git clone https<span class="sc">:</span><span class="er">//</span>github.com<span class="sc">/</span>eduaguilera<span class="sc">/</span>afsetools.git</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># Then in R, from the parent directory:</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install</span>(<span class="st">"afsetools"</span>)</span></code></pre></div>
+</div>
+</div>
 <div class="section level2">
-<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+<h2 id="architecture">Architecture<a class="anchor" aria-label="anchor" href="#architecture"></a>
 </h2>
-<p><strong>Function Reference</strong>: All functions are documented with roxygen2. You can read more about the package’s functionalities from the documentation at the <a href="https://eduaguilera.github.io/afsetools/reference/index.html">reference page</a>.</p>
-<p>After installation, you can also use R’s built-in help system:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get help for any function</span></span>
-<span><span class="op">?</span><span class="va">load_general_data</span></span>
-<span><span class="op">?</span><span class="va">calculate_footprints</span></span>
-<span><span class="op">?</span><span class="va">Calc_NPP_potentials</span></span>
-<span></span>
-<span><span class="co"># See all package functions</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/help.html" class="external-link">help</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"afsetools"</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Data Objects</strong>: For detailed information about the 73+ data objects loaded by <code><a href="reference/load_general_data.html">load_general_data()</a></code>, see <a href="DATA_REFERENCE.html">DATA_REFERENCE.md</a>.</p>
+<p>Unlike most R packages, <code>afsetools</code> follows a <strong>data-driven, environment-loading</strong> design. Understanding this pattern is essential for using the package correctly.</p>
+<div class="section level3">
+<h3 id="how-it-works">How it works<a class="anchor" aria-label="anchor" href="#how-it-works"></a>
+</h3>
+<pre><code>inst/extdata/*.xlsx          load_general_data()        Your analysis code
+┌──────────────────┐    ┌──────────────────────┐    ┌──────────────────────┐
+│ Codes_coefs.xlsx │───&gt;│ Reads Excel files     │───&gt;│ Biomass_coefs, GWP,  │
+│ Biomass_coefs.xlsx│   │ Creates 73+ objects   │    │ BNF, items_full, ... │
+│ BNF.xlsx         │   │ in calling environment│    │ available as objects  │
+│ GWP.xlsx         │   └──────────────────────┘    │ in your environment   │
+└──────────────────┘                                └──────────────────────┘
+                                                            │
+                                                            ▼
+                                                    ┌──────────────────────┐
+                                                    │ Functions reference   │
+                                                    │ these objects by name │
+                                                    │ (implicit dependency) │
+                                                    └──────────────────────┘</code></pre>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Data files</strong> in <code>inst/extdata/</code> contain Excel tables with all coefficients and classifications.</li>
+<li>
+<strong><code><a href="reference/load_general_data.html">load_general_data()</a></code></strong> reads those files and creates 73+ named objects <strong>in the calling environment</strong> (not in the package namespace).</li>
+<li>
+<strong>Functions</strong> expect those objects to exist in the environment where they are called. They are implicit dependencies — not passed as arguments.</li>
+</ol>
+<p>This means you must always call <code><a href="reference/load_general_data.html">load_general_data()</a></code> before using most functions:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># Populates your environment with 73+ objects</span></span>
+<span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span>load_vectors <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># Also loads color palettes and month vectors</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load all coefficients and classification data (73 objects)</span></span>
+<span><span class="co"># Load all coefficients and classification data</span></span>
 <span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Now you have access to:</span></span>
 <span><span class="co"># - Biomass_coefs: Conversion factors for DM, N, C, energy</span></span>
-<span><span class="co"># - GWP: Global warming potentials for greenhouse gases  </span></span>
+<span><span class="co"># - GWP: Global warming potentials for greenhouse gases</span></span>
 <span><span class="co"># - BNF: Biological nitrogen fixation parameters</span></span>
 <span><span class="co"># - items_full, regions_full: Harmonized nomenclatures</span></span>
 <span><span class="co"># - And 60+ more data objects</span></span>
 <span></span>
-<span><span class="co"># Calculate NPP from climate data</span></span>
-<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu">Calc_NPP_potentials</span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span></span>
+<span><span class="co"># Calculate potential NPP from climate data</span></span>
+<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_potential_npp.html">calculate_potential_npp</a></span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Calculate crop NPP components</span></span>
-<span><span class="va">crop_npp</span> <span class="op">&lt;-</span> <span class="fu">Calculate_crop_NPP</span><span class="op">(</span><span class="va">crop_data</span>, <span class="va">harvest_index</span><span class="op">)</span></span>
+<span><span class="va">crop_npp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_crop_npp.html">calculate_crop_npp</a></span><span class="op">(</span><span class="va">crop_data</span>, <span class="va">harvest_index</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Trace impacts through supply chains</span></span>
-<span><span class="co"># Requires objects in the environment:</span></span>
-<span><span class="co"># CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,</span></span>
-<span><span class="co"># Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price</span></span>
-<span><span class="co"># Omit `dtm` for gross trade; pass `dtm = detailed_trade_matrix` for bilateral trade</span></span>
+<span><span class="co"># Run the full footprint pipeline</span></span>
+<span><span class="co"># (requires workflow objects in environment: CBS, Primary_all, Impact_prod, etc.)</span></span>
 <span><span class="va">footprints</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Access results</span></span>
 <span><span class="va">primary_fp</span> <span class="op">&lt;-</span> <span class="va">footprints</span><span class="op">$</span><span class="va">FP_prim</span></span>
-<span><span class="va">final_fp</span> <span class="op">&lt;-</span> <span class="va">footprints</span><span class="op">$</span><span class="va">FP_final</span></span></code></pre></div>
+<span><span class="va">final_fp</span>   <span class="op">&lt;-</span> <span class="va">footprints</span><span class="op">$</span><span class="va">FP_final</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="main-functions">Main Functions<a class="anchor" aria-label="anchor" href="#main-functions"></a>
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p><strong>Online reference</strong>: <a href="https://eduaguilera.github.io/afsetools/reference/index.html">eduaguilera.github.io/afsetools</a></p>
+<p><strong>In R</strong>:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">?</span><span class="va">load_general_data</span></span>
+<span><span class="op">?</span><span class="va">calculate_footprints</span></span>
+<span><span class="op">?</span><span class="va">calculate_potential_npp</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/help.html" class="external-link">help</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"afsetools"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Data objects</strong>: See <a href="DATA_REFERENCE.html">DATA_REFERENCE.md</a> for the full catalogue of the 73+ objects created by <code><a href="reference/load_general_data.html">load_general_data()</a></code>.</p>
+</div>
+<div class="section level2">
+<h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a>
 </h2>
 <div class="section level3">
 <h3 id="data-loading">Data Loading<a class="anchor" aria-label="anchor" href="#data-loading"></a>
 </h3>
-<ul>
-<li>
-<code><a href="reference/load_general_data.html">load_general_data()</a></code>: Load all 73 coefficient tables and classifications into the environment</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/load_general_data.html">load_general_data()</a></code></td>
+<td>Load all 73+ coefficient tables and classifications into the environment</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/load_vectors.html">load_vectors()</a></code></td>
+<td>Load color palettes and month-name vectors</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
 <h3 id="npp-calculation">NPP Calculation<a class="anchor" aria-label="anchor" href="#npp-calculation"></a>
 </h3>
-<ul>
-<li>
-<code>Calc_NPP_potentials()</code>: Calculate potential NPP using Miami, NCEAS, and Rosenzweig models</li>
-<li>
-<code>Calculate_crop_NPP()</code>: Calculate crop NPP components (product, residue, root biomass)</li>
-<li>
-<code>Calc_NPP_DM_C_N()</code>: Convert NPP to dry matter, carbon, and nitrogen</li>
-<li>
-<code>Calc_CropNPP_components()</code>: Complete cropland NPP including weed biomass</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="31%">
+<col width="28%">
+<col width="40%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Aliases</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/calculate_potential_npp.html">calculate_potential_npp()</a></code></td>
+<td><code><a href="reference/calculate_potential_npp.html">Calc_NPP_potentials()</a></code></td>
+<td>Potential NPP (Miami, NCEAS, Rosenzweig models)</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/calculate_crop_npp.html">calculate_crop_npp()</a></code></td>
+<td><code><a href="reference/calculate_crop_npp.html">Calculate_crop_NPP()</a></code></td>
+<td>Crop NPP components (product, residue, root biomass)</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/calculate_npp_dm_c_n.html">calculate_npp_dm_c_n()</a></code></td>
+<td><code><a href="reference/calculate_npp_dm_c_n.html">Calc_NPP_DM_C_N()</a></code></td>
+<td>Convert NPP to dry matter, carbon, and nitrogen</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/calculate_crop_npp_components.html">calculate_crop_npp_components()</a></code></td>
+<td><code><a href="reference/calculate_crop_npp_components.html">Calc_CropNPP_components()</a></code></td>
+<td>Complete cropland NPP including weed biomass</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note on naming</strong>: NPP functions were recently renamed to <code>snake_case</code>. The old PascalCase names are kept as exported aliases for backward compatibility.</p>
+</blockquote>
 </div>
 <div class="section level3">
 <h3 id="impact-tracing">Impact Tracing<a class="anchor" aria-label="anchor" href="#impact-tracing"></a>
 </h3>
-<ul>
-<li>
-<code><a href="reference/Prepare_prim.html">Prepare_prim()</a></code>: Prepare primary production data for impact tracing</li>
-<li>
-<code><a href="reference/Allocate_impacts_to_products.html">Allocate_impacts_to_products()</a></code>: Economic allocation of impacts to co-products</li>
-<li>
-<code><a href="reference/calc_avail_fp_gt.html">calc_avail_fp_gt()</a></code>: Calculate availability footprint using gross trade</li>
-<li>
-<code><a href="reference/calc_avail_fp_dtm.html">calc_avail_fp_dtm()</a></code>: Calculate availability footprint using detailed trade matrix</li>
-<li>
-<code><a href="reference/Calc_impact_processed.html">Calc_impact_processed()</a></code>: Trace impacts through processing chains</li>
-<li>
-<code><a href="reference/Agg_primary.html">Agg_primary()</a></code>: Aggregate primary products to CBS items</li>
-<li>
-<code><a href="reference/Agg_processed.html">Agg_processed()</a></code>: Aggregate processed products by origin</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/Prepare_prim.html">Prepare_prim()</a></code></td>
+<td>Prepare primary production data for impact tracing</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/Allocate_impacts_to_products.html">Allocate_impacts_to_products()</a></code></td>
+<td>Economic allocation of impacts to co-products</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/calc_avail_fp_gt.html">calc_avail_fp_gt()</a></code></td>
+<td>Availability footprint using gross trade</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/calc_avail_fp_dtm.html">calc_avail_fp_dtm()</a></code></td>
+<td>Availability footprint using detailed trade matrix</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/Calc_impact_processed.html">Calc_impact_processed()</a></code></td>
+<td>Trace impacts through processing chains</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/Agg_primary.html">Agg_primary()</a></code></td>
+<td>Aggregate primary products to CBS items</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/Agg_processed.html">Agg_processed()</a></code></td>
+<td>Aggregate processed products by origin</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/get_global_export_footprint.html">get_global_export_footprint()</a></code></td>
+<td>Global export-weighted footprint</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="comprehensive-workflow">Comprehensive Workflow<a class="anchor" aria-label="anchor" href="#comprehensive-workflow"></a>
+<h3 id="end-to-end-workflows">End-to-End Workflows<a class="anchor" aria-label="anchor" href="#end-to-end-workflows"></a>
 </h3>
-<ul>
-<li>
-<code><a href="reference/calculate_footprints.html">calculate_footprints()</a></code>: Complete footprint calculation pipeline from primary production to final products</li>
-<li>
-<code><a href="reference/extract_luh2.html">extract_luh2()</a></code>: Extract carbon stock and area data from Land-Use Harmonization 2 (LUH2) dataset</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/calculate_footprints.html">calculate_footprints()</a></code></td>
+<td>Full pipeline: primary production → processing → trade → final availability footprints</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/extract_luh2.html">extract_luh2()</a></code></td>
+<td>Extract carbon stock and area data from LUH2 rasters</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="analysis-functions">Analysis Functions<a class="anchor" aria-label="anchor" href="#analysis-functions"></a>
+<h3 id="analysis">Analysis<a class="anchor" aria-label="anchor" href="#analysis"></a>
 </h3>
-<ul>
-<li>
-<code><a href="reference/Calc_N_fix.html">Calc_N_fix()</a></code>: Calculate biological nitrogen fixation (crop, weed, non-symbiotic)</li>
-<li>
-<code><a href="reference/Gases_GWP.html">Gases_GWP()</a></code>: Classify GHG emissions and calculate GWP100 CO2 equivalents</li>
-<li>
-<code><a href="reference/Calc_diets.html">Calc_diets()</a></code>: Calculate nutrient composition of diets</li>
-<li>
-<code><a href="reference/calculate_land_scaling.html">calculate_land_scaling()</a></code>: Calculate land scaling factors for cropping intensity</li>
-<li>
-<code><a href="reference/scale_land.html">scale_land()</a></code>: Apply land scaling adjustments</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/Calc_N_fix.html">Calc_N_fix()</a></code></td>
+<td>Biological nitrogen fixation (crop, weed, non-symbiotic)</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/Gases_GWP.html">Gases_GWP()</a></code></td>
+<td>Classify GHG emissions and calculate GWP-100 CO₂ equivalents</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/Calc_diets.html">Calc_diets()</a></code></td>
+<td>Nutrient composition of diets</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/calculate_land_scaling.html">calculate_land_scaling()</a></code></td>
+<td>Land scaling factors for cropping intensity</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/scale_land.html">scale_land()</a></code></td>
+<td>Apply land scaling adjustments</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/filter_areas.html">filter_areas()</a></code></td>
+<td>Filter and reshape FAO area/production data</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/get_herbwoody_fao.html">get_herbwoody_fao()</a></code></td>
+<td>Extract herbaceous/woody cover shares from FAO data</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="biomass-processing">Biomass Processing<a class="anchor" aria-label="anchor" href="#biomass-processing"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/integrate_fallow.html">integrate_fallow()</a></code></td>
+<td>Integrate fallow land into cropland data</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/residues_as_items.html">residues_as_items()</a></code></td>
+<td>Convert crop residues to item-level data</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/residue_use.html">residue_use()</a></code></td>
+<td>Calculate residue management shares</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="feed-distribution">Feed Distribution<a class="anchor" aria-label="anchor" href="#feed-distribution"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td><code><a href="reference/redistribute_feed.html">redistribute_feed()</a></code></td>
+<td>Redistribute livestock feed demand across products and regions</td>
+</tr></tbody>
+</table>
 </div>
 <div class="section level3">
 <h3 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a>
 </h3>
-<ul>
-<li>
-<code><a href="reference/Filling.html">Filling()</a></code>, <code><a href="reference/FillingProxy.html">FillingProxy()</a></code>: Gap-fill time series data</li>
-<li>
-<code>%!in%</code>: Not-in operator</li>
-<li>
-<code><a href="reference/Arrange_dates.html">Arrange_dates()</a></code>: Sort data frames by dates</li>
-<li>
-<code><a href="reference/add_xlsx_sheet.html">add_xlsx_sheet()</a></code>: Add sheets to Excel workbooks</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/Filling.html">Filling()</a></code></td>
+<td>Gap-fill time series using last-observation-carried-forward</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/FillingProxy.html">FillingProxy()</a></code></td>
+<td>Gap-fill using proxy series</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/fill_na_with_sum.html">fill_na_with_sum()</a></code></td>
+<td>Replace NA with sum of other columns</td>
+</tr>
+<tr class="even">
+<td><code>%!in%</code></td>
+<td>Not-in operator (inverse of <code>%in%</code>)</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/drop_cols.html">drop_cols()</a></code></td>
+<td>Drop columns by name</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/is_empty.html">is_empty()</a></code></td>
+<td>Test if object is empty</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/Arrange_dates.html">Arrange_dates()</a></code></td>
+<td>Sort data frames by date columns</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/add_xlsx_sheet.html">add_xlsx_sheet()</a></code></td>
+<td>Add sheets to Excel workbooks</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
 <h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
 </h3>
-<ul>
-<li>
-<code><a href="reference/theme_new.html">theme_new()</a></code>: Clean ggplot2 theme for scientific plots</li>
-<li>
-<code><a href="reference/theme_nolabel.html">theme_nolabel()</a></code>: Theme without facet labels</li>
-<li>
-<code><a href="reference/ggplotRegression.html">ggplotRegression()</a></code>: Plot linear regression with statistics</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/theme_new.html">theme_new()</a></code></td>
+<td>Clean ggplot2 theme for scientific publications</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/theme_nolabel.html">theme_nolabel()</a></code></td>
+<td>Theme variant without facet strip labels</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/ggplotRegression.html">ggplotRegression()</a></code></td>
+<td>Plot linear regression with R², p-value, and equation</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">
 <h2 id="package-data">Package Data<a class="anchor" aria-label="anchor" href="#package-data"></a>
 </h2>
 <p>After calling <code><a href="reference/load_general_data.html">load_general_data()</a></code>, you’ll have access to:</p>
-<p><strong>Nomenclatures and Classifications</strong> (35 objects): - <code>items_full</code>, <code>items_prod_full</code>, <code>items_cbs</code>: Item codes and names - <code>regions_full</code>, <code>regions_full_uISO3</code>: Country codes and regional aggregations - <code>Cats</code>, <code>Cats_proc</code>: Product categories - <code>Primary_double</code>, <code>Secondary_double</code>: Multi-product processes - And 25+ more classification tables</p>
-<p><strong>Biomass Coefficients</strong> (17 objects): - <code>Biomass_coefs</code>: Main coefficient table (DM, N, C, energy content, etc.) - <code>Root_ref</code>: Reference root biomass - <code>Weed_NPP_Scaling</code>: Weed biomass scaling factors - <code>Residue_Shares</code>: Crop residue management shares - <code>Fallow_cover</code>: Fallow land cover fractions - And 12+ more coefficient tables</p>
-<p><strong>Global Warming Potentials</strong> (7 objects): - <code>GWP</code>: GWP values for different gases and time horizons - <code>GWP_100</code>: 100-year GWP values - And 5 more GWP-related objects</p>
-<p><strong>Biological N Fixation</strong> (3 objects): - <code>BNF</code>: Nitrogen fixation parameters - <code>Names_BNF</code>: BNF nomenclature - <code>Ndfa_ref</code>: Reference Ndfa values</p>
-<p><strong>Constants</strong> (6 scalars): - <code>Residue_kgC_kgDM_W</code>, <code>Root_kgC_kgDM_W</code>: Carbon content of weeds - <code>Residue_kgN_kgDM_W</code>, <code>Root_kgN_kgDM_W</code>: Nitrogen content of weeds - <code>Root_Shoot_ratio_W</code>: Root:shoot ratio for weeds - <code>Rhizod_kgN_kgRootN_W</code>: Rhizodeposition N coefficient</p>
-<p><strong>Color Palettes and Vectors</strong>: - <code>Total_color</code>, <code>SOM_color</code>, <code>GHG_color</code>, <code>N_color</code>, <code>P_color</code>, <code>Land_color</code>, <code>Water_color</code>, <code>Energy_color</code> - <code>Month_names</code>, <code>Month_numbers</code>: Month utilities</p>
+<p><strong>Nomenclatures and Classifications</strong> (~35 objects): <code>items_full</code>, <code>items_prod_full</code>, <code>items_cbs</code>, <code>regions_full</code>, <code>regions_full_uISO3</code>, <code>Cats</code>, <code>Cats_proc</code>, <code>Primary_double</code>, <code>Secondary_double</code>, and 25+ more classification tables.</p>
+<p><strong>Biomass Coefficients</strong> (~17 objects): <code>Biomass_coefs</code> (main coefficient table: DM, N, C, energy content, root:shoot ratios, harvest indices), <code>Root_ref</code>, <code>Weed_NPP_Scaling</code>, <code>Residue_Shares</code>, <code>Fallow_cover</code>, and 12+ more.</p>
+<p><strong>Global Warming Potentials</strong> (~7 objects): <code>GWP</code>, <code>GWP_100</code>, and 5 gas-specific GWP tables.</p>
+<p><strong>Biological N Fixation</strong> (3 objects): <code>BNF</code>, <code>Names_BNF</code>, <code>Ndfa_ref</code>.</p>
+<p><strong>Derived Constants</strong> (6 scalars): <code>Residue_kgC_kgDM_W</code>, <code>Root_kgC_kgDM_W</code>, <code>Residue_kgN_kgDM_W</code>, <code>Root_kgN_kgDM_W</code>, <code>Root_Shoot_ratio_W</code>, <code>Rhizod_kgN_kgRootN_W</code> — all derived from the Grass row in <code>Biomass_coefs</code>.</p>
+<p><strong>Color Palettes</strong> (loaded with <code>load_vectors = TRUE</code>): <code>Total_color</code>, <code>SOM_color</code>, <code>GHG_color</code>, <code>N_color</code>, <code>P_color</code>, <code>Land_color</code>, <code>Water_color</code>, <code>Energy_color</code>, <code>Month_names</code>, <code>Month_numbers</code>.</p>
+<div class="section level3">
+<h3 id="data-files">Data Files<a class="anchor" aria-label="anchor" href="#data-files"></a>
+</h3>
+<p>The raw input data shipped in <code>inst/extdata/</code>:</p>
+<table class="table">
+<colgroup>
+<col width="37%">
+<col width="62%">
+</colgroup>
+<thead><tr class="header">
+<th>File</th>
+<th>Contents</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>Codes_coefs.xlsx</code></td>
+<td>48 sheets: FAO commodity codes, regional mappings, processing coefficients, price references</td>
+</tr>
+<tr class="even">
+<td><code>Biomass_coefs.xlsx</code></td>
+<td>Crop-specific DM, N, C, energy, root:shoot ratios, harvest indices</td>
+</tr>
+<tr class="odd">
+<td><code>BNF.xlsx</code></td>
+<td>Biological nitrogen fixation parameters (Ndfa, leguminous shares)</td>
+</tr>
+<tr class="even">
+<td><code>GWP.xlsx</code></td>
+<td>IPCC GWP values (AR5/AR6) for multiple time horizons</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="section level2">
-<h2 id="data-files">Data Files<a class="anchor" aria-label="anchor" href="#data-files"></a>
-</h2>
-<p>The package bundles standardized input data in <code>inst/extdata/</code>:</p>
-<ul>
-<li>
-<code>Codes_coefs.xlsx</code>: 48 sheets with codes, coefficients, and classifications</li>
-<li>
-<code>Biomass_coefs.xlsx</code>: Biomass conversion coefficients<br>
-</li>
-<li>
-<code>BNF.xlsx</code>: Biological nitrogen fixation parameters</li>
-<li>
-<code>GWP.xlsx</code>: Global warming potentials</li>
-</ul>
-<p>These are automatically loaded by <code><a href="reference/load_general_data.html">load_general_data()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="example-workflow">Example Workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Load all data</span></span>
 <span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 2. Prepare your workflow objects in the environment</span></span>
-<span><span class="co"># (CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,</span></span>
-<span><span class="co">#  Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price)</span></span>
+<span><span class="co"># 2. Prepare your workflow objects in the environment:</span></span>
+<span><span class="co">#    CBS, Primary_all, Impact_prod, Crop_NPPr_NoFallow, Feed_intake,</span></span>
+<span><span class="co">#    Primary_prices, CBS_item_prices, Processing_coefs, Relative_residue_price</span></span>
 <span></span>
 <span><span class="co"># 3. Calculate complete footprints</span></span>
+<span><span class="co">#    Omit `dtm` for gross trade; pass dtm = your_trade_matrix for bilateral trade</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_footprints.html">calculate_footprints</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 4. Analyze results</span></span>
+<span><span class="co"># 4. Visualize results</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">results</span><span class="op">$</span><span class="va">FP_final</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Impact</span> <span class="op">==</span> <span class="st">"GHG"</span>, <span class="va">Year</span> <span class="op">==</span> <span class="fl">2020</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="va">results</span><span class="op">$</span><span class="va">FP_final</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Impact</span> <span class="op">==</span> <span class="st">"GHG"</span>, <span class="va">Year</span> <span class="op">==</span> <span class="fl">2020</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">area</span>, y <span class="op">=</span> <span class="va">Impact_u</span>, fill <span class="op">=</span> <span class="va">Element</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/theme_new.html">theme_new</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"GHG Footprint by Product Group, 2020"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="related-repositories">Related Repositories<a class="anchor" aria-label="anchor" href="#related-repositories"></a>
+</h2>
+<p><code>afsetools</code> provides the shared analytical core for these projects:</p>
+<table class="table">
+<colgroup>
+<col width="48%">
+<col width="52%">
+</colgroup>
+<thead><tr class="header">
+<th>Repository</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://github.com/eduaguilera/Global" class="external-link"><strong>Global</strong></a></td>
+<td>Global agro-food system environmental footprints — cropland NPP, supply-chain impacts, trade-adjusted footprints</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/eduaguilera/Spain_Hist" class="external-link"><strong>Spain_Hist</strong></a></td>
+<td>Historical environmental footprints of the Spanish agro-food system</td>
+</tr>
+</tbody>
+</table>
+<p>Both repositories call <code><a href="https://eduaguilera.github.io/afsetools">library(afsetools)</a></code> followed by <code>load_general_data(load_vectors = TRUE)</code> and rely on functions and data objects exported by this package.</p>
+</div>
+<div class="section level2">
+<h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
+</h2>
+<p><strong>Runtime</strong> (Imports): <code>data.table</code>, <code>dplyr</code>, <code>ggplot2</code>, <code>rlang</code>, <code>readxl</code>, <code>openxlsx</code>, <code>tibble</code>, <code>tidyr</code>, <code>zoo</code></p>
+<p><strong>Optional</strong> (Suggests): <code>methods</code>, <code>raster</code>, <code>sf</code>, <code>testthat</code>, <code>knitr</code>, <code>rmarkdown</code>, <code>pkgdown</code></p>
+<p>Requires <strong>R ≥ 4.1.0</strong> (for the native pipe <code>|&gt;</code>).</p>
+</div>
+<div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>If you use this package in your research, please cite:</p>
 <blockquote>
-<p>Aguilera, E., et al. (2025). afsetools: Agro-Food System and Environment Tools. R package version 0.1.0. <a href="https://github.com/eduaguilera/afsetools" class="external-link uri">https://github.com/eduaguilera/afsetools</a></p>
+<p>Aguilera, E., et al. (2025). afsetools: Agro-Food System and Environment Tools. R package version 0.1.4. <a href="https://github.com/eduaguilera/afsetools" class="external-link uri">https://github.com/eduaguilera/afsetools</a></p>
 </blockquote>
-</div>
-<div class="section level2">
-<h2 id="related-repositories">Related Repositories<a class="anchor" aria-label="anchor" href="#related-repositories"></a>
-</h2>
-<p>This package provides the foundational tools used by:</p>
-<ul>
-<li>
-<strong>Spain_Hist</strong>: Historical environmental footprints of Spanish agro-food system</li>
-</ul>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
@@ -311,19 +614,21 @@ ORCID: <a href="https://orcid.org/0000-0002-0429-0883" class="external-link">000
 <div class="section level2">
 <h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
 </h2>
-<p>To contribute to this package:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Clone the repository</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>git clone https<span class="sc">:</span><span class="er">//</span>github.com<span class="sc">/</span>eduaguilera<span class="sc">/</span>afsetools.git</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>cd afsetools</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co"># Install development dependencies</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_dev_deps</span>()</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># Run tests</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">test</span>()</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co"># Check package</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">check</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Clone the repository</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>git clone https<span class="sc">:</span><span class="er">//</span>github.com<span class="sc">/</span>eduaguilera<span class="sc">/</span>afsetools.git</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>cd afsetools</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co"># Install development dependencies</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_dev_deps</span>()</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co"># Run tests</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">test</span>()</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co"># Regenerate documentation</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">document</span>()</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co"># Full R CMD check</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">check</span>()</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -365,6 +670,7 @@ ORCID: <a href="https://orcid.org/0000-0002-0429-0883" class="external-link">000
 <ul class="list-unstyled">
 <li><a href="https://github.com/eduaguilera/afsetools/actions" class="external-link"><img src="https://github.com/eduaguilera/afsetools/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></li>
+<li><a href="https://eduaguilera.github.io/afsetools/"><img src="https://img.shields.io/badge/docs-pkgdown-blue.svg" alt="pkgdown"></a></li>
 </ul>
 </div>
 

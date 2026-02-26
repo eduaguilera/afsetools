@@ -74,7 +74,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Creates Biomass_coefs, GWP, BNF, etc. in environment</span></span>
-<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu">Calc_NPP_potentials</span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span>  <span class="co"># Functions use environment objects</span></span></code></pre></div>
+<span><span class="va">npp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_potential_npp.html">Calc_NPP_potentials</a></span><span class="op">(</span><span class="va">climate_data</span><span class="op">)</span>  <span class="co"># Functions use environment objects</span></span></code></pre></div>
 <p><strong>Implications for development</strong>: - Functions have implicit dependencies on environment objects - Test files must call <code><a href="reference/load_general_data.html">load_general_data()</a></code> in setup (see <code>tests/testthat/setup-afsetools.R</code>) - Adding new data: Update <code><a href="reference/load_general_data.html">load_general_data()</a></code>, document in <code>R/data.R</code>, list in <code>DATA_REFERENCE.md</code></p>
 </div>
 <div class="section level2">
@@ -175,7 +175,7 @@
 <ol style="list-style-type: decimal"><li>
 <strong>Data Loading</strong> (<code>load_data.R</code>): <code><a href="reference/load_general_data.html">load_general_data()</a></code> - loads 73+ objects</li>
 <li>
-<strong>NPP Calculation</strong> (<code>npp_functions.R</code>): <code>Calc_NPP_potentials()</code>, <code>Calculate_crop_NPP()</code>, <code>Calc_NPP_DM_C_N()</code>, <code>Calc_CropNPP_components()</code>
+<strong>NPP Calculation</strong> (<code>npp_functions.R</code>): <code><a href="reference/calculate_potential_npp.html">Calc_NPP_potentials()</a></code>, <code><a href="reference/calculate_crop_npp.html">Calculate_crop_NPP()</a></code>, <code><a href="reference/calculate_npp_dm_c_n.html">Calc_NPP_DM_C_N()</a></code>, <code><a href="reference/calculate_crop_npp_components.html">Calc_CropNPP_components()</a></code>
 </li>
 <li>
 <strong>Impact Tracing</strong> (<code>impact_functions.R</code>): <code><a href="reference/Prepare_prim.html">Prepare_prim()</a></code>, <code><a href="reference/Allocate_impacts_to_products.html">Allocate_impacts_to_products()</a></code>, <code><a href="reference/calc_avail_fp_gt.html">calc_avail_fp_gt()</a></code>, <code><a href="reference/Calc_impact_processed.html">Calc_impact_processed()</a></code>
