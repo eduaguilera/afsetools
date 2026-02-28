@@ -21,12 +21,11 @@ A data frame with columns:
 }
 }
 \source{
-IPCC (2019) 2019 Refinement to the 2006 IPCC Guidelines,
-  Vol.4, Ch.11, Table 11.1a. Bolinder et al. (2007). Gan et al. (2009).
+IPCC (2006) Guidelines for National Greenhouse Gas Inventories,
+  Vol.4, Ch.11, Table 11.2. Bolinder et al. (2007). Gan et al. (2009).
 }
 \description{
 Linear model coefficients for estimating above-ground crop residue biomass
-from yield, based on IPCC 2019 Refinement guidelines (Vol.4, Ch.11,
-Table 11.1a).
+from yield, based on IPCC 2006 Guidelines (Vol.4, Ch.11, Table 11.2).
 }
 \keyword{datasets}

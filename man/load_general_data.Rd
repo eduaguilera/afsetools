@@ -20,12 +20,13 @@ NULL (loads objects into parent environment)
 \description{
 Loads all foundational data objects from Excel files in inst/extdata/ and
 optionally creates color palettes, factor levels, and categorical dataframes
-via `load_vectors()`. This function creates 73+ objects (or 370+ with
+via `load_vectors()`. This function creates 80 objects (or 380+ with
 vectors) in the calling environment including:
 - 35 code/nomenclature objects from Codes_coefs.xlsx
 - 3 derived objects (regions_full_uISO3, Names_biomass_cats, items_prim)
 - 17 biomass coefficient objects from Biomass_coefs.xlsx
 - 6 IPCC residue/root coefficient objects from Biomass_coefs.xlsx
+- 1 NPP model coefficient object from Biomass_coefs.xlsx
 - 7 GWP objects from GWP.xlsx
 - 3 BNF objects from BNF.xlsx
 - 6 miscellaneous coefficient scalars
@@ -55,6 +56,9 @@ Rhizod_kgN_kgRootN_W, Residue_kgC_kgDM_Wo, Root_kgC_kgDM_Wo
 IPCC residue/root coefficient objects:
 IPCC_residue_coefs, IPCC_root_coefs, IPCC_crop_mapping,
 Modern_variety_adoption, N_input_RS_adj, Irrigation_adj
+
+NPP model coefficient objects:
+NPP_model_coefs
 
 GWP objects:
 GWP, GWP_C, GWP_CO2, GWP_CH4, GWP_CH4_fossil, GWP_N2ON, GWP_N2O

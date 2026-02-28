@@ -18,8 +18,9 @@ A data frame with columns:
 }
 }
 \source{
-IPCC (2019) 2019 Refinement, Vol.4, Ch.11. Bolinder et al.
-  (2007). Poorter & Nagel (2000). Benjamin et al. (2014).
+IPCC (2006) Guidelines for National Greenhouse Gas Inventories,
+  Vol.4, Ch.11. Bolinder et al. (2007). Poorter & Nagel (2000).
+  Benjamin et al. (2014).
 }
 \description{
 Root-to-shoot ratios and reference root biomass values for estimating

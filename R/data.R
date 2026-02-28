@@ -1,10 +1,10 @@
 #' Data Objects Loaded by load_general_data()
 #'
-#' This package contains 79+ data objects that are loaded into the environment
+#' This package contains 80 data objects that are loaded into the environment
 #' when you call \code{load_general_data()}. These include nomenclatures, 
 #' biomass coefficients, global warming potentials, IPCC crop residue and root
-#' coefficients, and other parameters needed for environmental footprint
-#' calculations.
+#' coefficients, NPP model coefficients, and other parameters needed for
+#' environmental footprint calculations.
 #'
 #' @details
 #' The data objects include:
@@ -12,6 +12,7 @@
 #'   \item 35 nomenclature and classification objects
 #'   \item 17 biomass coefficient objects
 #'   \item 6 IPCC residue/root coefficient objects
+#'   \item 1 NPP model coefficient object
 #'   \item 7 global warming potential objects
 #'   \item 3 biological nitrogen fixation objects
 #'   \item 6 constants and scalars
@@ -120,8 +121,7 @@ NULL
 #' IPCC Crop Residue Coefficients
 #'
 #' Linear model coefficients for estimating above-ground crop residue biomass
-#' from yield, based on IPCC 2019 Refinement guidelines (Vol.4, Ch.11,
-#' Table 11.1a).
+#' from yield, based on IPCC 2006 Guidelines (Vol.4, Ch.11, Table 11.2).
 #'
 #' @format A data frame with columns:
 #' \describe{
@@ -137,8 +137,8 @@ NULL
 #'     (kg N / kg DM).}
 #'   \item{Source}{Literature source reference.}
 #' }
-#' @source IPCC (2019) 2019 Refinement to the 2006 IPCC Guidelines,
-#'   Vol.4, Ch.11, Table 11.1a. Bolinder et al. (2007). Gan et al. (2009).
+#' @source IPCC (2006) Guidelines for National Greenhouse Gas Inventories,
+#'   Vol.4, Ch.11, Table 11.2. Bolinder et al. (2007). Gan et al. (2009).
 #' @name IPCC_residue_coefs
 #' @docType data
 #' @keywords datasets
@@ -160,8 +160,9 @@ NULL
 #'   \item{BG_ref_MgDMha}{Reference below-ground biomass (Mg DM / ha).}
 #'   \item{Source}{Literature source reference.}
 #' }
-#' @source IPCC (2019) 2019 Refinement, Vol.4, Ch.11. Bolinder et al.
-#'   (2007). Poorter & Nagel (2000). Benjamin et al. (2014).
+#' @source IPCC (2006) Guidelines for National Greenhouse Gas Inventories,
+#'   Vol.4, Ch.11. Bolinder et al. (2007). Poorter & Nagel (2000).
+#'   Benjamin et al. (2014).
 #' @name IPCC_root_coefs
 #' @docType data
 #' @keywords datasets
@@ -242,6 +243,36 @@ NULL
 #' @source Sadras (2007) Field Crops Research 100:125-138.
 #'   Zhang et al. (2019). Benjamin et al. (2014).
 #' @name Irrigation_adj
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' NPP Model Coefficients
+#'
+#' Numeric coefficients for potential NPP models used by
+#' \code{calculate_potential_npp()}. Contains all parameters for the Miami,
+#' NCEAS (tree and non-tree), and Rosenzweig models. Coefficients are
+#' verified against published sources.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{Model}{Model name (Miami, NCEAS_tree_TNPP, NCEAS_tree_ANPP,
+#'     NCEAS_nontree_TNPP, NCEAS_nontree_ANPP, Rosenzweig).}
+#'   \item{Component}{Formula component (F_MAT, F_MAP, Saturating,
+#'     Log_linear).}
+#'   \item{Parameter}{Parameter name (Max_gCm2yr, Midpoint, Rate,
+#'     Coefficient, Exponent, Exp_divisor, Slope, Intercept).}
+#'   \item{Value}{Numeric parameter value.}
+#'   \item{Unit}{Physical unit of the parameter.}
+#'   \item{Formula_role}{Role of the parameter in the model formula.}
+#'   \item{Climate_var}{Climate variable the parameter applies to
+#'     (Temperature, Precipitation, AET).}
+#'   \item{Source}{Literature source reference.}
+#' }
+#' @source Lieth (1975) Modeling Primary Productivity of the World.
+#'   Del Grosso et al. (2008) Ecology 89:2117-2126.
+#'   Rosenzweig (1968) Am Nat 102:67-74.
+#' @name NPP_model_coefs
 #' @docType data
 #' @keywords datasets
 NULL

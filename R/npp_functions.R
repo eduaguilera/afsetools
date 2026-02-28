@@ -1,33 +1,130 @@
 #' Calculate Potential Net Primary Production (NPP)
 #'
-#' Calculates potential NPP using various models including Miami, NCEAS, and Rosenzweig.
-#' This function estimates ecosystem productivity based on temperature and precipitation.
+#' Calculates potential NPP using various models including Miami, NCEAS, and
+#' Rosenzweig. All model coefficients are read from `NPP_model_coefs` (loaded
+#' by `load_general_data()`) rather than hardcoded in the function.
 #'
-#' @param Dataset A data frame containing climate data with columns: TMP (temperature), Water_input_mm (Precipitation + Irrigation), AET_mm (actual evapotranspiration)
+#' @param Dataset A data frame containing climate data with columns:
+#'   \describe{
+#'     \item{TMP}{Mean annual temperature (degrees C).}
+#'     \item{WaterInput_mm}{Total water input: precipitation + irrigation (mm).}
+#'     \item{AET_mm}{Actual evapotranspiration (mm).}
+#'   }
 #'
-#' @return A data frame with calculated NPP values from different models in MgDM/ha
+#' @return A data frame with calculated NPP values from different models
+#'   in Mg DM/ha.
+#'
+#' @details
+#' Requires the following objects from `load_general_data()`:
+#' - `NPP_model_coefs` — model parameters (Miami, NCEAS, Rosenzweig)
+#' - `Residue_kgC_kgDM_Wo` — C content of woody residues for DM conversion
+#' - `Residue_kgC_kgDM_W` — C content of non-tree residues for DM conversion
+#'
+#' Models implemented:
+#' - **Miami** (Lieth 1975): min of temperature and precipitation limits
+#' - **NCEAS tree** (Del Grosso et al. 2008, Table 1): min(F_MAP, F_MAT)
+#'   for both TNPP and ANPP
+#' - **NCEAS non-tree** (Del Grosso et al. 2008, Table 2): precipitation-only
+#'   saturating functions for TNPP and ANPP
+#' - **Rosenzweig** (1968): log-linear model based on AET
+#'
+#' @references
+#' Lieth, H. (1975) Modeling the Primary Productivity of the World. In:
+#'   Primary Productivity of the Biosphere, Springer.
+#'
+#' Del Grosso, S. et al. (2008) Global potential net primary production
+#'   predicted from vegetation class, precipitation, and temperature.
+#'   Ecology 89:2117-2126.
+#'
+#' Rosenzweig, M.L. (1968) Net Primary Productivity of Terrestrial
+#'   Communities: Prediction from Climatological Data. Am Nat 102:67-74.
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#' load_general_data()
 #' climate_data <- data.frame(TMP = 15, WaterInput_mm = 800, AET_mm = 700)
 #' npp_results <- calculate_potential_npp(climate_data)
 #' }
 calculate_potential_npp <- function(Dataset) {
+
+  # --- Extract model coefficients from NPP_model_coefs table ----------------
+  # Helper to look up a single coefficient value by Model, Component, Parameter
+  .npp_coef <- function(model, param, component = NULL) {
+    mask <- NPP_model_coefs$Model == model &
+      NPP_model_coefs$Parameter == param
+    if (!is.null(component)) {
+      mask <- mask & NPP_model_coefs$Component == component
+    }
+    val <- NPP_model_coefs$Value[mask]
+    if (length(val) != 1L) {
+      stop("NPP_model_coefs: no unique match for Model='", model,
+           "', Parameter='", param, "'",
+           if (!is.null(component)) paste0(", Component='", component, "'"),
+           call. = FALSE)
+    }
+    val
+  }
+
+  # Miami model (Lieth 1975)
+  miami_T_max  <- .npp_coef("Miami", "Max_gCm2yr", "F_MAT")
+  miami_T_mid  <- .npp_coef("Miami", "Midpoint",   "F_MAT")
+  miami_T_rate <- .npp_coef("Miami", "Rate",        "F_MAT")
+  miami_P_max  <- .npp_coef("Miami", "Max_gCm2yr", "F_MAP")
+  miami_P_rate <- .npp_coef("Miami", "Rate",        "F_MAP")
+
+  # NCEAS tree TNPP (Del Grosso et al. 2008, Table 1)
+  tree_T_coef   <- .npp_coef("NCEAS_tree_TNPP", "Coefficient")
+  tree_T_exp    <- .npp_coef("NCEAS_tree_TNPP", "Exponent")
+  tree_T_div    <- .npp_coef("NCEAS_tree_TNPP", "Exp_divisor")
+  tree_T_max    <- .npp_coef("NCEAS_tree_TNPP", "Max_gCm2yr")
+  tree_T_mid    <- .npp_coef("NCEAS_tree_TNPP", "Midpoint")
+  tree_T_rate   <- .npp_coef("NCEAS_tree_TNPP", "Rate")
+
+  # NCEAS tree ANPP (Del Grosso et al. 2008, Table 1)
+  treeA_coef    <- .npp_coef("NCEAS_tree_ANPP", "Coefficient")
+  treeA_exp     <- .npp_coef("NCEAS_tree_ANPP", "Exponent")
+  treeA_div     <- .npp_coef("NCEAS_tree_ANPP", "Exp_divisor")
+  treeA_max     <- .npp_coef("NCEAS_tree_ANPP", "Max_gCm2yr")
+  treeA_mid     <- .npp_coef("NCEAS_tree_ANPP", "Midpoint")
+  treeA_rate    <- .npp_coef("NCEAS_tree_ANPP", "Rate")
+
+  # NCEAS non-tree TNPP (Del Grosso et al. 2008, Table 2)
+  nt_T_max      <- .npp_coef("NCEAS_nontree_TNPP", "Max_gCm2yr")
+  nt_T_rate     <- .npp_coef("NCEAS_nontree_TNPP", "Rate")
+
+  # NCEAS non-tree ANPP (Del Grosso et al. 2008, Table 2)
+  nt_A_max      <- .npp_coef("NCEAS_nontree_ANPP", "Max_gCm2yr")
+  nt_A_rate     <- .npp_coef("NCEAS_nontree_ANPP", "Rate")
+
+  # Rosenzweig (1968)
+  rosen_slope   <- .npp_coef("Rosenzweig", "Slope")
+  rosen_int     <- .npp_coef("Rosenzweig", "Intercept")
+
+  # --- Compute NPP models ---------------------------------------------------
   Dataset |>
     dplyr::mutate(
-      NPPT_Miami_MgDMha = (3000 / (1 + exp(1.315 - 0.119 * TMP))) / 100,
-      NPPP_Miami_MgDMha = (3000 * (1 - exp(-0.000664 * WaterInput_mm))) / 100,
-      FMAP_TNPP_NCEAS_MgDMha = ((0.551 * WaterInput_mm^1.055) / exp(0.000306 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
-      FMAT_TNPP_NCEAS_MgDMha = 2540 / (1 + exp(1.584 - 0.0622 * TMP)) / (100 * Residue_kgC_kgDM_Wo),
-      FMAP_ANPP_NCEAS_MgDMha = ((0.1665 * WaterInput_mm^1.185) / exp(0.000414 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
-      FMAT_ANPP_NCEAS_MgDMha = 3139 / (1 + exp(2.2 - 0.0307 * TMP)) / (100 * Residue_kgC_kgDM_Wo),
-      TNPP_NCEAS_MgDMha = 6116 * (1 - exp(-6.05 * 10^-5 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_W), # NCEAS model for total non-tree vegetation, from Del Grosso et al. (2008)
-      ANPP_NCEAS_MgDMha = 4000 * (1 - exp(-4.77 * 10^-5 * WaterInput_mm)) / (100 * Residue_kgC_kgDM_W), # NCEAS model for aboveground non-tree vegetation, from Del Grosso et al. (2008)
-      TNPP_tree_NCEAS_MgDMha = pmin(FMAP_TNPP_NCEAS_MgDMha, FMAT_TNPP_NCEAS_MgDMha), # NCEAS model for total vegetation with trees,
-      ANPP_tree_NCEAS_MgDMha = pmin(FMAP_ANPP_NCEAS_MgDMha, FMAT_ANPP_NCEAS_MgDMha), # NCEAS model for aboveground vegetation with trees,
-      NPP_Miami_MgDMha = pmin(NPPT_Miami_MgDMha, NPPP_Miami_MgDMha), # Miami model, from Lieth (1975)
-      NPP_Rosenzweig_MgDMha = 10^(1.66 * log10(AET_mm) - 1.66) / 100, # Rosenzweig (1968), based on AET
+      # Miami model: temperature and precipitation components
+      NPPT_Miami_MgDMha = (miami_T_max / (1 + exp(miami_T_mid - miami_T_rate * TMP))) / 100,
+      NPPP_Miami_MgDMha = (miami_P_max * (1 - exp(-miami_P_rate * WaterInput_mm))) / 100,
+      # NCEAS tree-dominated TNPP: F(MAP) and F(MAT)
+      FMAP_TNPP_NCEAS_MgDMha = ((tree_T_coef * WaterInput_mm^tree_T_exp) / exp(tree_T_div * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
+      FMAT_TNPP_NCEAS_MgDMha = tree_T_max / (1 + exp(tree_T_mid - tree_T_rate * TMP)) / (100 * Residue_kgC_kgDM_Wo),
+      # NCEAS tree-dominated ANPP: F(MAP) and F(MAT)
+      FMAP_ANPP_NCEAS_MgDMha = ((treeA_coef * WaterInput_mm^treeA_exp) / exp(treeA_div * WaterInput_mm)) / (100 * Residue_kgC_kgDM_Wo),
+      FMAT_ANPP_NCEAS_MgDMha = treeA_max / (1 + exp(treeA_mid - treeA_rate * TMP)) / (100 * Residue_kgC_kgDM_Wo),
+      # NCEAS non-tree TNPP and ANPP (precipitation-only)
+      TNPP_NCEAS_MgDMha = nt_T_max * (1 - exp(-nt_T_rate * WaterInput_mm)) / (100 * Residue_kgC_kgDM_W),
+      ANPP_NCEAS_MgDMha = nt_A_max * (1 - exp(-nt_A_rate * WaterInput_mm)) / (100 * Residue_kgC_kgDM_W),
+      # Combined tree models: min of temperature and precipitation limits
+      TNPP_tree_NCEAS_MgDMha = pmin(FMAP_TNPP_NCEAS_MgDMha, FMAT_TNPP_NCEAS_MgDMha),
+      ANPP_tree_NCEAS_MgDMha = pmin(FMAP_ANPP_NCEAS_MgDMha, FMAT_ANPP_NCEAS_MgDMha),
+      # Miami combined: min of temperature and precipitation
+      NPP_Miami_MgDMha = pmin(NPPT_Miami_MgDMha, NPPP_Miami_MgDMha),
+      # Rosenzweig (AET-based)
+      NPP_Rosenzweig_MgDMha = 10^(rosen_slope * log10(AET_mm) + rosen_int) / 100,
+      # Derived root:shoot ratios from NCEAS models
       RS_ratio_NCEAS = (TNPP_NCEAS_MgDMha - ANPP_NCEAS_MgDMha) / ANPP_NCEAS_MgDMha,
       RS_ratio_tree_NCEAS = (TNPP_tree_NCEAS_MgDMha - ANPP_tree_NCEAS_MgDMha) / ANPP_tree_NCEAS_MgDMha
     )
@@ -351,15 +448,18 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
     )
 
   # --- N-input based RS adjustment (requires N_input_kgha column) -----------
+  # Use N_input_RS_adj table from load_general_data() for data-driven lookup
   Dataset <- Dataset |>
     dplyr::mutate(
-      N_RS_factor = dplyr::case_when(
-        N_input_kgha < 20  ~ 1.20,
-        N_input_kgha < 60  ~ 1.10,
-        N_input_kgha < 120 ~ 1.00,
-        N_input_kgha < 200 ~ 0.90,
-        TRUE               ~ 0.80
+      N_RS_factor = findInterval(
+        N_input_kgha,
+        vec = N_input_RS_adj$N_input_min
       )
+    ) |>
+    dplyr::mutate(
+      # Clamp to valid range [1, nrow(N_input_RS_adj)]
+      N_RS_factor = pmax(1L, pmin(N_RS_factor, nrow(N_input_RS_adj))),
+      N_RS_factor = N_input_RS_adj$RS_adjustment[N_RS_factor]
     )
 
   # --- Irrigation-based RS (requires Water_regime column) -------------------

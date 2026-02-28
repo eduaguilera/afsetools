@@ -1,12 +1,12 @@
 # afsetools Data Reference
 
-This document describes the 73+ data objects loaded by `load_general_data()`. All objects are automatically loaded into your R environment when you call this function.
+This document describes the 80 data objects loaded by `load_general_data()`. All objects are automatically loaded into your R environment when you call this function.
 
 ## Quick Reference
 
 ```r
 library(afsetools)
-load_general_data()  # Loads all 73+ objects below
+load_general_data()  # Loads all 80 objects below
 ```
 
 ## Nomenclatures and Classifications (35 objects)
@@ -56,8 +56,47 @@ Including specialized nomenclatures for crops, livestock, feed, and regional agg
 - **`Land_scaling`** - Land use intensity scaling factors
 - **`Protein_digestibility`** - Protein digestibility coefficients
 
-### Additional Coefficients (12+ more objects)
-Including specialized conversion factors for different biomass types and management systems.
+### Weed Biomass Constants (6 scalars)
+- **`Root_Shoot_ratio_W`** - Root to shoot ratio for weeds
+- **`Residue_kgDM_kgFM_W`** - Weed residue dry matter per fresh matter
+- **`Residue_kgN_kgDM_W`** - Nitrogen content of weed residues (kg N / kg DM)
+- **`Root_kgN_kgDM_W`** - Nitrogen content of weed roots (kg N / kg DM)
+- **`Residue_kgC_kgDM_W`** - Carbon content of weed residues (kg C / kg DM)
+- **`Root_kgC_kgDM_W`** - Carbon content of weed roots (kg C / kg DM)
+- **`Rhizod_kgN_kgRootN_W`** - Rhizodeposition nitrogen coefficient for weeds
+- **`Residue_kgC_kgDM_Wo`** - Carbon content of woody residues (kg C / kg DM)
+- **`Root_kgC_kgDM_Wo`** - Carbon content of woody roots (kg C / kg DM)
+
+## IPCC Crop Residue and Root Coefficients (6 objects)
+
+Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.
+
+- **`IPCC_residue_coefs`** - Linear model coefficients for above-ground residue
+  biomass (31 crops): Slope_AG, Intercept_AG_MgDMha, RS_ratio_IPCC,
+  N_AG_residue, N_BG_residue
+- **`IPCC_root_coefs`** - Root-to-shoot ratios with context-specific adjustments
+  (31 crops): RS_default, RS_low_N, RS_high_N, RS_irrigated, RS_rainfed,
+  BG_ref_MgDMha
+- **`IPCC_crop_mapping`** - Maps 136 FAO items (Name_biomass) to 31 IPCC
+  crop categories
+- **`Modern_variety_adoption`** - Historical adoption shares of modern
+  varieties by 8 world regions (1900-2020), with HI correction factors
+  (Evenson & Gollin 2003; Krausmann et al. 2013)
+- **`N_input_RS_adj`** - Nitrogen input adjustment factors for root:shoot
+  ratios (5 classes from <20 to >200 kg N/ha) based on Poorter & Nagel 2000
+- **`Irrigation_adj`** - Irrigation adjustment factors for residue:product
+  and root:shoot ratios (Irrigated, Rainfed, Mixed)
+
+## NPP Model Coefficients (1 object)
+
+- **`NPP_model_coefs`** - All numeric coefficients for potential NPP models
+  (23 parameters across 6 model variants):
+  - **Miami** (Lieth 1975): Temperature and precipitation logistic curves
+  - **NCEAS tree TNPP/ANPP** (Del Grosso et al. 2008, Table 1): Coupled
+    temperature-precipitation models for tree-dominated systems
+  - **NCEAS non-tree TNPP/ANPP** (Del Grosso et al. 2008, Table 2):
+    Precipitation-only saturating models for grasslands
+  - **Rosenzweig** (1968): AET-based log-linear model
 
 ## Global Warming Potentials (7 objects)
 
@@ -81,13 +120,12 @@ Including specialized conversion factors for different biomass types and managem
 
 ## Constants and Scalars (6 objects)
 
-### Weed Biomass Constants
-- **`Residue_kgC_kgDM_W`** - Carbon content of weed residues (kg C / kg DM)
-- **`Root_kgC_kgDM_W`** - Carbon content of weed roots (kg C / kg DM)  
-- **`Residue_kgN_kgDM_W`** - Nitrogen content of weed residues (kg N / kg DM)
-- **`Root_kgN_kgDM_W`** - Nitrogen content of weed roots (kg N / kg DM)
-- **`Root_Shoot_ratio_W`** - Root to shoot ratio for weeds
-- **`Rhizod_kgN_kgRootN_W`** - Rhizodeposition nitrogen coefficient for weeds
+- **`toe`** - Tonnes of oil equivalent conversion factor
+- **`IOM`** - Inert organic matter parameter
+- **`SOM_C`** - Soil organic matter carbon content
+- **`Soil_depth_carbon`** - Reference soil depth for carbon accounting
+- **`Protein_N`** - Protein to nitrogen conversion factor
+- **`Kcal_MJ`** - Kilocalorie to megajoule conversion factor
 
 ## Color Palettes and Vectors (8+ objects)
 
@@ -110,7 +148,15 @@ Including specialized conversion factors for different biomass types and managem
 All coefficients and classifications are derived from harmonized datasets including:
 
 - **FAO Statistics** - Production, trade, and commodity balance data
-- **IPCC Guidelines** - Emission factors and GWP values  
+- **IPCC 2006 Guidelines** - Crop residue/root coefficients (Vol.4, Ch.11, Table 11.2), emission factors, and GWP values
+- **Del Grosso et al. (2008)** - NCEAS NPP model coefficients (Ecology 89:2117-2126)
+- **Lieth (1975)** - Miami NPP model coefficients
+- **Rosenzweig (1968)** - AET-based NPP model (Am Nat 102:67-74)
+- **Evenson & Gollin (2003)** - Green Revolution variety adoption data (Science 300:758)
+- **Poorter & Nagel (2000)** - Root:shoot ratio response to N (New Phytologist 147:135)
+- **Scientific Literature** - Biomass coefficients and BNF parameters
+- **LUH2 Dataset** - Land use harmonization data
+- **Nutrient Databases** - Food composition and nutritional data
 - **Scientific Literature** - Biomass coefficients and BNF parameters
 - **LUH2 Dataset** - Land use harmonization data
 - **Nutrient Databases** - Food composition and nutritional data
