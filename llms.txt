@@ -518,6 +518,10 @@ details.
   : IPCC Crop Name Mapping
 - [`Modern_variety_adoption`](https://eduaguilera.github.io/afsetools/reference/Modern_variety_adoption.md)
   : Modern Variety Adoption Timeline
+- [`HI_crop_ranges`](https://eduaguilera.github.io/afsetools/reference/HI_crop_ranges.md)
+  : Crop-Group Harvest Index Ranges
+- [`Crop_RS_N_response`](https://eduaguilera.github.io/afsetools/reference/Crop_RS_N_response.md)
+  : Crop-Group Root:Shoot N-Response Sensitivity
 - [`N_input_RS_adj`](https://eduaguilera.github.io/afsetools/reference/N_input_RS_adj.md)
   : N Input Root:Shoot Adjustment Factors
 - [`Irrigation_adj`](https://eduaguilera.github.io/afsetools/reference/Irrigation_adj.md)

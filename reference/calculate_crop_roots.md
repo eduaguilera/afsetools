@@ -77,7 +77,9 @@ adjustments for N input and irrigation regime.
 allocation due to functional equilibrium (Poorter & Nagel 2000). The
 \`N_input_RS_adj\` table classifies N rates into 5 classes with
 multiplicative RS factors (0.80 for \>200 kg N/ha to 1.20 for \<20 kg
-N/ha).
+N/ha). This generic factor is then scaled by the crop-group-specific
+\`RS_N_sensitivity\` from \`Crop_RS_N_response\` (e.g., legumes respond
+minimally to soil N because they fix their own).
 
 \*\*Irrigation adjustment\*\*: Irrigated crops develop shallower root
 systems (Benjamin et al. 2014). Factor from \`Irrigation_adj\` table
@@ -94,7 +96,8 @@ aerial biomass.
 
 Requires from \`load_general_data()\`: - \`Biomass_coefs\`
 (Root_Shoot_ratio, BG_Biomass_kgDM_ha) - \`IPCC_root_coefs\`,
-\`IPCC_crop_mapping\` - \`N_input_RS_adj\`, \`Irrigation_adj\`
+\`IPCC_crop_mapping\` (with \`crop_group\` column) - \`N_input_RS_adj\`,
+\`Irrigation_adj\`, \`Crop_RS_N_response\`
 
 ## References
 

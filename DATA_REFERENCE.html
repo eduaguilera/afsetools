@@ -38,7 +38,7 @@
 <h2 id="quick-reference">Quick Reference<a class="anchor" aria-label="anchor" href="#quick-reference"></a></h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Loads all 80 objects below</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Loads all 82 objects below</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="nomenclatures-and-classifications-35-objects">Nomenclatures and Classifications (35 objects)<a class="anchor" aria-label="anchor" href="#nomenclatures-and-classifications-35-objects"></a></h2>
@@ -141,16 +141,20 @@
 </ul></div>
 </div>
 <div class="section level2">
-<h2 id="ipcc-crop-residue-and-root-coefficients-6-objects">IPCC Crop Residue and Root Coefficients (6 objects)<a class="anchor" aria-label="anchor" href="#ipcc-crop-residue-and-root-coefficients-6-objects"></a></h2>
+<h2 id="ipcc-crop-residue-and-root-coefficients-8-objects">IPCC Crop Residue and Root Coefficients (8 objects)<a class="anchor" aria-label="anchor" href="#ipcc-crop-residue-and-root-coefficients-8-objects"></a></h2>
 <p>Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.</p>
 <ul><li>
 <strong><code>IPCC_residue_coefs</code></strong> - Linear model coefficients for above-ground residue biomass (31 crops): Slope_AG, Intercept_AG_MgDMha, RS_ratio_IPCC, N_AG_residue, N_BG_residue</li>
 <li>
 <strong><code>IPCC_root_coefs</code></strong> - Root-to-shoot ratios with context-specific adjustments (31 crops): RS_default, RS_low_N, RS_high_N, RS_irrigated, RS_rainfed, BG_ref_MgDMha</li>
 <li>
-<strong><code>IPCC_crop_mapping</code></strong> - Maps 136 FAO items (Name_biomass) to 31 IPCC crop categories</li>
+<strong><code>IPCC_crop_mapping</code></strong> - Maps 136 FAO items (Name_biomass) to 31 IPCC crop categories and 8 broader crop groups (Wheat, Rice, Maize, Sorghum_millet, Legumes, Root_tuber, Oilseeds, Other)</li>
 <li>
-<strong><code>Modern_variety_adoption</code></strong> - Historical adoption shares of modern varieties by 8 world regions (1900-2020), with HI correction factors (Evenson &amp; Gollin 2003; Krausmann et al. 2013)</li>
+<strong><code>Modern_variety_adoption</code></strong> - Crop-group-specific adoption shares of modern varieties by 8 world regions and 8 crop groups (1900-2020), interpolated to annual resolution at load time. Primary source: Evenson &amp; Gollin (2003) Science 300:758-762</li>
+<li>
+<strong><code>HI_crop_ranges</code></strong> - Crop-group-specific harvest index characteristics: traditional vs modern HI values and derived HI gap factors (8 crop groups). Sources: Austin et al. (1980), Hay (1995), Khush (2001), Lorenz et al. (2010), Unkovich et al. (2010), Sinclair (1998)</li>
+<li>
+<strong><code>Crop_RS_N_response</code></strong> - Crop-group-specific root:shoot ratio N-response sensitivity (8 crop groups). Scales the generic N_input_RS_adj factor to reflect that legumes (0.30) respond minimally to soil N while cereals (1.00) respond fully. Sources: Poorter &amp; Nagel (2000), Peng &amp; Ismail (2004)</li>
 <li>
 <strong><code>N_input_RS_adj</code></strong> - Nitrogen input adjustment factors for root:shoot ratios (5 classes from &lt;20 to &gt;200 kg N/ha) based on Poorter &amp; Nagel 2000</li>
 <li>

@@ -9,7 +9,7 @@ call this function.
 
 ``` r
 library(afsetools)
-load_general_data()  # Loads all 80 objects below
+load_general_data()  # Loads all 82 objects below
 ```
 
 ## Nomenclatures and Classifications (35 objects)
@@ -88,7 +88,7 @@ regional aggregations.
   kg DM)
 - **`Root_kgC_kgDM_Wo`** - Carbon content of woody roots (kg C / kg DM)
 
-## IPCC Crop Residue and Root Coefficients (6 objects)
+## IPCC Crop Residue and Root Coefficients (8 objects)
 
 Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.
 
@@ -99,10 +99,22 @@ Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.
   adjustments (31 crops): RS_default, RS_low_N, RS_high_N, RS_irrigated,
   RS_rainfed, BG_ref_MgDMha
 - **`IPCC_crop_mapping`** - Maps 136 FAO items (Name_biomass) to 31 IPCC
-  crop categories
-- **`Modern_variety_adoption`** - Historical adoption shares of modern
-  varieties by 8 world regions (1900-2020), with HI correction factors
-  (Evenson & Gollin 2003; Krausmann et al. 2013)
+  crop categories and 8 broader crop groups (Wheat, Rice, Maize,
+  Sorghum_millet, Legumes, Root_tuber, Oilseeds, Other)
+- **`Modern_variety_adoption`** - Crop-group-specific adoption shares of
+  modern varieties by 8 world regions and 8 crop groups (1900-2020),
+  interpolated to annual resolution at load time. Primary source:
+  Evenson & Gollin (2003) Science 300:758-762
+- **`HI_crop_ranges`** - Crop-group-specific harvest index
+  characteristics: traditional vs modern HI values and derived HI gap
+  factors (8 crop groups). Sources: Austin et al. (1980), Hay (1995),
+  Khush (2001), Lorenz et al. (2010), Unkovich et al. (2010), Sinclair
+  (1998)
+- **`Crop_RS_N_response`** - Crop-group-specific root:shoot ratio
+  N-response sensitivity (8 crop groups). Scales the generic
+  N_input_RS_adj factor to reflect that legumes (0.30) respond minimally
+  to soil N while cereals (1.00) respond fully. Sources: Poorter & Nagel
+  (2000), Peng & Ismail (2004)
 - **`N_input_RS_adj`** - Nitrogen input adjustment factors for
   root:shoot ratios (5 classes from \<20 to \>200 kg N/ha) based on
   Poorter & Nagel 2000

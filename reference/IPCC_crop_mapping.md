@@ -1,7 +1,8 @@
 # IPCC Crop Name Mapping
 
 Maps Name_biomass crop classifications from Biomass_coefs to IPCC crop
-categories used in IPCC_residue_coefs and IPCC_root_coefs.
+categories used in IPCC_residue_coefs and IPCC_root_coefs, and to
+broader crop groups used for variety adoption and RS N sensitivity.
 
 ## Format
 
@@ -13,7 +14,12 @@ A data frame with columns:
 
 - IPCC_crop:
 
-  Corresponding IPCC crop category.
+  Corresponding IPCC crop category (31 categories).
+
+- crop_group:
+
+  Broad crop group for adoption and root-sensitivity tables (Wheat,
+  Rice, Maize, Sorghum_millet, Legumes, Root_tuber, Oilseeds, Other).
 
 ## Source
 
