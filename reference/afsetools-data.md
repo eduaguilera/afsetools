@@ -1,11 +1,11 @@
 # Data Objects Loaded by load_general_data()
 
-This package contains 73+ data objects that are loaded into the
+This package contains 79+ data objects that are loaded into the
 environment when you call
 [`load_general_data()`](https://eduaguilera.github.io/afsetools/reference/load_general_data.md).
 These include nomenclatures, biomass coefficients, global warming
-potentials, and other parameters needed for environmental footprint
-calculations.
+potentials, IPCC crop residue and root coefficients, and other
+parameters needed for environmental footprint calculations.
 
 ## Details
 
@@ -14,6 +14,8 @@ The data objects include:
 - 35 nomenclature and classification objects
 
 - 17 biomass coefficient objects
+
+- 6 IPCC residue/root coefficient objects
 
 - 7 global warming potential objects
 

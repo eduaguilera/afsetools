@@ -365,6 +365,10 @@ Net Primary Productivity calculation and conversion functions.
   : Calculate Potential Net Primary Production (NPP)
 - [`calculate_crop_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md)
   : Calculate Crop Net Primary Production Components
+- [`calculate_crop_residues()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_residues.md)
+  : Calculate Crop Above-Ground Residue Biomass
+- [`calculate_crop_roots()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_roots.md)
+  : Calculate Crop Below-Ground (Root) Biomass
 - [`calculate_npp_dm_c_n()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md)
   : Calculate NPP in Dry Matter, Carbon, and Nitrogen
 - [`calculate_crop_npp_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md)
@@ -396,7 +400,7 @@ Supply chain impact allocation and tracing functions.
 Specialized environmental impact calculations.
 
 - [`Calc_N_fix()`](https://eduaguilera.github.io/afsetools/reference/Calc_N_fix.md)
-  : Biological Nitrogen Fixation Functions
+  : Biological Nitrogen Fixation (Legacy Wrapper)
 - [`Gases_GWP()`](https://eduaguilera.github.io/afsetools/reference/Gases_GWP.md)
   : Classify GHG Emissions and Calculate Global Warming Potential
 - [`Calc_diets()`](https://eduaguilera.github.io/afsetools/reference/Calc_diets.md)
@@ -409,6 +413,22 @@ Specialized environmental impact calculations.
   : Calculate Land Scaling Factors
 - [`scale_land()`](https://eduaguilera.github.io/afsetools/reference/scale_land.md)
   : Scale Land Area by Cropping Intensity
+
+## BNF Functions
+
+Literature-based biological nitrogen fixation calculation with
+environmental modifiers for symbiotic and non-symbiotic BNF.
+
+- [`calc_bnf()`](https://eduaguilera.github.io/afsetools/reference/calc_bnf.md)
+  : Calculate Total Biological Nitrogen Fixation
+- [`calc_crop_bnf()`](https://eduaguilera.github.io/afsetools/reference/calc_crop_bnf.md)
+  : Calculate Crop Legume Symbiotic BNF
+- [`calc_weed_bnf()`](https://eduaguilera.github.io/afsetools/reference/calc_weed_bnf.md)
+  : Calculate Weed and Cover Crop Symbiotic BNF
+- [`calc_nonsymbiotic_bnf()`](https://eduaguilera.github.io/afsetools/reference/calc_nonsymbiotic_bnf.md)
+  : Calculate Non-Symbiotic BNF
+- [`summarize_bnf()`](https://eduaguilera.github.io/afsetools/reference/summarize_bnf.md)
+  : Summarize BNF Results by Crop or Region
 
 ## Main Workflow Functions
 
@@ -486,4 +506,16 @@ details.
   : Item Classifications
 - [`regions_full`](https://eduaguilera.github.io/afsetools/reference/regions_full.md)
   : Regional Classifications
+- [`IPCC_residue_coefs`](https://eduaguilera.github.io/afsetools/reference/IPCC_residue_coefs.md)
+  : IPCC Crop Residue Coefficients
+- [`IPCC_root_coefs`](https://eduaguilera.github.io/afsetools/reference/IPCC_root_coefs.md)
+  : IPCC Root Biomass Coefficients
+- [`IPCC_crop_mapping`](https://eduaguilera.github.io/afsetools/reference/IPCC_crop_mapping.md)
+  : IPCC Crop Name Mapping
+- [`Modern_variety_adoption`](https://eduaguilera.github.io/afsetools/reference/Modern_variety_adoption.md)
+  : Modern Variety Adoption Timeline
+- [`N_input_RS_adj`](https://eduaguilera.github.io/afsetools/reference/N_input_RS_adj.md)
+  : N Input Root:Shoot Adjustment Factors
+- [`Irrigation_adj`](https://eduaguilera.github.io/afsetools/reference/Irrigation_adj.md)
+  : Irrigation Adjustment Factors
 

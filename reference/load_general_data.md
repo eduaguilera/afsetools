@@ -6,6 +6,7 @@ dataframes via \`load_vectors()\`. This function creates 73+ objects (or
 370+ with vectors) in the calling environment including: - 35
 code/nomenclature objects from Codes_coefs.xlsx - 3 derived objects
 (regions_full_uISO3, Names_biomass_cats, items_prim) - 17 biomass
+coefficient objects from Biomass_coefs.xlsx - 6 IPCC residue/root
 coefficient objects from Biomass_coefs.xlsx - 7 GWP objects from
 GWP.xlsx - 3 BNF objects from BNF.xlsx - 6 miscellaneous coefficient
 scalars - 300+ vectors and dataframes from \`load_vectors()\` (if
@@ -53,6 +54,10 @@ Biomass coefficient objects: Biomass_coefs, Nutrients_energy,
 Root_Shoot_ratio_W, Residue_kgDM_kgFM_W, Residue_kgN_kgDM_W,
 Root_kgN_kgDM_W, Residue_kgC_kgDM_W, Root_kgC_kgDM_W,
 Rhizod_kgN_kgRootN_W, Residue_kgC_kgDM_Wo, Root_kgC_kgDM_Wo
+
+IPCC residue/root coefficient objects: IPCC_residue_coefs,
+IPCC_root_coefs, IPCC_crop_mapping, Modern_variety_adoption,
+N_input_RS_adj, Irrigation_adj
 
 GWP objects: GWP, GWP_C, GWP_CO2, GWP_CH4, GWP_CH4_fossil, GWP_N2ON,
 GWP_N2O
