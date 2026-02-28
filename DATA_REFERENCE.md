@@ -98,25 +98,30 @@ Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.
     Precipitation-only saturating models for grasslands
   - **Rosenzweig** (1968): AET-based log-linear model
 
-## Global Warming Potentials (7 objects)
+## Global Warming Potentials (8 objects)
 
 - **`GWP`** - Complete GWP table with multiple time horizons
-- **`GWP_100`** - 100-year GWP values (most commonly used)
-- **`GWP_20`** - 20-year GWP values  
-- **`GWP_500`** - 500-year GWP values
-- **`Gas_categories`** - GHG gas type classifications
-- **`IPCC_factors`** - IPCC emission factors
-- **`CH4_fossil_biogenic`** - Separate factors for fossil vs biogenic methane
+- **`GWP_C`** - Carbon molecular weight ratio
+- **`GWP_CO2`** - CO2 global warming potential (= 1)
+- **`GWP_CH4`** - CH4 100-year global warming potential
+- **`GWP_CH4_fossil`** - CH4 fossil 100-year GWP (higher than biogenic)
+- **`GWP_N2O`** - N2O 100-year global warming potential
+- **`GWP_N2ON`** - N2O-N to N2O conversion factor times GWP
 
 ## Biological Nitrogen Fixation (3 objects)
 
-- **`BNF`** - BNF parameters including:
-  - Ndfa (% of N derived from atmosphere)
-  - Leguminous_share (fraction of legumes)
-  - BGN (below-ground nitrogen)
-  - NHI (nitrogen harvest index)
-- **`Names_BNF`** - BNF nomenclature and crop mappings
-- **`Ndfa_ref`** - Reference Ndfa values by crop and region
+- **`BNF`** - BNF parameters (17 rows) including:
+  - `Name_BNF` - BNF parameter category name
+  - `Ndfa` - Proportion of N derived from atmosphere (0-1; NA for rice/sugarcane)
+  - `NHI` - Nitrogen harvest index (NA for fallow/weeds)
+  - `BGN` - Below-ground nitrogen factor (NA for fallow/weeds)
+  - `kgNha` - Non-symbiotic BNF base rate (kg N/ha/yr; only rice=33, sugarcane=25)
+  - `Leguminous_share` - Fraction of leguminous species (0-1)
+  - `Source` - Literature reference for parameter values
+- **`Names_BNF`** - Crop name mapping (38 rows): maps `Name_biomass` to `Name_BNF`
+  categories; also includes `CB_Item` for commodity balance linking
+- **`Pure_legs`** - Pure legume classification (10 rows): categorises BNF
+  categories as `Grain` or `Fodder_pure` legumes
 
 ## Constants and Scalars (6 objects)
 

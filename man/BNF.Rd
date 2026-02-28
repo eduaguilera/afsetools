@@ -5,20 +5,38 @@
 \alias{BNF}
 \title{Biological Nitrogen Fixation Parameters}
 \format{
-A data frame with BNF coefficients:
+A data frame with 17 rows and 7 columns:
 \describe{
-  \item{Name_BNF}{Crop or system name}
-  \item{Ndfa}{Proportion of nitrogen derived from atmosphere (0-1)}
-  \item{Leguminous_share}{Fraction of leguminous species (0-1)}
-  \item{BGN}{Below-ground nitrogen parameter}
-  \item{NHI}{Nitrogen harvest index}
+  \item{Name_BNF}{Crop or system name (join key from
+    \code{Names_BNF}).}
+  \item{Ndfa}{Proportion of nitrogen derived from atmosphere
+    (0-1). NA for non-symbiotic crops (rice, sugarcane).}
+  \item{NHI}{Nitrogen harvest index: fraction of above-ground
+    N in harvested product. NA for fallow/weeds (Anglade method
+    not applicable). Values from Anglade et al. (2015).}
+  \item{BGN}{Below-ground N factor: ratio of total plant N to
+    above-ground N. NA for fallow/weeds.}
+  \item{kgNha}{Non-symbiotic BNF base rate (kg N/ha/yr). Only
+    set for rice (33) and sugarcane (25); NA for other crops
+    (default 5 used by \code{calc_nonsymbiotic_bnf}).}
+  \item{Leguminous_share}{Fraction of leguminous species in
+    the crop or system (0-1). Pure legumes = 1, rice/sugarcane
+    = 0, mixed swards = 0.33, weeds = 0.20, etc.}
+  \item{Source}{Literature reference for the parameter values.}
 }
 }
 \source{
-Scientific literature compilation
+Herridge et al. (2008) Plant and Soil 311:1-18;
+  Anglade et al. (2015) Nutr. Cycl. Agroecosyst. 103:37-56;
+  Lassaletta et al. (2014) Biogeosciences 11:2889-2907;
+  Ladha et al. (2016) Scientific Reports 6:19355.
 }
 \description{
-Parameters for calculating biological nitrogen fixation by crop type,
-including symbiotic and non-symbiotic fixation.
+Parameters for calculating biological nitrogen fixation (BNF) by crop
+or system type. Contains 17 rows covering pure legumes (grain and
+fodder), non-symbiotic fixation crops (rice, sugarcane), and partial
+legume systems (mixed swards, meadows, fallow, weeds). Used by
+\code{\link{calc_crop_bnf}}, \code{\link{calc_nonsymbiotic_bnf}},
+and \code{\link{calc_bnf}}.
 }
 \keyword{datasets}

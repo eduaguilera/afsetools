@@ -66,21 +66,93 @@ NULL
 
 #' Biological Nitrogen Fixation Parameters
 #'
-#' Parameters for calculating biological nitrogen fixation by crop type,
-#' including symbiotic and non-symbiotic fixation.
+#' Parameters for calculating biological nitrogen fixation (BNF) by crop
+#' or system type. Contains 17 rows covering pure legumes (grain and
+#' fodder), non-symbiotic fixation crops (rice, sugarcane), and partial
+#' legume systems (mixed swards, meadows, fallow, weeds). Used by
+#' \code{\link{calc_crop_bnf}}, \code{\link{calc_nonsymbiotic_bnf}},
+#' and \code{\link{calc_bnf}}.
 #'
-#' @format A data frame with BNF coefficients:
+#' @format A data frame with 17 rows and 7 columns:
 #' \describe{
-#'   \item{Name_BNF}{Crop or system name}
-#'   \item{Ndfa}{Proportion of nitrogen derived from atmosphere (0-1)}
-#'   \item{Leguminous_share}{Fraction of leguminous species (0-1)}
-#'   \item{BGN}{Below-ground nitrogen parameter}
-#'   \item{NHI}{Nitrogen harvest index}
+#'   \item{Name_BNF}{Crop or system name (join key from
+#'     \code{Names_BNF}).}
+#'   \item{Ndfa}{Proportion of nitrogen derived from atmosphere
+#'     (0-1). NA for non-symbiotic crops (rice, sugarcane).}
+#'   \item{NHI}{Nitrogen harvest index: fraction of above-ground
+#'     N in harvested product. NA for fallow/weeds (Anglade method
+#'     not applicable). Values from Anglade et al. (2015).}
+#'   \item{BGN}{Below-ground N factor: ratio of total plant N to
+#'     above-ground N. NA for fallow/weeds.}
+#'   \item{kgNha}{Non-symbiotic BNF base rate (kg N/ha/yr). Only
+#'     set for rice (33) and sugarcane (25); NA for other crops
+#'     (default 5 used by \code{calc_nonsymbiotic_bnf}).}
+#'   \item{Leguminous_share}{Fraction of leguminous species in
+#'     the crop or system (0-1). Pure legumes = 1, rice/sugarcane
+#'     = 0, mixed swards = 0.33, weeds = 0.20, etc.}
+#'   \item{Source}{Literature reference for the parameter values.}
 #' }
-#' @source Scientific literature compilation
+#' @source Herridge et al. (2008) Plant and Soil 311:1-18;
+#'   Anglade et al. (2015) Nutr. Cycl. Agroecosyst. 103:37-56;
+#'   Lassaletta et al. (2014) Biogeosciences 11:2889-2907;
+#'   Ladha et al. (2016) Scientific Reports 6:19355.
 #' @name BNF
 #' @docType data
-#' @keywords datasets  
+#' @keywords datasets
+NULL
+
+#' BNF Crop Name Mapping
+#'
+#' Maps crop-level \code{Name_biomass} values (from \code{Biomass_coefs})
+#' to BNF parameter categories (\code{Name_BNF} in the \code{BNF} table).
+#' Contains 38 rows covering all leguminous, partially leguminous, and
+#' non-symbiotic fixation crops present in the biomass coefficients.
+#'
+#' @format A data frame with 38 rows and 3 columns:
+#' \describe{
+#'   \item{Name_biomass}{Crop name matching \code{Biomass_coefs} (join
+#'     key to input data).}
+#'   \item{Name_BNF}{BNF parameter category (join key to \code{BNF}
+#'     table). One of 17 categories.}
+#'   \item{CB_Item}{Commodity Balance item name for linking to trade
+#'     data. NA for most entries; populated only for major crops.}
+#' }
+#'
+#' @details
+#' Crops not present in this table receive NA for all BNF parameters
+#' after joining, which correctly yields zero symbiotic BNF. Non-symbiotic
+#' BNF still applies using the default base rate (5 kg N/ha/yr).
+#'
+#' @source Internal classification based on FAO crop nomenclature and
+#'   botanical taxonomy.
+#' @name Names_BNF
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' Pure Legume Classification
+#'
+#' Classifies BNF parameter categories into grain legumes vs. fodder
+#' legumes. Used for categorising BNF contributions in summaries and
+#' diagnostics (e.g., \code{\link{summarize_bnf}}).
+#'
+#' @format A data frame with 10 rows and 2 columns:
+#' \describe{
+#'   \item{Name_BNF}{BNF parameter category (matches \code{BNF}
+#'     table).}
+#'   \item{Cat_leg}{Legume category: \code{"Grain"} for pulse and
+#'     oilseed legumes, \code{"Fodder_pure"} for forage legumes.}
+#' }
+#'
+#' @details
+#' Only pure legume categories are included (Leguminous_share = 1 in
+#' BNF table). Mixed systems (swards, meadows, weeds) and non-symbiotic
+#' crops (rice, sugarcane) are excluded.
+#'
+#' @source Internal classification.
+#' @name Pure_legs
+#' @docType data
+#' @keywords datasets
 NULL
 
 #' Item Classifications

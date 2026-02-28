@@ -116,6 +116,8 @@ reference:
   - Biomass_coefs
   - GWP
   - BNF
+  - Names_BNF
+  - Pure_legs
   - items_full
   - regions_full
   - IPCC_residue_coefs

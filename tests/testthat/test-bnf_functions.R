@@ -605,7 +605,16 @@ test_that("summarize_bnf produces correct summary", {
   expect_true("total_BNF_MgN" %in% names(summary))
   expect_true("pct_CropBNF" %in% names(summary))
   expect_true("pct_NSBNF" %in% names(summary))
+  expect_true("Cat_leg" %in% names(summary))
   expect_equal(nrow(summary), 2)  # Grouped by Name_biomass
+
+  # Lentils should be classified as Grain legume
+  lentils_row <- summary[summary$Name_biomass == "Lentils", ]
+  expect_equal(lentils_row$Cat_leg, "Grain")
+
+  # Wheat should have NA Cat_leg (not a legume)
+  wheat_row <- summary[summary$Name_biomass == "Wheat", ]
+  expect_true(is.na(wheat_row$Cat_leg))
 
   # Percentages should sum to ~100 per group
   for (i in seq_len(nrow(summary))) {
@@ -642,4 +651,104 @@ test_that("summarize_bnf errors without BNF columns", {
     summarize_bnf(df),
     "missing BNF result columns"
   )
+})
+
+# ============================================================================
+# Data integrity: BNF tables join validation
+# ============================================================================
+
+test_that("All Name_BNF in Names_BNF exist in BNF table", {
+  bnf_categories <- unique(BNF$Name_BNF)
+  mapping_categories <- unique(Names_BNF$Name_BNF)
+  missing <- setdiff(mapping_categories, bnf_categories)
+  expect_equal(
+    length(missing), 0,
+    info = paste("Names_BNF references missing BNF rows:",
+                 paste(missing, collapse = ", "))
+  )
+})
+
+test_that("All Pure_legs Name_BNF exist in BNF table", {
+  bnf_categories <- unique(BNF$Name_BNF)
+  pl_categories <- unique(Pure_legs$Name_BNF)
+  missing <- setdiff(pl_categories, bnf_categories)
+  expect_equal(
+    length(missing), 0,
+    info = paste("Pure_legs references missing BNF rows:",
+                 paste(missing, collapse = ", "))
+  )
+})
+
+test_that("Names_BNF has expected dimensions", {
+  expect_true(nrow(Names_BNF) >= 38)
+  expect_true(all(c("Name_biomass", "Name_BNF") %in% names(Names_BNF)))
+})
+
+test_that("BNF table has expected structure", {
+  expect_equal(nrow(BNF), 17)
+  required_cols <- c("Name_BNF", "Ndfa", "NHI", "BGN", "kgNha",
+                     "Leguminous_share", "Source")
+  expect_true(all(required_cols %in% names(BNF)))
+})
+
+test_that("BNF Ndfa values are in valid range", {
+  valid_ndfa <- BNF$Ndfa[!is.na(BNF$Ndfa)]
+  expect_true(all(valid_ndfa >= 0 & valid_ndfa <= 1))
+})
+
+test_that("BNF Leguminous_share values are in valid range", {
+  ls_vals <- BNF$Leguminous_share[!is.na(BNF$Leguminous_share)]
+  expect_true(all(ls_vals >= 0 & ls_vals <= 1))
+})
+
+test_that("BNF kgNha values are positive where set", {
+  kgn <- BNF$kgNha[!is.na(BNF$kgNha)]
+  expect_true(all(kgn > 0))
+  # Rice = 33, Sugarcane = 25
+  expect_equal(BNF$kgNha[BNF$Name_BNF == "Rice"], 33)
+  expect_equal(BNF$kgNha[BNF$Name_BNF == "Sugarcane"], 25)
+})
+
+test_that("Fodder types have NHI/BGN filled", {
+  # Fodder, other, Mixed swards, and Meadows should now have NHI/BGN
+  fodder_rows <- BNF[BNF$Name_BNF %in%
+    c("Fodder, other", "Mixed swards", "Meadows"), ]
+  expect_true(all(!is.na(fodder_rows$NHI)))
+  expect_true(all(!is.na(fodder_rows$BGN)))
+
+  # Fallow and Weeds should remain NA (not production systems)
+  non_prod <- BNF[BNF$Name_BNF %in% c("Fallow", "Weeds"), ]
+  expect_true(all(is.na(non_prod$NHI)))
+  expect_true(all(is.na(non_prod$BGN)))
+})
+
+test_that("New leguminous crops are mapped in Names_BNF", {
+  new_crops <- c(
+    "Bard vetch/Oneflower vetch, green",
+    "Bitter vetch, green",
+    "Cereal-legume mixture",
+    "Common sainfoin",
+    "Fenugreek, green",
+    "Subterranean clover",
+    "Tree medick",
+    "Legume brans",
+    "Other monospecific swards"
+  )
+  for (crop in new_crops) {
+    expect_true(
+      crop %in% Names_BNF$Name_biomass,
+      info = paste("Missing mapping for:", crop)
+    )
+  }
+})
+
+test_that("Pure_legs covers only pure legumes", {
+  # All Pure_legs categories should have Leguminous_share = 1
+  for (i in seq_len(nrow(Pure_legs))) {
+    bnf_row <- BNF[BNF$Name_BNF == Pure_legs$Name_BNF[i], ]
+    expect_equal(
+      bnf_row$Leguminous_share, 1,
+      info = paste(Pure_legs$Name_BNF[i], "should have share=1")
+    )
+  }
 })

@@ -1172,6 +1172,8 @@ calc_bnf <- function(x,
 #' @return A tibble with per-group summaries:
 #'   \describe{
 #'     \item{n}{Number of observations.}
+#'     \item{Cat_leg}{Legume category from \code{Pure_legs}: "Grain",
+#'       "Fodder_pure", or NA for non-legume/mixed systems.}
 #'     \item{total_CropBNF_MgN}{Sum of symbiotic crop BNF.}
 #'     \item{total_WeedsBNF_MgN}{Sum of weed/CC BNF.}
 #'     \item{total_NSBNF_MgN}{Sum of non-symbiotic BNF.}
@@ -1215,6 +1217,21 @@ summarize_bnf <- function(x, group_by = "Name_biomass") {
   if (!has_f_symb) x[["f_env_symb"]] <- NA_real_
   if (!has_f_ns) x[["f_env_ns"]] <- NA_real_
 
+  # Join legume category from Pure_legs if available
+  has_name_bnf <- "Name_BNF" %in% names(x)
+  if (has_name_bnf && exists("Pure_legs", envir = parent.frame())) {
+    pl <- get("Pure_legs", envir = parent.frame())
+    if (!"Cat_leg" %in% names(x)) {
+      x <- x |>
+        dplyr::left_join(
+          pl |> dplyr::select(Name_BNF, Cat_leg),
+          by = "Name_BNF"
+        )
+    }
+  } else if (!"Cat_leg" %in% names(x)) {
+    x[["Cat_leg"]] <- NA_character_
+  }
+
   # Build grouping
   if (!is.null(group_by)) {
     present_groups <- intersect(group_by, names(x))
@@ -1228,6 +1245,7 @@ summarize_bnf <- function(x, group_by = "Name_biomass") {
   x |>
     dplyr::summarise(
       n = dplyr::n(),
+      Cat_leg = dplyr::first(Cat_leg),
       total_CropBNF_MgN = sum(CropBNF, na.rm = TRUE),
       total_WeedsBNF_MgN = sum(WeedsBNF, na.rm = TRUE),
       total_NSBNF_MgN = sum(NSBNF, na.rm = TRUE),

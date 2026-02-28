@@ -18,6 +18,8 @@ overall summary.}
 A tibble with per-group summaries:
   \describe{
     \item{n}{Number of observations.}
+    \item{Cat_leg}{Legume category from \code{Pure_legs}: "Grain",
+      "Fodder_pure", or NA for non-legume/mixed systems.}
     \item{total_CropBNF_MgN}{Sum of symbiotic crop BNF.}
     \item{total_WeedsBNF_MgN}{Sum of weed/CC BNF.}
     \item{total_NSBNF_MgN}{Sum of non-symbiotic BNF.}
