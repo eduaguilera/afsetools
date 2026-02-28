@@ -502,6 +502,10 @@ details.
   Global Warming Potentials
 - [`BNF`](https://eduaguilera.github.io/afsetools/reference/BNF.md) :
   Biological Nitrogen Fixation Parameters
+- [`Names_BNF`](https://eduaguilera.github.io/afsetools/reference/Names_BNF.md)
+  : BNF Crop Name Mapping
+- [`Pure_legs`](https://eduaguilera.github.io/afsetools/reference/Pure_legs.md)
+  : Pure Legume Classification
 - [`items_full`](https://eduaguilera.github.io/afsetools/reference/items_full.md)
   : Item Classifications
 - [`regions_full`](https://eduaguilera.github.io/afsetools/reference/regions_full.md)
@@ -518,4 +522,6 @@ details.
   : N Input Root:Shoot Adjustment Factors
 - [`Irrigation_adj`](https://eduaguilera.github.io/afsetools/reference/Irrigation_adj.md)
   : Irrigation Adjustment Factors
+- [`NPP_model_coefs`](https://eduaguilera.github.io/afsetools/reference/NPP_model_coefs.md)
+  : NPP Model Coefficients
 

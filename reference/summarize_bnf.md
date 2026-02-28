@@ -33,6 +33,11 @@ A tibble with per-group summaries:
 
   Number of observations.
 
+- Cat_leg:
+
+  Legume category from `Pure_legs`: "Grain", "Fodder_pure", or NA for
+  non-legume/mixed systems.
+
 - total_CropBNF_MgN:
 
   Sum of symbiotic crop BNF.

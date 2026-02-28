@@ -33,12 +33,12 @@
 
 <div id="afsetools-data-reference" class="section level1">
 
-<p>This document describes the 73+ data objects loaded by <code><a href="reference/load_general_data.html">load_general_data()</a></code>. All objects are automatically loaded into your R environment when you call this function.</p>
+<p>This document describes the 80 data objects loaded by <code><a href="reference/load_general_data.html">load_general_data()</a></code>. All objects are automatically loaded into your R environment when you call this function.</p>
 <div class="section level2">
 <h2 id="quick-reference">Quick Reference<a class="anchor" aria-label="anchor" href="#quick-reference"></a></h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eduaguilera.github.io/afsetools">afsetools</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Loads all 73+ objects below</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/load_general_data.html">load_general_data</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Loads all 80 objects below</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="nomenclatures-and-classifications-35-objects">Nomenclatures and Classifications (35 objects)<a class="anchor" aria-label="anchor" href="#nomenclatures-and-classifications-35-objects"></a></h2>
@@ -119,59 +119,113 @@
 <strong><code>Protein_digestibility</code></strong> - Protein digestibility coefficients</li>
 </ul></div>
 <div class="section level3">
-<h3 id="additional-coefficients-12-more-objects">Additional Coefficients (12+ more objects)<a class="anchor" aria-label="anchor" href="#additional-coefficients-12-more-objects"></a></h3>
-<p>Including specialized conversion factors for different biomass types and management systems.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="global-warming-potentials-7-objects">Global Warming Potentials (7 objects)<a class="anchor" aria-label="anchor" href="#global-warming-potentials-7-objects"></a></h2>
+<h3 id="weed-biomass-constants-6-scalars">Weed Biomass Constants (6 scalars)<a class="anchor" aria-label="anchor" href="#weed-biomass-constants-6-scalars"></a></h3>
 <ul><li>
-<strong><code>GWP</code></strong> - Complete GWP table with multiple time horizons</li>
+<strong><code>Root_Shoot_ratio_W</code></strong> - Root to shoot ratio for weeds</li>
 <li>
-<strong><code>GWP_100</code></strong> - 100-year GWP values (most commonly used)</li>
-<li>
-<strong><code>GWP_20</code></strong> - 20-year GWP values<br></li>
-<li>
-<strong><code>GWP_500</code></strong> - 500-year GWP values</li>
-<li>
-<strong><code>Gas_categories</code></strong> - GHG gas type classifications</li>
-<li>
-<strong><code>IPCC_factors</code></strong> - IPCC emission factors</li>
-<li>
-<strong><code>CH4_fossil_biogenic</code></strong> - Separate factors for fossil vs biogenic methane</li>
-</ul></div>
-<div class="section level2">
-<h2 id="biological-nitrogen-fixation-3-objects">Biological Nitrogen Fixation (3 objects)<a class="anchor" aria-label="anchor" href="#biological-nitrogen-fixation-3-objects"></a></h2>
-<ul><li>
-<strong><code>BNF</code></strong> - BNF parameters including:
-<ul><li>Ndfa (% of N derived from atmosphere)</li>
-<li>Leguminous_share (fraction of legumes)</li>
-<li>BGN (below-ground nitrogen)</li>
-<li>NHI (nitrogen harvest index)</li>
-</ul></li>
-<li>
-<strong><code>Names_BNF</code></strong> - BNF nomenclature and crop mappings</li>
-<li>
-<strong><code>Ndfa_ref</code></strong> - Reference Ndfa values by crop and region</li>
-</ul></div>
-<div class="section level2">
-<h2 id="constants-and-scalars-6-objects">Constants and Scalars (6 objects)<a class="anchor" aria-label="anchor" href="#constants-and-scalars-6-objects"></a></h2>
-<div class="section level3">
-<h3 id="weed-biomass-constants">Weed Biomass Constants<a class="anchor" aria-label="anchor" href="#weed-biomass-constants"></a></h3>
-<ul><li>
-<strong><code>Residue_kgC_kgDM_W</code></strong> - Carbon content of weed residues (kg C / kg DM)</li>
-<li>
-<strong><code>Root_kgC_kgDM_W</code></strong> - Carbon content of weed roots (kg C / kg DM)<br></li>
+<strong><code>Residue_kgDM_kgFM_W</code></strong> - Weed residue dry matter per fresh matter</li>
 <li>
 <strong><code>Residue_kgN_kgDM_W</code></strong> - Nitrogen content of weed residues (kg N / kg DM)</li>
 <li>
 <strong><code>Root_kgN_kgDM_W</code></strong> - Nitrogen content of weed roots (kg N / kg DM)</li>
 <li>
-<strong><code>Root_Shoot_ratio_W</code></strong> - Root to shoot ratio for weeds</li>
+<strong><code>Residue_kgC_kgDM_W</code></strong> - Carbon content of weed residues (kg C / kg DM)</li>
+<li>
+<strong><code>Root_kgC_kgDM_W</code></strong> - Carbon content of weed roots (kg C / kg DM)</li>
 <li>
 <strong><code>Rhizod_kgN_kgRootN_W</code></strong> - Rhizodeposition nitrogen coefficient for weeds</li>
+<li>
+<strong><code>Residue_kgC_kgDM_Wo</code></strong> - Carbon content of woody residues (kg C / kg DM)</li>
+<li>
+<strong><code>Root_kgC_kgDM_Wo</code></strong> - Carbon content of woody roots (kg C / kg DM)</li>
 </ul></div>
 </div>
+<div class="section level2">
+<h2 id="ipcc-crop-residue-and-root-coefficients-6-objects">IPCC Crop Residue and Root Coefficients (6 objects)<a class="anchor" aria-label="anchor" href="#ipcc-crop-residue-and-root-coefficients-6-objects"></a></h2>
+<p>Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.</p>
+<ul><li>
+<strong><code>IPCC_residue_coefs</code></strong> - Linear model coefficients for above-ground residue biomass (31 crops): Slope_AG, Intercept_AG_MgDMha, RS_ratio_IPCC, N_AG_residue, N_BG_residue</li>
+<li>
+<strong><code>IPCC_root_coefs</code></strong> - Root-to-shoot ratios with context-specific adjustments (31 crops): RS_default, RS_low_N, RS_high_N, RS_irrigated, RS_rainfed, BG_ref_MgDMha</li>
+<li>
+<strong><code>IPCC_crop_mapping</code></strong> - Maps 136 FAO items (Name_biomass) to 31 IPCC crop categories</li>
+<li>
+<strong><code>Modern_variety_adoption</code></strong> - Historical adoption shares of modern varieties by 8 world regions (1900-2020), with HI correction factors (Evenson &amp; Gollin 2003; Krausmann et al. 2013)</li>
+<li>
+<strong><code>N_input_RS_adj</code></strong> - Nitrogen input adjustment factors for root:shoot ratios (5 classes from &lt;20 to &gt;200 kg N/ha) based on Poorter &amp; Nagel 2000</li>
+<li>
+<strong><code>Irrigation_adj</code></strong> - Irrigation adjustment factors for residue:product and root:shoot ratios (Irrigated, Rainfed, Mixed)</li>
+</ul></div>
+<div class="section level2">
+<h2 id="npp-model-coefficients-1-object">NPP Model Coefficients (1 object)<a class="anchor" aria-label="anchor" href="#npp-model-coefficients-1-object"></a></h2>
+<ul><li>
+<strong><code>NPP_model_coefs</code></strong> - All numeric coefficients for potential NPP models (23 parameters across 6 model variants):
+<ul><li>
+<strong>Miami</strong> (Lieth 1975): Temperature and precipitation logistic curves</li>
+<li>
+<strong>NCEAS tree TNPP/ANPP</strong> (Del Grosso et al. 2008, Table 1): Coupled temperature-precipitation models for tree-dominated systems</li>
+<li>
+<strong>NCEAS non-tree TNPP/ANPP</strong> (Del Grosso et al. 2008, Table 2): Precipitation-only saturating models for grasslands</li>
+<li>
+<strong>Rosenzweig</strong> (1968): AET-based log-linear model</li>
+</ul></li>
+</ul></div>
+<div class="section level2">
+<h2 id="global-warming-potentials-8-objects">Global Warming Potentials (8 objects)<a class="anchor" aria-label="anchor" href="#global-warming-potentials-8-objects"></a></h2>
+<ul><li>
+<strong><code>GWP</code></strong> - Complete GWP table with multiple time horizons</li>
+<li>
+<strong><code>GWP_C</code></strong> - Carbon molecular weight ratio</li>
+<li>
+<strong><code>GWP_CO2</code></strong> - CO2 global warming potential (= 1)</li>
+<li>
+<strong><code>GWP_CH4</code></strong> - CH4 100-year global warming potential</li>
+<li>
+<strong><code>GWP_CH4_fossil</code></strong> - CH4 fossil 100-year GWP (higher than biogenic)</li>
+<li>
+<strong><code>GWP_N2O</code></strong> - N2O 100-year global warming potential</li>
+<li>
+<strong><code>GWP_N2ON</code></strong> - N2O-N to N2O conversion factor times GWP</li>
+</ul></div>
+<div class="section level2">
+<h2 id="biological-nitrogen-fixation-3-objects">Biological Nitrogen Fixation (3 objects)<a class="anchor" aria-label="anchor" href="#biological-nitrogen-fixation-3-objects"></a></h2>
+<ul><li>
+<strong><code>BNF</code></strong> - BNF parameters (17 rows) including:
+<ul><li>
+<code>Name_BNF</code> - BNF parameter category name</li>
+<li>
+<code>Ndfa</code> - Proportion of N derived from atmosphere (0-1; NA for rice/sugarcane)</li>
+<li>
+<code>NHI</code> - Nitrogen harvest index (NA for fallow/weeds)</li>
+<li>
+<code>BGN</code> - Below-ground nitrogen factor (NA for fallow/weeds)</li>
+<li>
+<code>kgNha</code> - Non-symbiotic BNF base rate (kg N/ha/yr; only rice=33, sugarcane=25)</li>
+<li>
+<code>Leguminous_share</code> - Fraction of leguminous species (0-1)</li>
+<li>
+<code>Source</code> - Literature reference for parameter values</li>
+</ul></li>
+<li>
+<strong><code>Names_BNF</code></strong> - Crop name mapping (38 rows): maps <code>Name_biomass</code> to <code>Name_BNF</code> categories; also includes <code>CB_Item</code> for commodity balance linking</li>
+<li>
+<strong><code>Pure_legs</code></strong> - Pure legume classification (10 rows): categorises BNF categories as <code>Grain</code> or <code>Fodder_pure</code> legumes</li>
+</ul></div>
+<div class="section level2">
+<h2 id="constants-and-scalars-6-objects">Constants and Scalars (6 objects)<a class="anchor" aria-label="anchor" href="#constants-and-scalars-6-objects"></a></h2>
+<ul><li>
+<strong><code>toe</code></strong> - Tonnes of oil equivalent conversion factor</li>
+<li>
+<strong><code>IOM</code></strong> - Inert organic matter parameter</li>
+<li>
+<strong><code>SOM_C</code></strong> - Soil organic matter carbon content</li>
+<li>
+<strong><code>Soil_depth_carbon</code></strong> - Reference soil depth for carbon accounting</li>
+<li>
+<strong><code>Protein_N</code></strong> - Protein to nitrogen conversion factor</li>
+<li>
+<strong><code>Kcal_MJ</code></strong> - Kilocalorie to megajoule conversion factor</li>
+</ul></div>
 <div class="section level2">
 <h2 id="color-palettes-and-vectors-8-objects">Color Palettes and Vectors (8+ objects)<a class="anchor" aria-label="anchor" href="#color-palettes-and-vectors-8-objects"></a></h2>
 <div class="section level3">
@@ -207,7 +261,23 @@
 <ul><li>
 <strong>FAO Statistics</strong> - Production, trade, and commodity balance data</li>
 <li>
-<strong>IPCC Guidelines</strong> - Emission factors and GWP values<br></li>
+<strong>IPCC 2006 Guidelines</strong> - Crop residue/root coefficients (Vol.4, Ch.11, Table 11.2), emission factors, and GWP values</li>
+<li>
+<strong>Del Grosso et al. (2008)</strong> - NCEAS NPP model coefficients (Ecology 89:2117-2126)</li>
+<li>
+<strong>Lieth (1975)</strong> - Miami NPP model coefficients</li>
+<li>
+<strong>Rosenzweig (1968)</strong> - AET-based NPP model (Am Nat 102:67-74)</li>
+<li>
+<strong>Evenson &amp; Gollin (2003)</strong> - Green Revolution variety adoption data (Science 300:758)</li>
+<li>
+<strong>Poorter &amp; Nagel (2000)</strong> - Root:shoot ratio response to N (New Phytologist 147:135)</li>
+<li>
+<strong>Scientific Literature</strong> - Biomass coefficients and BNF parameters</li>
+<li>
+<strong>LUH2 Dataset</strong> - Land use harmonization data</li>
+<li>
+<strong>Nutrient Databases</strong> - Food composition and nutritional data</li>
 <li>
 <strong>Scientific Literature</strong> - Biomass coefficients and BNF parameters</li>
 <li>
