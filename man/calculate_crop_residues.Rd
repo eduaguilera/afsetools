@@ -63,9 +63,11 @@ index (Sadras 2007), meaning less residue per unit product. The adjustment
 factor (default 0.90 for irrigated) is from the `Irrigation_adj` table.
 
 **Modern variety correction**: Pre-Green-Revolution varieties had lower
-harvest index. The `Modern_variety_adoption` table provides regional
-time-series of `HI_correction_factor` (>1.0 for historical periods),
-which multiplies the residue:product ratio.
+harvest index. The `Modern_variety_adoption` table provides crop-group-
+specific regional time-series of adoption rates from Evenson & Gollin
+(2003), interpolated to annual resolution. Combined with `HI_crop_ranges`
+(crop-specific HI gap factors), this computes:
+`HI_correction = 1 + (1 - Modern_share) * (HI_gap_factor - 1)`.
 
 **Ensemble**: The final residue estimate blends both methods:
 `Residue_MgDM = w_ipcc * IPCC_estimate + (1 - w_ipcc) * ratio_estimate`
@@ -73,8 +75,8 @@ which multiplies the residue:product ratio.
 Requires these objects from `load_general_data()`:
 - `Biomass_coefs` (with `Product_kgDM_kgFM`, `Residue_kgDM_kgFM`,
   `kg_residue_kg_product_FM`)
-- `IPCC_residue_coefs`, `IPCC_crop_mapping`
-- `Irrigation_adj`, `Modern_variety_adoption`
+- `IPCC_residue_coefs`, `IPCC_crop_mapping` (with `crop_group` column)
+- `Irrigation_adj`, `Modern_variety_adoption`, `HI_crop_ranges`
 }
 \examples{
 \dontrun{

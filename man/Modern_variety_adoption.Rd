@@ -7,21 +7,25 @@
 \format{
 A data frame with columns:
 \describe{
-  \item{region_HANPP}{World region name (8 regions).}
-  \item{Year}{Year (decadal from 1900 to 2020).}
+  \item{region_HANPP}{World region name (8 regions matching
+    \code{regions_full$region_HANPP}).}
+  \item{crop_group}{Crop group (Wheat, Rice, Maize, Sorghum_millet,
+    Legumes, Root_tuber, Oilseeds, Other).}
+  \item{Year}{Year (annual from 1900 to 2020 after interpolation).}
   \item{Modern_share}{Share of area under modern varieties (0-1).}
-  \item{HI_correction_factor}{Multiplicative correction for
-    residue:product ratio (>1 = more residue in traditional systems).}
 }
 }
 \source{
 Evenson & Gollin (2003) Science 300:758-762.
-  Krausmann et al. (2013) Global Env Change 23:1170-1181.
-  Pingali (2012) PNAS 109:12302-12308.
+  Griliches (1957) hybrid maize adoption.
+  Dalrymple (1986) semi-dwarf wheat.
+  Gollin et al. (2021) roles of agricultural innovation.
 }
 \description{
-Regional time-series of modern (high-yielding) variety adoption shares
-and their effect on harvest index. Used to correct residue:product ratios
-for historical periods when traditional varieties dominated.
+Crop-group-specific regional time-series of modern (high-yielding)
+variety adoption shares. Loaded at decadal resolution from the Excel
+file and interpolated to annual resolution by \code{load_general_data()}.
+Used together with \code{HI_crop_ranges} to compute crop-specific
+HI correction factors for residue estimation.
 }
 \keyword{datasets}

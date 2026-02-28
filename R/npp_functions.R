@@ -185,9 +185,11 @@ calculate_potential_npp <- function(Dataset) {
 #' factor (default 0.90 for irrigated) is from the `Irrigation_adj` table.
 #'
 #' **Modern variety correction**: Pre-Green-Revolution varieties had lower
-#' harvest index. The `Modern_variety_adoption` table provides regional
-#' time-series of `HI_correction_factor` (>1.0 for historical periods),
-#' which multiplies the residue:product ratio.
+#' harvest index. The `Modern_variety_adoption` table provides crop-group-
+#' specific regional time-series of adoption rates from Evenson & Gollin
+#' (2003), interpolated to annual resolution. Combined with `HI_crop_ranges`
+#' (crop-specific HI gap factors), this computes:
+#' `HI_correction = 1 + (1 - Modern_share) * (HI_gap_factor - 1)`.
 #'
 #' **Ensemble**: The final residue estimate blends both methods:
 #' `Residue_MgDM = w_ipcc * IPCC_estimate + (1 - w_ipcc) * ratio_estimate`
@@ -195,8 +197,8 @@ calculate_potential_npp <- function(Dataset) {
 #' Requires these objects from `load_general_data()`:
 #' - `Biomass_coefs` (with `Product_kgDM_kgFM`, `Residue_kgDM_kgFM`,
 #'   `kg_residue_kg_product_FM`)
-#' - `IPCC_residue_coefs`, `IPCC_crop_mapping`
-#' - `Irrigation_adj`, `Modern_variety_adoption`
+#' - `IPCC_residue_coefs`, `IPCC_crop_mapping` (with `crop_group` column)
+#' - `Irrigation_adj`, `Modern_variety_adoption`, `HI_crop_ranges`
 #'
 #' @export
 #'
@@ -286,14 +288,25 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
     )
 
   # --- Modern variety HI correction (requires Year, region_HANPP) ------------
+  # Uses crop-group-specific adoption rates from Evenson & Gollin (2003) and
+  # crop-specific HI gap factors from HI_crop_ranges to compute the
+  # HI_correction_factor.  Falls back to 1.0 when crop_group is not available.
   Dataset <- Dataset |>
     dplyr::left_join(
       Modern_variety_adoption |>
-        dplyr::select(region_HANPP, Year, HI_correction_factor),
-      by = c("region_HANPP", "Year")
+        dplyr::select(region_HANPP, crop_group, Year, Modern_share),
+      by = c("region_HANPP", "crop_group", "Year")
+    ) |>
+    dplyr::left_join(
+      HI_crop_ranges |>
+        dplyr::select(crop_group, HI_gap_factor),
+      by = "crop_group"
     ) |>
     dplyr::mutate(
-      HI_correction_factor = tidyr::replace_na(HI_correction_factor, 1.0)
+      Modern_share     = tidyr::replace_na(Modern_share, 1.0),
+      HI_gap_factor    = tidyr::replace_na(HI_gap_factor, 1.0),
+      HI_correction_factor = 1 + (1 - Modern_share) *
+        (HI_gap_factor - 1)
     )
 
   # --- Ensemble: weighted mean of both methods -------------------------------
@@ -324,10 +337,11 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
   Dataset |>
     dplyr::select(
       -dplyr::any_of(c(
-        "IPCC_crop", "Slope_AG", "Intercept_AG_MgDMha",
+        "IPCC_crop", "crop_group", "Slope_AG", "Intercept_AG_MgDMha",
         "Residue_IPCC_Mgha", "Residue_IPCC_MgDM", "Residue_IPCC_adj_MgDM",
         "Residue_ratio_MgFM", "Residue_ratio_MgDM", "Residue_ratio_adj_MgDM",
-        "Residue_ratio_factor", "HI_correction_factor"
+        "Residue_ratio_factor", "HI_correction_factor",
+        "Modern_share", "HI_gap_factor"
       ))
     )
 }
@@ -380,7 +394,9 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
 #' allocation due to functional equilibrium (Poorter & Nagel 2000). The
 #' `N_input_RS_adj` table classifies N rates into 5 classes with
 #' multiplicative RS factors (0.80 for >200 kg N/ha to 1.20 for <20 kg
-#' N/ha).
+#' N/ha). This generic factor is then scaled by the crop-group-specific
+#' `RS_N_sensitivity` from `Crop_RS_N_response` (e.g., legumes respond
+#' minimally to soil N because they fix their own).
 #'
 #' **Irrigation adjustment**: Irrigated crops develop shallower root systems
 #' (Benjamin et al. 2014). Factor from `Irrigation_adj` table (default
@@ -396,8 +412,8 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
 #'
 #' Requires from `load_general_data()`:
 #' - `Biomass_coefs` (Root_Shoot_ratio, BG_Biomass_kgDM_ha)
-#' - `IPCC_root_coefs`, `IPCC_crop_mapping`
-#' - `N_input_RS_adj`, `Irrigation_adj`
+#' - `IPCC_root_coefs`, `IPCC_crop_mapping` (with `crop_group` column)
+#' - `N_input_RS_adj`, `Irrigation_adj`, `Crop_RS_N_response`
 #'
 #' @export
 #'
@@ -436,7 +452,7 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
 
   # --- Join IPCC root coefficients -------------------------------------------
   Dataset <- Dataset |>
-    dplyr::select(-dplyr::any_of("IPCC_crop")) |>
+    dplyr::select(-dplyr::any_of(c("IPCC_crop", "crop_group"))) |>
     dplyr::left_join(IPCC_crop_mapping, by = "Name_biomass")
 
   Dataset <- Dataset |>
@@ -451,15 +467,30 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
   # Use N_input_RS_adj table from load_general_data() for data-driven lookup
   Dataset <- Dataset |>
     dplyr::mutate(
-      N_RS_factor = findInterval(
+      N_RS_factor_raw = findInterval(
         N_input_kgha,
         vec = N_input_RS_adj$N_input_min
       )
     ) |>
     dplyr::mutate(
       # Clamp to valid range [1, nrow(N_input_RS_adj)]
-      N_RS_factor = pmax(1L, pmin(N_RS_factor, nrow(N_input_RS_adj))),
-      N_RS_factor = N_input_RS_adj$RS_adjustment[N_RS_factor]
+      N_RS_factor_raw = pmax(1L, pmin(N_RS_factor_raw,
+                                      nrow(N_input_RS_adj))),
+      N_RS_factor_raw = N_input_RS_adj$RS_adjustment[N_RS_factor_raw]
+    )
+
+  # --- Crop-group-specific RS N sensitivity (Poorter & Nagel 2000) ----------
+  # Scale the generic N_RS_factor by crop-group sensitivity.
+  # Legumes (low sensitivity) barely respond; cereals respond fully.
+  Dataset <- Dataset |>
+    dplyr::left_join(
+      Crop_RS_N_response |>
+        dplyr::select(crop_group, RS_N_sensitivity),
+      by = "crop_group"
+    ) |>
+    dplyr::mutate(
+      RS_N_sensitivity = tidyr::replace_na(RS_N_sensitivity, 1.0),
+      N_RS_factor = 1 + (N_RS_factor_raw - 1) * RS_N_sensitivity
     )
 
   # --- Irrigation-based RS (requires Water_regime column) -------------------
@@ -537,9 +568,10 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
   Dataset |>
     dplyr::select(
       -dplyr::any_of(c(
-        "IPCC_crop", "RS_default", "RS_low_N", "RS_high_N",
+        "IPCC_crop", "crop_group", "RS_default", "RS_low_N", "RS_high_N",
         "RS_irrigated", "RS_rainfed", "BG_ref_MgDMha",
-        "N_RS_factor", "RS_ratio_factor", "RS_base", "RS_effective",
+        "N_RS_factor_raw", "N_RS_factor", "RS_N_sensitivity",
+        "RS_ratio_factor", "RS_base", "RS_effective",
         "Aerial_MgDM", "Root_MgDM_RS", "BG_ref_used", "Root_MgDM_ref",
         "BG_Biomass_kgDM_ha"
       ))

@@ -243,12 +243,16 @@ NULL
 #' IPCC Crop Name Mapping
 #'
 #' Maps Name_biomass crop classifications from Biomass_coefs to IPCC crop
-#' categories used in IPCC_residue_coefs and IPCC_root_coefs.
+#' categories used in IPCC_residue_coefs and IPCC_root_coefs, and to
+#' broader crop groups used for variety adoption and RS N sensitivity.
 #'
 #' @format A data frame with columns:
 #' \describe{
 #'   \item{Name_biomass}{Crop name matching Biomass_coefs classification.}
-#'   \item{IPCC_crop}{Corresponding IPCC crop category.}
+#'   \item{IPCC_crop}{Corresponding IPCC crop category (31 categories).}
+#'   \item{crop_group}{Broad crop group for adoption and root-sensitivity
+#'     tables (Wheat, Rice, Maize, Sorghum_millet, Legumes, Root_tuber,
+#'     Oilseeds, Other).}
 #' }
 #' @source Package-internal mapping based on IPCC crop categories.
 #' @name IPCC_crop_mapping
@@ -258,21 +262,25 @@ NULL
 
 #' Modern Variety Adoption Timeline
 #'
-#' Regional time-series of modern (high-yielding) variety adoption shares
-#' and their effect on harvest index. Used to correct residue:product ratios
-#' for historical periods when traditional varieties dominated.
+#' Crop-group-specific regional time-series of modern (high-yielding)
+#' variety adoption shares. Loaded at decadal resolution from the Excel
+#' file and interpolated to annual resolution by \code{load_general_data()}.
+#' Used together with \code{HI_crop_ranges} to compute crop-specific
+#' HI correction factors for residue estimation.
 #'
 #' @format A data frame with columns:
 #' \describe{
-#'   \item{region_HANPP}{World region name (8 regions).}
-#'   \item{Year}{Year (decadal from 1900 to 2020).}
+#'   \item{region_HANPP}{World region name (8 regions matching
+#'     \code{regions_full$region_HANPP}).}
+#'   \item{crop_group}{Crop group (Wheat, Rice, Maize, Sorghum_millet,
+#'     Legumes, Root_tuber, Oilseeds, Other).}
+#'   \item{Year}{Year (annual from 1900 to 2020 after interpolation).}
 #'   \item{Modern_share}{Share of area under modern varieties (0-1).}
-#'   \item{HI_correction_factor}{Multiplicative correction for
-#'     residue:product ratio (>1 = more residue in traditional systems).}
 #' }
 #' @source Evenson & Gollin (2003) Science 300:758-762.
-#'   Krausmann et al. (2013) Global Env Change 23:1170-1181.
-#'   Pingali (2012) PNAS 109:12302-12308.
+#'   Griliches (1957) hybrid maize adoption.
+#'   Dalrymple (1986) semi-dwarf wheat.
+#'   Gollin et al. (2021) roles of agricultural innovation.
 #' @name Modern_variety_adoption
 #' @docType data
 #' @keywords datasets
@@ -315,6 +323,58 @@ NULL
 #' @source Sadras (2007) Field Crops Research 100:125-138.
 #'   Zhang et al. (2019). Benjamin et al. (2014).
 #' @name Irrigation_adj
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' Crop-Group Harvest Index Ranges
+#'
+#' Traditional and modern harvest index values per crop group, and the
+#' derived HI gap factor that quantifies how much more residue is produced
+#' per unit product under traditional versus modern varieties. Used by
+#' \code{calculate_crop_residues()} to compute crop-specific
+#' \code{HI_correction_factor} from \code{Modern_variety_adoption} shares.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{crop_group}{Crop group name (8 groups).}
+#'   \item{HI_traditional}{Typical harvest index of traditional/landrace
+#'     varieties (dimensionless, 0-1).}
+#'   \item{HI_modern}{Typical harvest index of modern/improved varieties
+#'     (dimensionless, 0-1).}
+#'   \item{HI_gap_factor}{Ratio of residue:product under traditional versus
+#'     modern HI: ((1-HI_trad)/HI_trad) / ((1-HI_mod)/HI_mod).}
+#'   \item{Source}{Literature source references.}
+#' }
+#' @source Austin et al. (1980) J Agric Sci 94:675-689.
+#'   Hay (1995) Ann Appl Biol 126:1-36.
+#'   Khush (2001) Plant Mol Biol 35:25-34.
+#'   Lorenz et al. (2010) Agron J 102:935-947.
+#'   Unkovich et al. (2010) ACIAR Monograph 136.
+#'   Sinclair (1998) Field Crops Res 56:171-181.
+#' @name HI_crop_ranges
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' Crop-Group Root:Shoot N-Response Sensitivity
+#'
+#' Crop-group-specific scaling factors for the root:shoot ratio response
+#' to soil nitrogen availability. Used by \code{calculate_crop_roots()}
+#' to modulate the generic \code{N_input_RS_adj} factor per crop group.
+#' Value 1.0 means full response to N; 0.0 means no response.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{crop_group}{Crop group name (8 groups).}
+#'   \item{RS_N_sensitivity}{Sensitivity multiplier (0-1.1). Applied as:
+#'     effective_factor = 1 + (raw_factor - 1) * RS_N_sensitivity.}
+#'   \item{Source}{Literature source references.}
+#' }
+#' @source Poorter & Nagel (2000) New Phytologist 147:135-147.
+#'   Peng & Ismail (2004) root allometry in rice systems.
+#'   Unkovich et al. (2010) ACIAR Monograph 136.
+#' @name Crop_RS_N_response
 #' @docType data
 #' @keywords datasets
 NULL

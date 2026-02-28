@@ -147,6 +147,8 @@ test_that("IPCC coefficient tables are loaded by load_general_data", {
   expect_true(exists("Modern_variety_adoption"))
   expect_true(exists("N_input_RS_adj"))
   expect_true(exists("Irrigation_adj"))
+  expect_true(exists("HI_crop_ranges"))
+  expect_true(exists("Crop_RS_N_response"))
 
   # Check structure
   expect_true("IPCC_crop" %in% names(IPCC_residue_coefs))
@@ -159,6 +161,7 @@ test_that("IPCC coefficient tables are loaded by load_general_data", {
 
   expect_true("Name_biomass" %in% names(IPCC_crop_mapping))
   expect_true("IPCC_crop" %in% names(IPCC_crop_mapping))
+  expect_true("crop_group" %in% names(IPCC_crop_mapping))
 
   # Check key crop mappings exist
   expect_true("Wheat" %in% IPCC_crop_mapping$Name_biomass)
@@ -169,6 +172,95 @@ test_that("IPCC coefficient tables are loaded by load_general_data", {
   expect_true(all(IPCC_residue_coefs$Slope_AG >= 0, na.rm = TRUE))
   expect_true(all(IPCC_root_coefs$RS_default > 0 &
                     IPCC_root_coefs$RS_default < 2, na.rm = TRUE))
+})
+
+
+test_that("Modern_variety_adoption has crop-group-specific annual data", {
+  # Structure checks
+  expect_true(all(c("region_HANPP", "crop_group", "Year", "Modern_share")
+                  %in% names(Modern_variety_adoption)))
+
+  # 8 regions x 8 crop groups x 121 years (1900-2020 annual)
+  expect_equal(length(unique(Modern_variety_adoption$region_HANPP)), 8)
+  expect_equal(length(unique(Modern_variety_adoption$crop_group)), 8)
+  expect_equal(min(Modern_variety_adoption$Year), 1900)
+  expect_equal(max(Modern_variety_adoption$Year), 2020)
+
+  # Annual interpolation: year 1965 should exist (not just decadal)
+  expect_true(1965 %in% Modern_variety_adoption$Year)
+
+  # All shares between 0 and 1
+  expect_true(all(Modern_variety_adoption$Modern_share >= 0 &
+                    Modern_variety_adoption$Modern_share <= 1,
+                  na.rm = TRUE))
+
+  # By 2020, developed regions should be ~100% modern for wheat
+  wheat_we_2020 <- Modern_variety_adoption |>
+    dplyr::filter(region_HANPP == "West Europe",
+                  crop_group == "Wheat", Year == 2020)
+  expect_equal(wheat_we_2020$Modern_share, 1.0)
+
+  # SSA 1940 wheat adoption = 0% (no Green Revolution yet)
+  wheat_ssa_1940 <- Modern_variety_adoption |>
+    dplyr::filter(region_HANPP == "Sub-saharan Africa",
+                  crop_group == "Wheat", Year == 1940)
+  expect_equal(wheat_ssa_1940$Modern_share, 0)
+
+  # Different crop groups should have different adoption rates
+  # Wheat was adopted much faster than legumes in South Asia
+  sa_1980 <- Modern_variety_adoption |>
+    dplyr::filter(region_HANPP == "South and Central Asia", Year == 1980)
+  wheat_1980 <- sa_1980 |>
+    dplyr::filter(crop_group == "Wheat") |>
+    dplyr::pull(Modern_share)
+  legume_1980 <- sa_1980 |>
+    dplyr::filter(crop_group == "Legumes") |>
+    dplyr::pull(Modern_share)
+  expect_gt(wheat_1980, legume_1980)
+})
+
+
+test_that("HI_crop_ranges has realistic values for all crop groups", {
+  expect_equal(nrow(HI_crop_ranges), 8)
+  expect_true(all(c("crop_group", "HI_traditional", "HI_modern",
+                     "HI_gap_factor") %in% names(HI_crop_ranges)))
+
+  # All HI values between 0 and 1
+  expect_true(all(HI_crop_ranges$HI_traditional > 0 &
+                    HI_crop_ranges$HI_traditional < 1))
+  expect_true(all(HI_crop_ranges$HI_modern > 0 &
+                    HI_crop_ranges$HI_modern < 1))
+
+  # Modern HI should always be higher than traditional
+  expect_true(all(HI_crop_ranges$HI_modern > HI_crop_ranges$HI_traditional))
+
+  # HI_gap_factor should always be > 1 (traditional = more residue)
+  expect_true(all(HI_crop_ranges$HI_gap_factor > 1))
+
+  # Wheat should have highest gap factor (biggest Green Revolution HI change)
+  wheat_gap <- HI_crop_ranges$HI_gap_factor[
+    HI_crop_ranges$crop_group == "Wheat"]
+  legume_gap <- HI_crop_ranges$HI_gap_factor[
+    HI_crop_ranges$crop_group == "Legumes"]
+  expect_gt(wheat_gap, legume_gap)
+})
+
+
+test_that("Crop_RS_N_response has all crop groups with valid sensitivities", {
+  expect_equal(nrow(Crop_RS_N_response), 8)
+  expect_true(all(c("crop_group", "RS_N_sensitivity")
+                  %in% names(Crop_RS_N_response)))
+
+  # Sensitivity values should be positive and bounded
+  expect_true(all(Crop_RS_N_response$RS_N_sensitivity > 0 &
+                    Crop_RS_N_response$RS_N_sensitivity <= 1.5))
+
+  # Legumes should have lowest sensitivity (N-fixing)
+  legume_sens <- Crop_RS_N_response$RS_N_sensitivity[
+    Crop_RS_N_response$crop_group == "Legumes"]
+  wheat_sens <- Crop_RS_N_response$RS_N_sensitivity[
+    Crop_RS_N_response$crop_group == "Wheat"]
+  expect_lt(legume_sens, wheat_sens)
 })
 
 
@@ -256,6 +348,86 @@ test_that("calculate_crop_residues handles modern variety correction", {
   # Historical period should have more residue per unit product
   # because traditional varieties had lower HI
   expect_gt(res_historical$Residue_MgDM, res_modern$Residue_MgDM)
+})
+
+
+test_that("calculate_crop_residues applies crop-group-specific HI correction", {
+  # Wheat and Rice in 1940 SSA should get different HI corrections
+  # because Wheat has HI_gap_factor=1.88 vs Rice=1.51
+  base_data <- tibble::tibble(
+    Prod_ygpit_Mg = 5,
+    Area_ygpit_ha = 1,
+    Year = 1940,
+    region_HANPP = "Sub-saharan Africa",
+    Water_regime = "Rainfed"
+  )
+  wheat_hist <- base_data |> dplyr::mutate(Name_biomass = "Wheat")
+  rice_hist <- base_data |> dplyr::mutate(Name_biomass = "Rice")
+
+  # Same crop in 2000 (modern varieties)
+  wheat_mod <- wheat_hist |> dplyr::mutate(Year = 2000)
+  rice_mod <- rice_hist |> dplyr::mutate(Year = 2000)
+
+  rw_hist <- calculate_crop_residues(wheat_hist)
+  rr_hist <- calculate_crop_residues(rice_hist)
+  rw_mod <- calculate_crop_residues(wheat_mod)
+  rr_mod <- calculate_crop_residues(rice_mod)
+
+  # Historical correction should be larger for wheat than rice
+  wheat_correction <- rw_hist$Residue_MgDM / rw_mod$Residue_MgDM
+  rice_correction <- rr_hist$Residue_MgDM / rr_mod$Residue_MgDM
+  expect_gt(wheat_correction, rice_correction)
+})
+
+
+test_that("calculate_crop_residues works with non-decadal years", {
+  # Year 1965 should work (annual interpolation) and not default to 1.0
+  crop_1965 <- tibble::tibble(
+    Name_biomass = "Wheat",
+    Prod_ygpit_Mg = 5,
+    Area_ygpit_ha = 1,
+    Year = 1965,
+    region_HANPP = "South and Central Asia",
+    Water_regime = "Rainfed"
+  )
+  crop_2000 <- crop_1965 |> dplyr::mutate(Year = 2000)
+
+  res_1965 <- calculate_crop_residues(crop_1965)
+  res_2000 <- calculate_crop_residues(crop_2000)
+
+  # 1965 should have higher residue than 2000 (partial adoption)
+  expect_gt(res_1965$Residue_MgDM, res_2000$Residue_MgDM)
+})
+
+
+test_that("calculate_crop_roots uses crop-specific RS N sensitivity", {
+  # Wheat (sensitivity=1.0) should respond more to N than legumes (0.3)
+  base_data <- tibble::tibble(
+    Prod_MgDM = 2,
+    Residue_MgDM = 2,
+    Area_ygpit_ha = 1,
+    Water_regime = "Rainfed"
+  )
+
+  wheat_low  <- base_data |>
+    dplyr::mutate(Name_biomass = "Wheat", N_input_kgha = 10)
+  wheat_high <- base_data |>
+    dplyr::mutate(Name_biomass = "Wheat", N_input_kgha = 250)
+  legume_low  <- base_data |>
+    dplyr::mutate(Name_biomass = "Soyabeans", N_input_kgha = 10)
+  legume_high <- base_data |>
+    dplyr::mutate(Name_biomass = "Soyabeans", N_input_kgha = 250)
+
+  rw_lo <- calculate_crop_roots(wheat_low)$Root_MgDM
+  rw_hi <- calculate_crop_roots(wheat_high)$Root_MgDM
+  rl_lo <- calculate_crop_roots(legume_low)$Root_MgDM
+  rl_hi <- calculate_crop_roots(legume_high)$Root_MgDM
+
+  wheat_ratio <- rw_lo / rw_hi
+  legume_ratio <- rl_lo / rl_hi
+
+  # Wheat should have a bigger low/high N ratio than legumes
+  expect_gt(wheat_ratio, legume_ratio)
 })
 
 

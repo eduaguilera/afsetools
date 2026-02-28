@@ -8,7 +8,10 @@
 A data frame with columns:
 \describe{
   \item{Name_biomass}{Crop name matching Biomass_coefs classification.}
-  \item{IPCC_crop}{Corresponding IPCC crop category.}
+  \item{IPCC_crop}{Corresponding IPCC crop category (31 categories).}
+  \item{crop_group}{Broad crop group for adoption and root-sensitivity
+    tables (Wheat, Rice, Maize, Sorghum_millet, Legumes, Root_tuber,
+    Oilseeds, Other).}
 }
 }
 \source{
@@ -16,6 +19,7 @@ Package-internal mapping based on IPCC crop categories.
 }
 \description{
 Maps Name_biomass crop classifications from Biomass_coefs to IPCC crop
-categories used in IPCC_residue_coefs and IPCC_root_coefs.
+categories used in IPCC_residue_coefs and IPCC_root_coefs, and to
+broader crop groups used for variety adoption and RS N sensitivity.
 }
 \keyword{datasets}

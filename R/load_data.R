@@ -3,12 +3,13 @@
 #' @description
 #' Loads all foundational data objects from Excel files in inst/extdata/ and
 #' optionally creates color palettes, factor levels, and categorical dataframes
-#' via `load_vectors()`. This function creates 80 objects (or 380+ with
+#' via `load_vectors()`. This function creates 82 objects (or 382+ with
 #' vectors) in the calling environment including:
 #' - 35 code/nomenclature objects from Codes_coefs.xlsx
 #' - 3 derived objects (regions_full_uISO3, Names_biomass_cats, items_prim)
 #' - 17 biomass coefficient objects from Biomass_coefs.xlsx
 #' - 6 IPCC residue/root coefficient objects from Biomass_coefs.xlsx
+#' - 2 crop-group helper objects (HI_crop_ranges, Crop_RS_N_response)
 #' - 1 NPP model coefficient object from Biomass_coefs.xlsx
 #' - 7 GWP objects from GWP.xlsx
 #' - 3 BNF objects from BNF.xlsx
@@ -46,7 +47,8 @@
 #'
 #' IPCC residue/root coefficient objects:
 #' IPCC_residue_coefs, IPCC_root_coefs, IPCC_crop_mapping,
-#' Modern_variety_adoption, N_input_RS_adj, Irrigation_adj
+#' Modern_variety_adoption, N_input_RS_adj, Irrigation_adj,
+#' HI_crop_ranges, Crop_RS_N_response
 #'
 #' NPP model coefficient objects:
 #' NPP_model_coefs
@@ -357,7 +359,36 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
     sheet = "Modern_variety_adoption",
     startRow = 1
   )
+  # Interpolate decadal adoption data to annual resolution so that
+  # left_join by Year in npp_functions works for any year, not just
+  # decade boundaries.  Uses zoo::na.approx for linear interpolation.
+  Modern_variety_adoption <- Modern_variety_adoption |>
+    tidyr::complete(
+      region_HANPP, crop_group,
+      Year = seq(min(Modern_variety_adoption$Year),
+                 max(Modern_variety_adoption$Year), by = 1L)
+    ) |>
+    dplyr::arrange(region_HANPP, crop_group, Year) |>
+    dplyr::group_by(region_HANPP, crop_group) |>
+    dplyr::mutate(
+      Modern_share = zoo::na.approx(Modern_share, Year, na.rm = FALSE)
+    ) |>
+    dplyr::ungroup()
   assign("Modern_variety_adoption", Modern_variety_adoption, envir = env)
+
+  HI_crop_ranges <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "HI_crop_ranges",
+    startRow = 1
+  )
+  assign("HI_crop_ranges", HI_crop_ranges, envir = env)
+
+  Crop_RS_N_response <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "Crop_RS_N_response",
+    startRow = 1
+  )
+  assign("Crop_RS_N_response", Crop_RS_N_response, envir = env)
 
   N_input_RS_adj <- openxlsx::read.xlsx(
     file.path(data_path, "Biomass_coefs.xlsx"),
@@ -384,9 +415,9 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   # Load vectors and dataframes ----
   if (load_vectors) {
     afsetools::load_vectors(env = env)
-    message("Loaded 80 objects from data files and 300+ vectors into environment")
+    message("Loaded 82 objects from data files and 300+ vectors into environment")
   } else {
-    message("Loaded 80 objects from data files into environment (vectors skipped)")
+    message("Loaded 82 objects from data files into environment (vectors skipped)")
   }
   
   invisible(NULL)

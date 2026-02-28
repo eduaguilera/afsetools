@@ -124,6 +124,8 @@ reference:
   - IPCC_root_coefs
   - IPCC_crop_mapping
   - Modern_variety_adoption
+  - HI_crop_ranges
+  - Crop_RS_N_response
   - N_input_RS_adj
   - Irrigation_adj
   - NPP_model_coefs
