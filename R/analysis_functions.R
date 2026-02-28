@@ -1,52 +1,29 @@
-#' Biological Nitrogen Fixation Functions
+#' Biological Nitrogen Fixation (Legacy Wrapper)
 #'
-#' Calculate biological nitrogen fixation from crops, weeds, and non-symbiotic sources.
+#' Legacy wrapper around \code{\link{calc_bnf}} for backward
+#' compatibility. New code should use \code{\link{calc_bnf}} directly,
+#' which adds literature-based environmental modifiers for N inputs,
+#' temperature, water stress, soil organic matter, and soil pH.
 #'
-#' @param x A data frame with crop NPP data including columns: Crop_NPP_MgN, Prod_MgN, Weeds_NPP_MgN, LandUse, Area_ygpit_ha
+#' @param x A data frame with crop NPP data including columns:
+#'   Crop_NPP_MgN, Prod_MgN, Weeds_NPP_MgN, LandUse, Area_ygpit_ha,
+#'   Legs_Seeded, Seeded_CC_share, Name_biomass
 #'
-#' @return A data frame with BNF calculations: CropBNF, WeedsBNF, NSBNF, and total BNF
+#' @return A data frame with BNF calculations: CropBNF, WeedsBNF,
+#'   NSBNF, and total BNF
+#'
+#' @seealso \code{\link{calc_bnf}} for the improved version with
+#'   environmental modifiers.
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' bnf_results <- Calc_N_fix(npp_data)
+#' # Prefer: bnf_results <- calc_bnf(npp_data)
 #' }
 Calc_N_fix <- function(x) {
-  x |>
-    dplyr::left_join(Names_BNF |>
-      dplyr::left_join(BNF, by = c("Name_BNF")), by = c("Name_biomass" = "Name_BNF")) |>
-    dplyr::mutate(
-      Fert_type = "BNF",
-      CropBNF = dplyr::if_else(!is.na(Ndfa), # Crop BNF using estimation of N in crop NPP
-        Crop_NPP_MgN * Ndfa * Leguminous_share,
-        0
-      ),
-      CropBNF2 = dplyr::if_else(!is.na(Ndfa), # Crop BNF using BGN and NHI from Anglade et al. and Lassaletta et al.
-        Prod_MgN * Leguminous_share * Ndfa * BGN / NHI,
-        0
-      ),
-      Alpha1 = CropBNF / Prod_MgN,
-      Alpha2 = CropBNF2 / Prod_MgN,
-      Weeds_Ndfa = as.numeric(BNF |>
-        dplyr::filter(Name_BNF == "Weeds") |>
-        dplyr::select(Ndfa)),
-      Legs_SpontWeeds = as.numeric(BNF |>
-        dplyr::filter(Name_BNF == "Weeds") |>
-        dplyr::select(Leguminous_share)),
-      Legs_Seeded = tidyr::replace_na(Legs_Seeded, 0),
-      Seeded_CC_share = dplyr::if_else(LandUse == "Cropland",
-        Seeded_CC_share,
-        0
-      ),
-      Weeds_leg_share = (Legs_SpontWeeds * (1 - Seeded_CC_share)) + (Legs_Seeded * Seeded_CC_share), # Weighted average of legume share in spontaneous weeds and seeded cover crops
-      WeedsBNF = Weeds_NPP_MgN * Weeds_Ndfa * Weeds_leg_share,
-      WeedsBNF = tidyr::replace_na(WeedsBNF, 0),
-      NSBNF = dplyr::if_else(!is.na(kgNha), # Non-symbiotic BNF
-        kgNha * Area_ygpit_ha / 1000,
-        13 * Area_ygpit_ha / (2 * 1000)
-      ), # 13 value from wheat and maize in Ladha et al. (2016), DIVIDED BY 2 for conservativeness
-      BNF = CropBNF + WeedsBNF + NSBNF
-    )
+  calc_bnf(x)
 }
 
 #' Classify GHG Emissions and Calculate Global Warming Potential

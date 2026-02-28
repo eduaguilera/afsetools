@@ -2,21 +2,32 @@
 % Please edit documentation in R/analysis_functions.R
 \name{Calc_N_fix}
 \alias{Calc_N_fix}
-\title{Biological Nitrogen Fixation Functions}
+\title{Biological Nitrogen Fixation (Legacy Wrapper)}
 \usage{
 Calc_N_fix(x)
 }
 \arguments{
-\item{x}{A data frame with crop NPP data including columns: Crop_NPP_MgN, Prod_MgN, Weeds_NPP_MgN, LandUse, Area_ygpit_ha}
+\item{x}{A data frame with crop NPP data including columns:
+Crop_NPP_MgN, Prod_MgN, Weeds_NPP_MgN, LandUse, Area_ygpit_ha,
+Legs_Seeded, Seeded_CC_share, Name_biomass}
 }
 \value{
-A data frame with BNF calculations: CropBNF, WeedsBNF, NSBNF, and total BNF
+A data frame with BNF calculations: CropBNF, WeedsBNF,
+  NSBNF, and total BNF
 }
 \description{
-Calculate biological nitrogen fixation from crops, weeds, and non-symbiotic sources.
+Legacy wrapper around \code{\link{calc_bnf}} for backward
+compatibility. New code should use \code{\link{calc_bnf}} directly,
+which adds literature-based environmental modifiers for N inputs,
+temperature, water stress, soil organic matter, and soil pH.
 }
 \examples{
 \dontrun{
 bnf_results <- Calc_N_fix(npp_data)
+# Prefer: bnf_results <- calc_bnf(npp_data)
 }
+}
+\seealso{
+\code{\link{calc_bnf}} for the improved version with
+  environmental modifiers.
 }

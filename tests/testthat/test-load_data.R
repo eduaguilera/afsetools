@@ -53,7 +53,7 @@ test_that("Biomass_coefs contains realistic coefficient values", {
 })
 
 test_that("Items and regions mappings are complete", {
-  # Data should already be loaded by setup-afsetools.R
+  load_general_data()
   
   # items_full should have key columns (note: it's item_cbs not item)
   expect_true("item_cbs" %in% names(items_full))

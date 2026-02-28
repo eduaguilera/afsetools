@@ -1,15 +1,17 @@
 #' Data Objects Loaded by load_general_data()
 #'
-#' This package contains 73+ data objects that are loaded into the environment
+#' This package contains 79+ data objects that are loaded into the environment
 #' when you call \code{load_general_data()}. These include nomenclatures, 
-#' biomass coefficients, global warming potentials, and other parameters
-#' needed for environmental footprint calculations.
+#' biomass coefficients, global warming potentials, IPCC crop residue and root
+#' coefficients, and other parameters needed for environmental footprint
+#' calculations.
 #'
 #' @details
 #' The data objects include:
 #' \itemize{
 #'   \item 35 nomenclature and classification objects
-#'   \item 17 biomass coefficient objects  
+#'   \item 17 biomass coefficient objects
+#'   \item 6 IPCC residue/root coefficient objects
 #'   \item 7 global warming potential objects
 #'   \item 3 biological nitrogen fixation objects
 #'   \item 6 constants and scalars
@@ -111,6 +113,135 @@ NULL
 #' }
 #' @source UN, FAO, World Bank classifications
 #' @name regions_full
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' IPCC Crop Residue Coefficients
+#'
+#' Linear model coefficients for estimating above-ground crop residue biomass
+#' from yield, based on IPCC 2019 Refinement guidelines (Vol.4, Ch.11,
+#' Table 11.1a).
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{IPCC_crop}{IPCC crop category name.}
+#'   \item{Slope_AG}{Slope of the linear residue model (Mg DM residue per
+#'     Mg DM yield per hectare).}
+#'   \item{Intercept_AG_MgDMha}{Intercept (Mg DM / ha), representing
+#'     structural baseline residue production.}
+#'   \item{RS_ratio_IPCC}{Default root-to-shoot ratio from IPCC.}
+#'   \item{N_AG_residue}{Nitrogen content of above-ground residue
+#'     (kg N / kg DM).}
+#'   \item{N_BG_residue}{Nitrogen content of below-ground residue
+#'     (kg N / kg DM).}
+#'   \item{Source}{Literature source reference.}
+#' }
+#' @source IPCC (2019) 2019 Refinement to the 2006 IPCC Guidelines,
+#'   Vol.4, Ch.11, Table 11.1a. Bolinder et al. (2007). Gan et al. (2009).
+#' @name IPCC_residue_coefs
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' IPCC Root Biomass Coefficients
+#'
+#' Root-to-shoot ratios and reference root biomass values for estimating
+#' below-ground crop biomass, with adjustments for N input and irrigation.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{IPCC_crop}{IPCC crop category name.}
+#'   \item{RS_default}{Default root-to-shoot ratio.}
+#'   \item{RS_low_N}{RS ratio under low N input (<60 kg N/ha).}
+#'   \item{RS_high_N}{RS ratio under high N input (>120 kg N/ha).}
+#'   \item{RS_irrigated}{RS ratio under irrigation.}
+#'   \item{RS_rainfed}{RS ratio under rainfed conditions.}
+#'   \item{BG_ref_MgDMha}{Reference below-ground biomass (Mg DM / ha).}
+#'   \item{Source}{Literature source reference.}
+#' }
+#' @source IPCC (2019) 2019 Refinement, Vol.4, Ch.11. Bolinder et al.
+#'   (2007). Poorter & Nagel (2000). Benjamin et al. (2014).
+#' @name IPCC_root_coefs
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' IPCC Crop Name Mapping
+#'
+#' Maps Name_biomass crop classifications from Biomass_coefs to IPCC crop
+#' categories used in IPCC_residue_coefs and IPCC_root_coefs.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{Name_biomass}{Crop name matching Biomass_coefs classification.}
+#'   \item{IPCC_crop}{Corresponding IPCC crop category.}
+#' }
+#' @source Package-internal mapping based on IPCC crop categories.
+#' @name IPCC_crop_mapping
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' Modern Variety Adoption Timeline
+#'
+#' Regional time-series of modern (high-yielding) variety adoption shares
+#' and their effect on harvest index. Used to correct residue:product ratios
+#' for historical periods when traditional varieties dominated.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{region_HANPP}{World region name (8 regions).}
+#'   \item{Year}{Year (decadal from 1900 to 2020).}
+#'   \item{Modern_share}{Share of area under modern varieties (0-1).}
+#'   \item{HI_correction_factor}{Multiplicative correction for
+#'     residue:product ratio (>1 = more residue in traditional systems).}
+#' }
+#' @source Evenson & Gollin (2003) Science 300:758-762.
+#'   Krausmann et al. (2013) Global Env Change 23:1170-1181.
+#'   Pingali (2012) PNAS 109:12302-12308.
+#' @name Modern_variety_adoption
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' N Input Root:Shoot Adjustment Factors
+#'
+#' Adjustment factors for root-to-shoot ratios based on nitrogen input
+#' levels. Higher N availability reduces root allocation (functional
+#' equilibrium theory).
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{N_input_class}{N application category name.}
+#'   \item{N_input_min}{Lower bound of N rate (kg N/ha/yr).}
+#'   \item{N_input_max}{Upper bound of N rate (kg N/ha/yr).}
+#'   \item{RS_adjustment}{Multiplicative factor on default RS ratio.}
+#'   \item{Source}{Literature source reference.}
+#' }
+#' @source Poorter & Nagel (2000) New Phytologist 147:135-147.
+#' @name N_input_RS_adj
+#' @docType data
+#' @keywords datasets
+NULL
+
+#' Irrigation Adjustment Factors
+#'
+#' Adjustment factors for residue:product ratio and root:shoot ratio
+#' under different water management regimes.
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{Water_regime}{Water management (Irrigated, Rainfed, Mixed).}
+#'   \item{Residue_ratio_factor}{Multiplicative factor for residue:product
+#'     ratio (irrigated crops have higher HI, so less residue).}
+#'   \item{RS_ratio_factor}{Multiplicative factor for root:shoot ratio
+#'     (irrigated crops have shallower roots).}
+#'   \item{Source}{Literature source reference.}
+#' }
+#' @source Sadras (2007) Field Crops Research 100:125-138.
+#'   Zhang et al. (2019). Benjamin et al. (2014).
+#' @name Irrigation_adj
 #' @docType data
 #' @keywords datasets
 NULL

@@ -5,16 +5,18 @@
 \alias{afsetools-data}
 \title{Data Objects Loaded by load_general_data()}
 \description{
-This package contains 73+ data objects that are loaded into the environment
+This package contains 79+ data objects that are loaded into the environment
 when you call \code{load_general_data()}. These include nomenclatures, 
-biomass coefficients, global warming potentials, and other parameters
-needed for environmental footprint calculations.
+biomass coefficients, global warming potentials, IPCC crop residue and root
+coefficients, and other parameters needed for environmental footprint
+calculations.
 }
 \details{
 The data objects include:
 \itemize{
   \item 35 nomenclature and classification objects
-  \item 17 biomass coefficient objects  
+  \item 17 biomass coefficient objects
+  \item 6 IPCC residue/root coefficient objects
   \item 7 global warming potential objects
   \item 3 biological nitrogen fixation objects
   \item 6 constants and scalars

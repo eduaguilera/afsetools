@@ -26,6 +26,8 @@ reference:
   contents:
   - calculate_potential_npp
   - calculate_crop_npp
+  - calculate_crop_residues
+  - calculate_crop_roots
   - calculate_npp_dm_c_n
   - calculate_crop_npp_components
 
@@ -53,6 +55,17 @@ reference:
   - get_herbwoody_fao
   - calculate_land_scaling
   - scale_land
+
+- title: BNF Functions
+  desc: >
+    Literature-based biological nitrogen fixation calculation with
+    environmental modifiers for symbiotic and non-symbiotic BNF.
+  contents:
+  - calc_bnf
+  - calc_crop_bnf
+  - calc_weed_bnf
+  - calc_nonsymbiotic_bnf
+  - summarize_bnf
 
 - title: Main Workflow Functions
   desc: >
@@ -105,3 +118,9 @@ reference:
   - BNF
   - items_full
   - regions_full
+  - IPCC_residue_coefs
+  - IPCC_root_coefs
+  - IPCC_crop_mapping
+  - Modern_variety_adoption
+  - N_input_RS_adj
+  - Irrigation_adj

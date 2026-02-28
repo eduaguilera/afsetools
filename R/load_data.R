@@ -8,6 +8,7 @@
 #' - 35 code/nomenclature objects from Codes_coefs.xlsx
 #' - 3 derived objects (regions_full_uISO3, Names_biomass_cats, items_prim)
 #' - 17 biomass coefficient objects from Biomass_coefs.xlsx
+#' - 6 IPCC residue/root coefficient objects from Biomass_coefs.xlsx
 #' - 7 GWP objects from GWP.xlsx
 #' - 3 BNF objects from BNF.xlsx
 #' - 6 miscellaneous coefficient scalars
@@ -41,6 +42,10 @@
 #' Biomass_coefs, Nutrients_energy, Root_Shoot_ratio_W, Residue_kgDM_kgFM_W,
 #' Residue_kgN_kgDM_W, Root_kgN_kgDM_W, Residue_kgC_kgDM_W, Root_kgC_kgDM_W,
 #' Rhizod_kgN_kgRootN_W, Residue_kgC_kgDM_Wo, Root_kgC_kgDM_Wo
+#'
+#' IPCC residue/root coefficient objects:
+#' IPCC_residue_coefs, IPCC_root_coefs, IPCC_crop_mapping,
+#' Modern_variety_adoption, N_input_RS_adj, Irrigation_adj
 #'
 #' GWP objects:
 #' GWP, GWP_C, GWP_CO2, GWP_CH4, GWP_CH4_fossil, GWP_N2ON, GWP_N2O
@@ -321,12 +326,55 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   )
   assign("Pure_legs", Pure_legs, envir = env)
   
+  # IPCC residue and root coefficients from Biomass_coefs.xlsx ----
+  IPCC_residue_coefs <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "IPCC_residue_coefs",
+    startRow = 1
+  )
+  assign("IPCC_residue_coefs", IPCC_residue_coefs, envir = env)
+
+  IPCC_root_coefs <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "IPCC_root_coefs",
+    startRow = 1
+  )
+  assign("IPCC_root_coefs", IPCC_root_coefs, envir = env)
+
+  IPCC_crop_mapping <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "IPCC_crop_mapping",
+    startRow = 1
+  )
+  assign("IPCC_crop_mapping", IPCC_crop_mapping, envir = env)
+
+  Modern_variety_adoption <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "Modern_variety_adoption",
+    startRow = 1
+  )
+  assign("Modern_variety_adoption", Modern_variety_adoption, envir = env)
+
+  N_input_RS_adj <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "N_input_RS_adj",
+    startRow = 1
+  )
+  assign("N_input_RS_adj", N_input_RS_adj, envir = env)
+
+  Irrigation_adj <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "Irrigation_adj",
+    startRow = 1
+  )
+  assign("Irrigation_adj", Irrigation_adj, envir = env)
+
   # Load vectors and dataframes ----
   if (load_vectors) {
     afsetools::load_vectors(env = env)
-    message("Loaded 73 objects from data files and 300+ vectors into environment")
+    message("Loaded 79 objects from data files and 300+ vectors into environment")
   } else {
-    message("Loaded 73 objects from data files into environment (vectors skipped)")
+    message("Loaded 79 objects from data files into environment (vectors skipped)")
   }
   
   invisible(NULL)
