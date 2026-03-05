@@ -4,7 +4,7 @@
 \alias{calculate_crop_roots}
 \title{Calculate Crop Below-Ground (Root) Biomass}
 \usage{
-calculate_crop_roots(Dataset, w_ref = 0.5)
+calculate_crop_roots(Dataset, w_ref = 0.5, simple = FALSE)
 }
 \arguments{
 \item{Dataset}{Data frame with above-ground biomass already calculated.
@@ -21,6 +21,11 @@ Required columns:
 \item{w_ref}{Numeric weight for the reference root biomass approach in
 the ensemble (0-1). Default 0.5. The RS-based approach gets weight
 `1 - w_ref`.}
+
+\item{simple}{Logical. If `TRUE`, bypasses the crop-group-specific
+N-sensitivity scaling of the root:shoot ratio, applying the generic
+N-input adjustment factor uniformly across all crop groups
+(`RS_N_sensitivity = 1`). Default `FALSE`.}
 }
 \value{
 Data frame with added column:

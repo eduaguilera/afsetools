@@ -5,7 +5,7 @@
 \alias{Calculate_crop_NPP}
 \title{Calculate Crop Net Primary Production Components}
 \usage{
-calculate_crop_npp(Dataset, w_ipcc = 0.5, w_ref = 0.5)
+calculate_crop_npp(Dataset, w_ipcc = 0.5, w_ref = 0.5, simple = FALSE)
 }
 \arguments{
 \item{Dataset}{Data frame with crop area and production data. Required
@@ -25,6 +25,11 @@ residue estimation ensemble. Default 0.5.}
 
 \item{w_ref}{Numeric (0-1). Weight for the reference root biomass in the
 root estimation ensemble. Default 0.5.}
+
+\item{simple}{Logical. If `TRUE`, passes `simple = TRUE` to both
+`calculate_crop_residues()` and `calculate_crop_roots()`, disabling
+crop-group-specific corrections (variety era and N sensitivity).
+Default `FALSE`.}
 }
 \value{
 Data frame with added columns:

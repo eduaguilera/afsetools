@@ -164,6 +164,10 @@ calculate_potential_npp <- function(Dataset) {
 #'   }
 #' @param w_ipcc Numeric weight for the IPCC linear model in the ensemble
 #'   (0-1). Default 0.5. The Biomass_coefs ratio gets weight `1 - w_ipcc`.
+#' @param simple Logical. If `TRUE`, bypasses the crop-group-specific modern
+#'   variety harvest-index correction (`HI_correction_factor = 1`), using
+#'   only the IPCC linear and ratio-based estimates without era adjustments.
+#'   Default `FALSE`.
 #'
 #' @return Data frame with added columns:
 #'   \describe{
@@ -221,7 +225,7 @@ calculate_potential_npp <- function(Dataset) {
 #' crop_data |>
 #'   calculate_crop_residues(w_ipcc = 0.5)
 #' }
-calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
+calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
 
   # --- Join Biomass_coefs for DM conversion and residue:product ratio --------
   Dataset <- Dataset |>
@@ -290,24 +294,29 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
   # --- Modern variety HI correction (requires Year, region_HANPP) ------------
   # Uses crop-group-specific adoption rates from Evenson & Gollin (2003) and
   # crop-specific HI gap factors from HI_crop_ranges to compute the
-  # HI_correction_factor.  Falls back to 1.0 when crop_group is not available.
-  Dataset <- Dataset |>
-    dplyr::left_join(
-      Modern_variety_adoption |>
-        dplyr::select(region_HANPP, crop_group, Year, Modern_share),
-      by = c("region_HANPP", "crop_group", "Year")
-    ) |>
-    dplyr::left_join(
-      HI_crop_ranges |>
-        dplyr::select(crop_group, HI_gap_factor),
-      by = "crop_group"
-    ) |>
-    dplyr::mutate(
-      Modern_share     = tidyr::replace_na(Modern_share, 1.0),
-      HI_gap_factor    = tidyr::replace_na(HI_gap_factor, 1.0),
-      HI_correction_factor = 1 + (1 - Modern_share) *
-        (HI_gap_factor - 1)
-    )
+  # HI_correction_factor.  Skipped in simple mode (factor = 1).
+  if (simple) {
+    Dataset <- Dataset |>
+      dplyr::mutate(HI_correction_factor = 1.0)
+  } else {
+    Dataset <- Dataset |>
+      dplyr::left_join(
+        Modern_variety_adoption |>
+          dplyr::select(region_HANPP, crop_group, Year, Modern_share),
+        by = c("region_HANPP", "crop_group", "Year")
+      ) |>
+      dplyr::left_join(
+        HI_crop_ranges |>
+          dplyr::select(crop_group, HI_gap_factor),
+        by = "crop_group"
+      ) |>
+      dplyr::mutate(
+        Modern_share     = tidyr::replace_na(Modern_share, 1.0),
+        HI_gap_factor    = tidyr::replace_na(HI_gap_factor, 1.0),
+        HI_correction_factor = 1 + (1 - Modern_share) *
+          (HI_gap_factor - 1)
+      )
+  }
 
   # --- Ensemble: weighted mean of both methods -------------------------------
   # Apply irrigation and variety corrections to the ratio-based estimate
@@ -383,6 +392,10 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
 #' @param w_ref Numeric weight for the reference root biomass approach in
 #'   the ensemble (0-1). Default 0.5. The RS-based approach gets weight
 #'   `1 - w_ref`.
+#' @param simple Logical. If `TRUE`, bypasses the crop-group-specific
+#'   N-sensitivity scaling of the root:shoot ratio, applying the generic
+#'   N-input adjustment factor uniformly across all crop groups
+#'   (`RS_N_sensitivity = 1`). Default `FALSE`.
 #'
 #' @return Data frame with added column:
 #'   \describe{
@@ -438,7 +451,7 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5) {
 #'   calculate_crop_residues() |>
 #'   calculate_crop_roots(w_ref = 0.5)
 #' }
-calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
+calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
 
   # --- Join Biomass_coefs for default RS and BG reference --------------------
   Dataset <- Dataset |>
@@ -482,16 +495,25 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
   # --- Crop-group-specific RS N sensitivity (Poorter & Nagel 2000) ----------
   # Scale the generic N_RS_factor by crop-group sensitivity.
   # Legumes (low sensitivity) barely respond; cereals respond fully.
-  Dataset <- Dataset |>
-    dplyr::left_join(
-      Crop_RS_N_response |>
-        dplyr::select(crop_group, RS_N_sensitivity),
-      by = "crop_group"
-    ) |>
-    dplyr::mutate(
-      RS_N_sensitivity = tidyr::replace_na(RS_N_sensitivity, 1.0),
-      N_RS_factor = 1 + (N_RS_factor_raw - 1) * RS_N_sensitivity
-    )
+  # Skipped in simple mode: RS_N_sensitivity = 1 for all crop groups.
+  if (simple) {
+    Dataset <- Dataset |>
+      dplyr::mutate(
+        RS_N_sensitivity = 1.0,
+        N_RS_factor = N_RS_factor_raw
+      )
+  } else {
+    Dataset <- Dataset |>
+      dplyr::left_join(
+        Crop_RS_N_response |>
+          dplyr::select(crop_group, RS_N_sensitivity),
+        by = "crop_group"
+      ) |>
+      dplyr::mutate(
+        RS_N_sensitivity = tidyr::replace_na(RS_N_sensitivity, 1.0),
+        N_RS_factor = 1 + (N_RS_factor_raw - 1) * RS_N_sensitivity
+      )
+  }
 
   # --- Irrigation-based RS (requires Water_regime column) -------------------
   Dataset <- Dataset |>
@@ -614,6 +636,10 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
 #'   residue estimation ensemble. Default 0.5.
 #' @param w_ref Numeric (0-1). Weight for the reference root biomass in the
 #'   root estimation ensemble. Default 0.5.
+#' @param simple Logical. If `TRUE`, passes `simple = TRUE` to both
+#'   `calculate_crop_residues()` and `calculate_crop_roots()`, disabling
+#'   crop-group-specific corrections (variety era and N sensitivity).
+#'   Default `FALSE`.
 #'
 #' @return Data frame with added columns:
 #'   \describe{
@@ -660,11 +686,12 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5) {
 #' crop_npp <- crop_data |>
 #'   calculate_crop_npp(w_ipcc = 0.5, w_ref = 0.5)
 #' }
-calculate_crop_npp <- function(Dataset, w_ipcc = 0.5, w_ref = 0.5) {
+calculate_crop_npp <- function(Dataset, w_ipcc = 0.5, w_ref = 0.5,
+                               simple = FALSE) {
 
   Dataset |>
-    calculate_crop_residues(w_ipcc = w_ipcc) |>
-    calculate_crop_roots(w_ref = w_ref) |>
+    calculate_crop_residues(w_ipcc = w_ipcc, simple = simple) |>
+    calculate_crop_roots(w_ref = w_ref, simple = simple) |>
     dplyr::mutate(
       Crop_NPP_MgDM = Prod_MgDM + Residue_MgDM + Root_MgDM
     ) |>
@@ -793,7 +820,7 @@ calculate_crop_npp_components <- function(Crop_NPPpot, .by = NULL) {
 #' @usage NULL
 #' @export
 Calculate_crop_NPP <- function(Dataset, HI = NULL, w_ipcc = 0.5,
-                                w_ref = 0.5) {
+                                w_ref = 0.5, simple = FALSE) {
   warning(
     "Calculate_crop_NPP() is deprecated. Use calculate_crop_npp() ",
     "instead.\nThe HI parameter is no longer used. Dynamic HI/RS ",
@@ -803,7 +830,8 @@ Calculate_crop_NPP <- function(Dataset, HI = NULL, w_ipcc = 0.5,
     "Dataset instead.",
     call. = FALSE
   )
-  calculate_crop_npp(Dataset, w_ipcc = w_ipcc, w_ref = w_ref)
+  calculate_crop_npp(Dataset, w_ipcc = w_ipcc, w_ref = w_ref,
+                     simple = simple)
 }
 
 #' @rdname calculate_crop_npp_components
