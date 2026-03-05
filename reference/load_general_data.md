@@ -9,9 +9,10 @@ code/nomenclature objects from Codes_coefs.xlsx - 3 derived objects
 coefficient objects from Biomass_coefs.xlsx - 6 IPCC residue/root
 coefficient objects from Biomass_coefs.xlsx - 2 crop-group helper
 objects (HI_crop_ranges, Crop_RS_N_response) - 1 NPP model coefficient
-object from Biomass_coefs.xlsx - 7 GWP objects from GWP.xlsx - 3 BNF
-objects from BNF.xlsx - 6 miscellaneous coefficient scalars - 300+
-vectors and dataframes from \`load_vectors()\` (if load_vectors = TRUE)
+object from Biomass_coefs.xlsx - 1 livestock coefficient object from
+Livestock_coefs.xlsx - 7 GWP objects from GWP.xlsx - 3 BNF objects from
+BNF.xlsx - 6 miscellaneous coefficient scalars - 300+ vectors and
+dataframes from \`load_vectors()\` (if load_vectors = TRUE)
 
 The vectors are created directly using \`load_vectors()\`, ensuring they
 are available in both installed package and development mode.
@@ -61,6 +62,8 @@ IPCC_root_coefs, IPCC_crop_mapping, Modern_variety_adoption,
 N_input_RS_adj, Irrigation_adj, HI_crop_ranges, Crop_RS_N_response
 
 NPP model coefficient objects: NPP_model_coefs
+
+Livestock coefficient objects: max_intake_share
 
 GWP objects: GWP, GWP_C, GWP_CO2, GWP_CH4, GWP_CH4_fossil, GWP_N2ON,
 GWP_N2O

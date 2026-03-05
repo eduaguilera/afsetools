@@ -65,7 +65,7 @@ and variety-era adjustments applied.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_crop_residues</span><span class="op">(</span><span class="va">Dataset</span>, w_ipcc <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_crop_residues</span><span class="op">(</span><span class="va">Dataset</span>, w_ipcc <span class="op">=</span> <span class="fl">0.5</span>, simple <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -98,6 +98,13 @@ and variety-era adjustments applied.</p>
 <dt id="arg-w-ipcc">w_ipcc<a class="anchor" aria-label="anchor" href="#arg-w-ipcc"></a></dt>
 <dd><p>Numeric weight for the IPCC linear model in the ensemble
 (0-1). Default 0.5. The Biomass_coefs ratio gets weight `1 - w_ipcc`.</p></dd>
+
+
+<dt id="arg-simple">simple<a class="anchor" aria-label="anchor" href="#arg-simple"></a></dt>
+<dd><p>Logical. If `TRUE`, bypasses all context-dependent
+corrections (irrigation, modern-variety HI, N-input adjustments),
+setting all adjustment factors to 1. No `Water_regime`,
+`region_HANPP`, or `N_input_kgha` columns required. Default `FALSE`.</p></dd>
 
 </dl></div>
     <div class="section level2">

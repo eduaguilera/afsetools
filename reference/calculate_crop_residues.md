@@ -18,7 +18,7 @@ irrigation and variety-era adjustments applied.
 ## Usage
 
 ``` r
-calculate_crop_residues(Dataset, w_ipcc = 0.5)
+calculate_crop_residues(Dataset, w_ipcc = 0.5, simple = FALSE)
 ```
 
 ## Arguments
@@ -55,6 +55,13 @@ calculate_crop_residues(Dataset, w_ipcc = 0.5)
 
   Numeric weight for the IPCC linear model in the ensemble (0-1).
   Default 0.5. The Biomass_coefs ratio gets weight \`1 - w_ipcc\`.
+
+- simple:
+
+  Logical. If \`TRUE\`, bypasses all context-dependent corrections
+  (irrigation, modern-variety HI, N-input adjustments), setting all
+  adjustment factors to 1. No \`Water_regime\`, \`region_HANPP\`, or
+  \`N_input_kgha\` columns required. Default \`FALSE\`.
 
 ## Value
 

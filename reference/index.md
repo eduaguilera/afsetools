@@ -178,5 +178,9 @@ details.
   : N Input Root:Shoot Adjustment Factors
 - [`Irrigation_adj`](https://eduaguilera.github.io/afsetools/reference/Irrigation_adj.md)
   : Irrigation Adjustment Factors
+- [`max_intake_share`](https://eduaguilera.github.io/afsetools/reference/max_intake_share.md)
+  : Maximum Feed Intake Shares by Livestock Category
 - [`NPP_model_coefs`](https://eduaguilera.github.io/afsetools/reference/NPP_model_coefs.md)
   : NPP Model Coefficients
+- [`residue_use()`](https://eduaguilera.github.io/afsetools/reference/residue_use.md)
+  : Calculate Residue Use from Crop NPP Data

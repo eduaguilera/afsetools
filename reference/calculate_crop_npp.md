@@ -16,7 +16,7 @@ Total crop NPP = Product + Residue + Root (all in DM).
 ## Usage
 
 ``` r
-calculate_crop_npp(Dataset, w_ipcc = 0.5, w_ref = 0.5)
+calculate_crop_npp(Dataset, w_ipcc = 0.5, w_ref = 0.5, simple = FALSE)
 ```
 
 ## Arguments
@@ -62,6 +62,14 @@ calculate_crop_npp(Dataset, w_ipcc = 0.5, w_ref = 0.5)
 
   Numeric (0-1). Weight for the reference root biomass in the root
   estimation ensemble. Default 0.5.
+
+- simple:
+
+  Logical. If \`TRUE\`, passes \`simple = TRUE\` to both
+  \`calculate_crop_residues()\` and \`calculate_crop_roots()\`,
+  disabling all context-dependent corrections. Only \`Name_biomass\`,
+  \`Prod_ygpit_Mg\`, and \`Area_ygpit_ha\` columns required. Default
+  \`FALSE\`.
 
 ## Value
 

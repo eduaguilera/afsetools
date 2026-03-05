@@ -20,7 +20,7 @@ capped at 3x the default RS ratio to prevent unrealistic values.
 ## Usage
 
 ``` r
-calculate_crop_roots(Dataset, w_ref = 0.5)
+calculate_crop_roots(Dataset, w_ref = 0.5, simple = FALSE)
 ```
 
 ## Arguments
@@ -58,6 +58,13 @@ calculate_crop_roots(Dataset, w_ref = 0.5)
 
   Numeric weight for the reference root biomass approach in the ensemble
   (0-1). Default 0.5. The RS-based approach gets weight \`1 - w_ref\`.
+
+- simple:
+
+  Logical. If \`TRUE\`, bypasses all context-dependent RS corrections
+  (N-input, crop-group N-sensitivity, irrigation), setting all
+  adjustment factors to 1. No \`Water_regime\` or \`N_input_kgha\`
+  columns required. Default \`FALSE\`.
 
 ## Value
 

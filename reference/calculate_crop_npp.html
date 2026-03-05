@@ -65,7 +65,7 @@ context-dependent adjustments for irrigation, N input, and variety era.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_crop_npp</span><span class="op">(</span><span class="va">Dataset</span>, w_ipcc <span class="op">=</span> <span class="fl">0.5</span>, w_ref <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_crop_npp</span><span class="op">(</span><span class="va">Dataset</span>, w_ipcc <span class="op">=</span> <span class="fl">0.5</span>, w_ref <span class="op">=</span> <span class="fl">0.5</span>, simple <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -107,6 +107,13 @@ residue estimation ensemble. Default 0.5.</p></dd>
 <dt id="arg-w-ref">w_ref<a class="anchor" aria-label="anchor" href="#arg-w-ref"></a></dt>
 <dd><p>Numeric (0-1). Weight for the reference root biomass in the
 root estimation ensemble. Default 0.5.</p></dd>
+
+
+<dt id="arg-simple">simple<a class="anchor" aria-label="anchor" href="#arg-simple"></a></dt>
+<dd><p>Logical. If `TRUE`, passes `simple = TRUE` to both
+`calculate_crop_residues()` and `calculate_crop_roots()`, disabling
+all context-dependent corrections. Only `Name_biomass`,
+`Prod_ygpit_Mg`, and `Area_ygpit_ha` columns required. Default `FALSE`.</p></dd>
 
 </dl></div>
     <div class="section level2">
