@@ -128,5 +128,6 @@ reference:
   - Crop_RS_N_response
   - N_input_RS_adj
   - Irrigation_adj
+  - max_intake_share
   - NPP_model_coefs
   - residue_use
