@@ -164,10 +164,10 @@ calculate_potential_npp <- function(Dataset) {
 #'   }
 #' @param w_ipcc Numeric weight for the IPCC linear model in the ensemble
 #'   (0-1). Default 0.5. The Biomass_coefs ratio gets weight `1 - w_ipcc`.
-#' @param simple Logical. If `TRUE`, bypasses the crop-group-specific modern
-#'   variety harvest-index correction (`HI_correction_factor = 1`), using
-#'   only the IPCC linear and ratio-based estimates without era adjustments.
-#'   Default `FALSE`.
+#' @param simple Logical. If `TRUE`, bypasses all context-dependent
+#'   corrections (irrigation, modern-variety HI, N-input adjustments),
+#'   setting all adjustment factors to 1. No `Water_regime`,
+#'   `region_HANPP`, or `N_input_kgha` columns required. Default `FALSE`.
 #'
 #' @return Data frame with added columns:
 #'   \describe{
@@ -281,24 +281,28 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
     )
 
   # --- Irrigation adjustment (requires Water_regime column) ------------------
-  Dataset <- Dataset |>
-    dplyr::left_join(
-      Irrigation_adj |>
-        dplyr::select(Water_regime, Residue_ratio_factor),
-      by = "Water_regime"
-    ) |>
-    dplyr::mutate(
-      Residue_ratio_factor = tidyr::replace_na(Residue_ratio_factor, 1.0)
-    )
+  # Skipped in simple mode (factor = 1).
+  if (simple) {
+    Dataset <- Dataset |>
+      dplyr::mutate(
+        Residue_ratio_factor = 1.0,
+        HI_correction_factor = 1.0
+      )
+  } else {
+    Dataset <- Dataset |>
+      dplyr::left_join(
+        Irrigation_adj |>
+          dplyr::select(Water_regime, Residue_ratio_factor),
+        by = "Water_regime"
+      ) |>
+      dplyr::mutate(
+        Residue_ratio_factor = tidyr::replace_na(Residue_ratio_factor, 1.0)
+      )
 
   # --- Modern variety HI correction (requires Year, region_HANPP) ------------
   # Uses crop-group-specific adoption rates from Evenson & Gollin (2003) and
   # crop-specific HI gap factors from HI_crop_ranges to compute the
-  # HI_correction_factor.  Skipped in simple mode (factor = 1).
-  if (simple) {
-    Dataset <- Dataset |>
-      dplyr::mutate(HI_correction_factor = 1.0)
-  } else {
+  # HI_correction_factor.
     Dataset <- Dataset |>
       dplyr::left_join(
         Modern_variety_adoption |>
@@ -392,10 +396,10 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
 #' @param w_ref Numeric weight for the reference root biomass approach in
 #'   the ensemble (0-1). Default 0.5. The RS-based approach gets weight
 #'   `1 - w_ref`.
-#' @param simple Logical. If `TRUE`, bypasses the crop-group-specific
-#'   N-sensitivity scaling of the root:shoot ratio, applying the generic
-#'   N-input adjustment factor uniformly across all crop groups
-#'   (`RS_N_sensitivity = 1`). Default `FALSE`.
+#' @param simple Logical. If `TRUE`, bypasses all context-dependent RS
+#'   corrections (N-input, crop-group N-sensitivity, irrigation), setting
+#'   all adjustment factors to 1. No `Water_regime` or `N_input_kgha`
+#'   columns required. Default `FALSE`.
 #'
 #' @return Data frame with added column:
 #'   \describe{
@@ -476,33 +480,36 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
       by = "IPCC_crop"
     )
 
-  # --- N-input based RS adjustment (requires N_input_kgha column) -----------
-  # Use N_input_RS_adj table from load_general_data() for data-driven lookup
-  Dataset <- Dataset |>
-    dplyr::mutate(
-      N_RS_factor_raw = findInterval(
-        N_input_kgha,
-        vec = N_input_RS_adj$N_input_min
-      )
-    ) |>
-    dplyr::mutate(
-      # Clamp to valid range [1, nrow(N_input_RS_adj)]
-      N_RS_factor_raw = pmax(1L, pmin(N_RS_factor_raw,
-                                      nrow(N_input_RS_adj))),
-      N_RS_factor_raw = N_input_RS_adj$RS_adjustment[N_RS_factor_raw]
-    )
-
-  # --- Crop-group-specific RS N sensitivity (Poorter & Nagel 2000) ----------
-  # Scale the generic N_RS_factor by crop-group sensitivity.
-  # Legumes (low sensitivity) barely respond; cereals respond fully.
-  # Skipped in simple mode: RS_N_sensitivity = 1 for all crop groups.
+  # --- N-input and irrigation-based RS adjustments --------------------------
+  # Skipped in simple mode (all factors = 1).
   if (simple) {
     Dataset <- Dataset |>
       dplyr::mutate(
+        N_RS_factor_raw = 1.0,
         RS_N_sensitivity = 1.0,
-        N_RS_factor = N_RS_factor_raw
+        N_RS_factor = 1.0,
+        RS_ratio_factor = 1.0
       )
   } else {
+    # N-input based RS adjustment (requires N_input_kgha column)
+    # Use N_input_RS_adj table from load_general_data() for data-driven lookup
+    Dataset <- Dataset |>
+      dplyr::mutate(
+        N_RS_factor_raw = findInterval(
+          N_input_kgha,
+          vec = N_input_RS_adj$N_input_min
+        )
+      ) |>
+      dplyr::mutate(
+        # Clamp to valid range [1, nrow(N_input_RS_adj)]
+        N_RS_factor_raw = pmax(1L, pmin(N_RS_factor_raw,
+                                        nrow(N_input_RS_adj))),
+        N_RS_factor_raw = N_input_RS_adj$RS_adjustment[N_RS_factor_raw]
+      )
+
+    # Crop-group-specific RS N sensitivity (Poorter & Nagel 2000)
+    # Scale the generic N_RS_factor by crop-group sensitivity.
+    # Legumes (low sensitivity) barely respond; cereals respond fully.
     Dataset <- Dataset |>
       dplyr::left_join(
         Crop_RS_N_response |>
@@ -513,18 +520,18 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
         RS_N_sensitivity = tidyr::replace_na(RS_N_sensitivity, 1.0),
         N_RS_factor = 1 + (N_RS_factor_raw - 1) * RS_N_sensitivity
       )
-  }
 
-  # --- Irrigation-based RS (requires Water_regime column) -------------------
-  Dataset <- Dataset |>
-    dplyr::left_join(
-      Irrigation_adj |>
-        dplyr::select(Water_regime, RS_ratio_factor),
-      by = "Water_regime"
-    ) |>
-    dplyr::mutate(
-      RS_ratio_factor = tidyr::replace_na(RS_ratio_factor, 1.0)
-    )
+    # Irrigation-based RS (requires Water_regime column)
+    Dataset <- Dataset |>
+      dplyr::left_join(
+        Irrigation_adj |>
+          dplyr::select(Water_regime, RS_ratio_factor),
+        by = "Water_regime"
+      ) |>
+      dplyr::mutate(
+        RS_ratio_factor = tidyr::replace_na(RS_ratio_factor, 1.0)
+      )
+  }
 
   # --- Compute effective RS ratio --------------------------------------------
   Dataset <- Dataset |>
@@ -638,8 +645,8 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
 #'   root estimation ensemble. Default 0.5.
 #' @param simple Logical. If `TRUE`, passes `simple = TRUE` to both
 #'   `calculate_crop_residues()` and `calculate_crop_roots()`, disabling
-#'   crop-group-specific corrections (variety era and N sensitivity).
-#'   Default `FALSE`.
+#'   all context-dependent corrections. Only `Name_biomass`,
+#'   `Prod_ygpit_Mg`, and `Area_ygpit_ha` columns required. Default `FALSE`.
 #'
 #' @return Data frame with added columns:
 #'   \describe{

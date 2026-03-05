@@ -28,8 +28,8 @@ root estimation ensemble. Default 0.5.}
 
 \item{simple}{Logical. If `TRUE`, passes `simple = TRUE` to both
 `calculate_crop_residues()` and `calculate_crop_roots()`, disabling
-crop-group-specific corrections (variety era and N sensitivity).
-Default `FALSE`.}
+all context-dependent corrections. Only `Name_biomass`,
+`Prod_ygpit_Mg`, and `Area_ygpit_ha` columns required. Default `FALSE`.}
 }
 \value{
 Data frame with added columns:

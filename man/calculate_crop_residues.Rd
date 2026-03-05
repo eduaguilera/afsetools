@@ -20,10 +20,10 @@ calculate_crop_residues(Dataset, w_ipcc = 0.5, simple = FALSE)
 \item{w_ipcc}{Numeric weight for the IPCC linear model in the ensemble
 (0-1). Default 0.5. The Biomass_coefs ratio gets weight `1 - w_ipcc`.}
 
-\item{simple}{Logical. If `TRUE`, bypasses the crop-group-specific modern
-variety harvest-index correction (`HI_correction_factor = 1`), using
-only the IPCC linear and ratio-based estimates without era adjustments.
-Default `FALSE`.}
+\item{simple}{Logical. If `TRUE`, bypasses all context-dependent
+corrections (irrigation, modern-variety HI, N-input adjustments),
+setting all adjustment factors to 1. No `Water_regime`,
+`region_HANPP`, or `N_input_kgha` columns required. Default `FALSE`.}
 }
 \value{
 Data frame with added columns:

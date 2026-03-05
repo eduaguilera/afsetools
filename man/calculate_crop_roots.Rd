@@ -22,10 +22,10 @@ Required columns:
 the ensemble (0-1). Default 0.5. The RS-based approach gets weight
 `1 - w_ref`.}
 
-\item{simple}{Logical. If `TRUE`, bypasses the crop-group-specific
-N-sensitivity scaling of the root:shoot ratio, applying the generic
-N-input adjustment factor uniformly across all crop groups
-(`RS_N_sensitivity = 1`). Default `FALSE`.}
+\item{simple}{Logical. If `TRUE`, bypasses all context-dependent RS
+corrections (N-input, crop-group N-sensitivity, irrigation), setting
+all adjustment factors to 1. No `Water_regime` or `N_input_kgha`
+columns required. Default `FALSE`.}
 }
 \value{
 Data frame with added column:
