@@ -129,3 +129,4 @@ reference:
   - N_input_RS_adj
   - Irrigation_adj
   - NPP_model_coefs
+  - residue_use

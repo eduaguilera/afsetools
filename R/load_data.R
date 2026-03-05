@@ -11,6 +11,7 @@
 #' - 6 IPCC residue/root coefficient objects from Biomass_coefs.xlsx
 #' - 2 crop-group helper objects (HI_crop_ranges, Crop_RS_N_response)
 #' - 1 NPP model coefficient object from Biomass_coefs.xlsx
+#' - 1 livestock coefficient object from Livestock_coefs.xlsx
 #' - 7 GWP objects from GWP.xlsx
 #' - 3 BNF objects from BNF.xlsx
 #' - 6 miscellaneous coefficient scalars
@@ -52,6 +53,9 @@
 #'
 #' NPP model coefficient objects:
 #' NPP_model_coefs
+#'
+#' Livestock coefficient objects:
+#' max_intake_share
 #'
 #' GWP objects:
 #' GWP, GWP_C, GWP_CO2, GWP_CH4, GWP_CH4_fossil, GWP_N2ON, GWP_N2O
@@ -412,12 +416,20 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   )
   assign("NPP_model_coefs", NPP_model_coefs, envir = env)
 
+  # Livestock coefficients from Livestock_coefs.xlsx ----
+  max_intake_share <- openxlsx::read.xlsx(
+    file.path(data_path, "Livestock_coefs.xlsx"),
+    sheet = "max_intake",
+    startRow = 1
+  )
+  assign("max_intake_share", max_intake_share, envir = env)
+
   # Load vectors and dataframes ----
   if (load_vectors) {
     afsetools::load_vectors(env = env)
-    message("Loaded 82 objects from data files and 300+ vectors into environment")
+    message("Loaded 83 objects from data files and 300+ vectors into environment")
   } else {
-    message("Loaded 82 objects from data files into environment (vectors skipped)")
+    message("Loaded 83 objects from data files into environment (vectors skipped)")
   }
   
   invisible(NULL)

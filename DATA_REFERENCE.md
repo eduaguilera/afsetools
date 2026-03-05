@@ -67,6 +67,14 @@ Including specialized nomenclatures for crops, livestock, feed, and regional agg
 - **`Residue_kgC_kgDM_Wo`** - Carbon content of woody residues (kg C / kg DM)
 - **`Root_kgC_kgDM_Wo`** - Carbon content of woody roots (kg C / kg DM)
 
+## Livestock Coefficients (1 object)
+
+From `Livestock_coefs.xlsx`.
+
+- **`max_intake_share`** - Maximum intake share by livestock category and feed
+  item (28 rows × 3 cols): Livestock_cat, item_cbs, max_intake_share.
+  Used by `redistribute_feed()` to cap feed allocation.
+
 ## IPCC Crop Residue and Root Coefficients (8 objects)
 
 Based on IPCC 2006 Guidelines, Vol. 4, Ch. 11, Table 11.2.

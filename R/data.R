@@ -155,6 +155,26 @@ NULL
 #' @keywords datasets
 NULL
 
+#' Maximum Feed Intake Shares by Livestock Category
+#'
+#' Maximum share of each feed item that can be allocated to each livestock
+#' category. Used by \code{redistribute_feed()} to cap feed distribution.
+#'
+#' @format A data frame with 28 rows and 3 columns:
+#' \describe{
+#'   \item{Livestock_cat}{Livestock category (e.g., Cattle_milk, Pigs,
+#'     Poultry, Sheep, Goats)}
+#'   \item{item_cbs}{Feed item name in CBS nomenclature}
+#'   \item{max_intake_share}{Maximum intake share (0-1). Zero means the
+#'     livestock category cannot consume this feed item.}
+#' }
+#'
+#' @source Livestock_coefs.xlsx, sheet "max_intake".
+#' @name max_intake_share
+#' @docType data
+#' @keywords datasets
+NULL
+
 #' Item Classifications
 #'
 #' Harmonized nomenclature for food and agricultural items with codes, names,
