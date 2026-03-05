@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/eduaguilera/afsetools/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/eduaguilera/afsetools/blob/v0.2.0/DESCRIPTION)
 
 Aguilera E (2026). *afsetools: Agro-Food System and Environment Tools*.
 R package version 0.2.0, <https://eduaguilera.github.io/afsetools>.
