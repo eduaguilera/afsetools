@@ -1,6 +1,6 @@
 # afsetools Data Reference
 
-This document describes the 80 data objects loaded by `load_general_data()`. All objects are automatically loaded into your R environment when you call this function.
+This document describes the 82 data objects loaded by `load_general_data()`. All objects are automatically loaded into your R environment when you call this function.
 
 ## Quick Reference
 
