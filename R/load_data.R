@@ -408,6 +408,13 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
   )
   assign("Irrigation_adj", Irrigation_adj, envir = env)
 
+  Irr_residue_crop_adj <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "Irr_residue_crop_adj",
+    startRow = 1
+  )
+  assign("Irr_residue_crop_adj", Irr_residue_crop_adj, envir = env)
+
   # NPP model coefficients from Biomass_coefs.xlsx ----
   NPP_model_coefs <- openxlsx::read.xlsx(
     file.path(data_path, "Biomass_coefs.xlsx"),

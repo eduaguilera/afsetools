@@ -299,17 +299,20 @@ test_that("calculate_crop_residues estimates realistic residues (basic)", {
 
 
 test_that("calculate_crop_residues handles irrigation adjustment", {
+  # Use Maize — the only crop with validated irrigation residue effect
+  # (Ludemann 2025: irrigated maize RPR < rainfed maize RPR)
+  # Wheat, rice, soybeans have Irr_residue_sensitivity = 0
   crop_rainfed <- tibble::tibble(
-    Name_biomass = "Wheat",
-    Prod_ygpit_Mg = 5,
+    Name_biomass = "Maize",
+    Prod_ygpit_Mg = 8,
     Area_ygpit_ha = 1,
     Year = 2000,
     region_HANPP = "West Europe",
     Water_regime = "Rainfed"
   )
   crop_irrigated <- tibble::tibble(
-    Name_biomass = "Wheat",
-    Prod_ygpit_Mg = 5,
+    Name_biomass = "Maize",
+    Prod_ygpit_Mg = 8,
     Area_ygpit_ha = 1,
     Year = 2000,
     region_HANPP = "West Europe",
@@ -319,8 +322,19 @@ test_that("calculate_crop_residues handles irrigation adjustment", {
   res_rainfed <- calculate_crop_residues(crop_rainfed)
   res_irrigated <- calculate_crop_residues(crop_irrigated)
 
-  # Irrigated should have less residue (higher HI → more product, less straw)
+  # Irrigated maize should have less residue (validated by Ludemann 2025)
   expect_lt(res_irrigated$Residue_MgDM, res_rainfed$Residue_MgDM)
+
+  # Wheat irrigation should NOT change residue (Irr_residue_sensitivity = 0)
+  wheat_rain <- tibble::tibble(
+    Name_biomass = "Wheat", Prod_ygpit_Mg = 5, Area_ygpit_ha = 1,
+    Water_regime = "Rainfed"
+  )
+  wheat_irr <- wheat_rain |> dplyr::mutate(Water_regime = "Irrigated")
+  expect_equal(
+    calculate_crop_residues(wheat_rain)$Residue_MgDM,
+    calculate_crop_residues(wheat_irr)$Residue_MgDM
+  )
 })
 
 
@@ -822,10 +836,18 @@ test_that("Auto-detect mode activates each adjustment independently", {
   res_base <- calculate_crop_npp(base_data)
 
   # Add Water_regime → irrigation adjustment activates
+  # Use Maize for residue test (Wheat has Irr_residue_sensitivity=0)
+  maize_base <- tibble::tibble(
+    Name_biomass = "Maize", Prod_ygpit_Mg = 8, Area_ygpit_ha = 1
+  )
+  res_maize_base <- calculate_crop_npp(maize_base)
+  data_maize_water <- maize_base |> dplyr::mutate(Water_regime = "Irrigated")
+  res_maize_water <- calculate_crop_npp(data_maize_water)
+  # Irrigated maize should reduce residue (crop-specific effect)
+  expect_lt(res_maize_water$Residue_MgDM, res_maize_base$Residue_MgDM)
+  # Root irrigation adjustment applies to all crops via RS_ratio_factor
   data_water <- base_data |> dplyr::mutate(Water_regime = "Irrigated")
   res_water <- calculate_crop_npp(data_water)
-  # Irrigated should reduce residue and root vs no adjustment
-  expect_lt(res_water$Residue_MgDM, res_base$Residue_MgDM)
   expect_lt(res_water$Root_MgDM, res_base$Root_MgDM)
 
   # Add N_input_kgha → N adjustment activates (low N = more roots)

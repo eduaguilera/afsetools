@@ -188,9 +188,11 @@ calculate_potential_npp <- function(Dataset) {
 #' production is not purely proportional to yield — there is a base structural
 #' component (intercept).
 #'
-#' **Irrigation adjustment**: Irrigated crops typically have higher harvest
-#' index (Sadras 2007), meaning less residue per unit product. The adjustment
-#' factor (default 0.90 for irrigated) is from the `Irrigation_adj` table.
+#' **Irrigation adjustment**: Irrigated crops may have different harvest
+#' index (Sadras 2007). The base adjustment factor (0.90 for irrigated) from
+#' `Irrigation_adj` is scaled by crop-group-specific sensitivity from
+#' `Irr_residue_crop_adj` (Ludemann et al. 2025). Only maize shows clear
+#' irrigated RPR < rainfed; wheat, rice, legumes do not.
 #'
 #' **Modern variety correction**: Pre-Green-Revolution varieties had lower
 #' harvest index. The `Modern_variety_adoption` table provides crop-group-
@@ -303,6 +305,10 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
     )
 
   # --- Irrigation adjustment (auto-detected: requires Water_regime) ----------
+  # The residue irrigation factor is crop-group-specific (Ludemann et al. 2025):
+  # only maize shows lower RPR under irrigation. Wheat, rice, soybeans do not.
+  # Irr_residue_crop_adj provides per-crop-group sensitivity (0 = no effect,
+  # 1 = full effect from Irrigation_adj).
   if (use_irrigation_adj) {
     Dataset <- Dataset |>
       dplyr::left_join(
@@ -310,8 +316,18 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
           dplyr::select(Water_regime, Residue_ratio_factor),
         by = "Water_regime"
       ) |>
+      dplyr::left_join(
+        Irr_residue_crop_adj |>
+          dplyr::select(crop_group, Irr_residue_sensitivity),
+        by = "crop_group"
+      ) |>
       dplyr::mutate(
-        Residue_ratio_factor = tidyr::replace_na(Residue_ratio_factor, 1.0)
+        Residue_ratio_factor = tidyr::replace_na(Residue_ratio_factor, 1.0),
+        Irr_residue_sensitivity = tidyr::replace_na(Irr_residue_sensitivity, 0),
+        # Scale factor: 1 + sensitivity * (base_factor - 1)
+        # e.g. if base=0.90 and sensitivity=1 → 0.90; sensitivity=0 → 1.0
+        Residue_ratio_factor = 1 + Irr_residue_sensitivity *
+          (Residue_ratio_factor - 1)
       )
   } else {
     Dataset <- Dataset |>
@@ -373,8 +389,8 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
         "IPCC_crop", "crop_group", "Slope_AG", "Intercept_AG_MgDMha",
         "Residue_IPCC_Mgha", "Residue_IPCC_MgDM", "Residue_IPCC_adj_MgDM",
         "Residue_ratio_MgFM", "Residue_ratio_MgDM", "Residue_ratio_adj_MgDM",
-        "Residue_ratio_factor", "HI_correction_factor",
-        "Modern_share", "HI_gap_factor"
+        "Residue_ratio_factor", "Irr_residue_sensitivity",
+        "HI_correction_factor", "Modern_share", "HI_gap_factor"
       ))
     )
 }

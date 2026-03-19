@@ -19,7 +19,7 @@ utils::globalVariables(c(
   "IPCC_crop", "crop_group", "Slope_AG", "Intercept_AG_MgDMha",
   "Residue_IPCC_Mgha", "Residue_IPCC_MgDM", "Residue_IPCC_adj_MgDM",
   "Residue_ratio_MgFM", "Residue_ratio_MgDM", "Residue_ratio_adj_MgDM",
-  "Residue_ratio_factor", "HI_correction_factor",
+  "Residue_ratio_factor", "Irr_residue_sensitivity", "HI_correction_factor",
   "Modern_share", "HI_gap_factor",
   "Water_regime", "Year", "region_HANPP",
   "Residue_MgDM",
