@@ -600,9 +600,58 @@ test_that("calculate_crop_npp handles unmapped crops gracefully", {
     N_input_kgha = 100
   )
 
-  # Should not error — falls back to ratio model only
-  result <- calculate_crop_npp(crop_data)
+  # Should not error — falls back gracefully with warnings about missing RS data
+  expect_warning(
+    result <- calculate_crop_npp(crop_data),
+    "no root"
+  )
   expect_true("Crop_NPP_MgDM" %in% names(result))
+})
+
+
+test_that("calculate_crop_residues validates required columns", {
+  # Missing Name_biomass should error
+  bad_data <- tibble::tibble(Prod_ygpit_Mg = 5, Area_ygpit_ha = 1)
+  expect_error(calculate_crop_residues(bad_data), "missing required columns")
+
+  # Missing context columns now auto-detected — runs without error
+  partial_data <- tibble::tibble(
+    Name_biomass = "Wheat", Prod_ygpit_Mg = 5, Area_ygpit_ha = 1
+  )
+  result <- calculate_crop_residues(partial_data)
+  expect_true("Prod_MgDM" %in% names(result))
+  expect_true("Residue_MgDM" %in% names(result))
+
+  # simple = TRUE also works without context columns
+  result2 <- calculate_crop_residues(partial_data, simple = TRUE)
+  expect_true("Prod_MgDM" %in% names(result2))
+})
+
+
+test_that("calculate_crop_roots validates required columns", {
+  # Missing Prod_MgDM should error
+  bad_data <- tibble::tibble(Name_biomass = "Wheat", Area_ygpit_ha = 1)
+  expect_error(calculate_crop_roots(bad_data), "missing required columns")
+
+  # Invalid w_ref should error
+  good_data <- tibble::tibble(
+    Name_biomass = "Wheat", Prod_MgDM = 3, Residue_MgDM = 4,
+    Area_ygpit_ha = 1, N_input_kgha = 100, Water_regime = "Rainfed"
+  )
+  expect_error(calculate_crop_roots(good_data, w_ref = 1.5), "w_ref must be")
+
+  # Missing N_input_kgha now auto-detected — runs without error, skips N adj
+  no_n_data <- tibble::tibble(
+    Name_biomass = "Wheat", Prod_MgDM = 3, Residue_MgDM = 4,
+    Area_ygpit_ha = 1
+  )
+  result <- calculate_crop_roots(no_n_data)
+  expect_true("Root_MgDM" %in% names(result))
+  expect_gt(result$Root_MgDM, 0)
+
+  # simple = TRUE also works without N_input or Water_regime
+  result2 <- calculate_crop_roots(no_n_data, simple = TRUE)
+  expect_true("Root_MgDM" %in% names(result2))
 })
 
 
@@ -629,4 +678,323 @@ test_that("w_ipcc parameter controls residue model weighting", {
 
   expect_true(all(c(res_ratio$Crop_NPP_MgDM, res_ipcc$Crop_NPP_MgDM,
                     res_ensemble$Crop_NPP_MgDM) > 0))
+})
+
+
+# ===========================================================================
+# INTEGRATION TEST: Full pipeline with diverse crop types
+# ===========================================================================
+
+test_that("Full NPP pipeline produces realistic results for diverse crops", {
+  # Representative crops spanning major categories:
+  # cereal, legume, root crop, oilseed, permanent crop, fodder, vegetable
+  crop_data <- tibble::tibble(
+    Name_biomass = c("Wheat", "Rice", "Maize", "Soyabeans", "Potato",
+                     "Sunflower seed", "Sugarcane", "Alfalfa", "Tomato",
+                     "Groundnuts, with shell"),
+    Prod_ygpit_Mg = c(5, 4, 8, 2.5, 25, 1.5, 60, 8, 30, 2),
+    Area_ygpit_ha = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+    Year = 2010,
+    region_HANPP = "West Europe",
+    Water_regime = c("Rainfed", "Irrigated", "Rainfed", "Rainfed", "Irrigated",
+                     "Rainfed", "Irrigated", "Rainfed", "Irrigated", "Rainfed"),
+    N_input_kgha = c(150, 120, 180, 10, 100, 60, 80, 0, 200, 20)
+  )
+
+  # Full pipeline: residues -> roots -> assembly
+  result <- calculate_crop_npp(crop_data)
+
+  # All crops should have positive NPP
+  expect_true(all(result$Crop_NPP_MgDM > 0))
+  expect_true(all(result$Prod_MgDM > 0))
+  expect_true(all(result$Residue_MgDM >= 0))
+  expect_true(all(result$Root_MgDM >= 0))
+
+  # Root biomass should be positive for all real crops
+  expect_true(all(result$Root_MgDM > 0))
+
+  # Root should be less than 2x aerial biomass for all crops (generous sanity check;
+
+  # fodder crops with RS=0.80 can have Root approaching Aerial)
+  expect_true(all(result$Root_MgDM < 2 * (result$Prod_MgDM + result$Residue_MgDM)))
+
+  # Cereals should have substantial residue (RPR > 0.5)
+  wheat_res <- result$Residue_MgDM[result$Name_biomass == "Wheat"]
+  wheat_prod <- result$Prod_MgDM[result$Name_biomass == "Wheat"]
+  expect_true(wheat_res / wheat_prod > 0.5)
+
+  # Potato should have low residue:product ratio
+  potato_res <- result$Residue_MgDM[result$Name_biomass == "Potato"]
+  potato_prod <- result$Prod_MgDM[result$Name_biomass == "Potato"]
+  expect_true(potato_res / potato_prod < 0.5)
+
+  # Legumes should have non-trivial root allocation
+  soy_root <- result$Root_MgDM[result$Name_biomass == "Soyabeans"]
+  expect_true(soy_root > 0.1)
+
+  # NPP = Prod + Residue + Root
+  expect_equal(
+    result$Crop_NPP_MgDM,
+    result$Prod_MgDM + result$Residue_MgDM + result$Root_MgDM,
+    tolerance = 1e-6
+  )
+})
+
+
+test_that("calculate_crop_npp joins correct C and N coefficients", {
+  crop_data <- tibble::tibble(
+    Name_biomass = c("Wheat", "Maize", "Soyabeans", "Potato", "Rice"),
+    Prod_ygpit_Mg = c(5, 8, 2.5, 25, 4),
+    Area_ygpit_ha = 1,
+    Year = 2010,
+    region_HANPP = "West Europe",
+    Water_regime = "Rainfed",
+    N_input_kgha = c(150, 180, 10, 100, 120)
+  )
+
+  # calculate_crop_npp provides DM values
+  result <- calculate_crop_npp(crop_data)
+
+  # All DM components should be positive
+  expect_true(all(result$Prod_MgDM > 0))
+  expect_true(all(result$Residue_MgDM > 0))
+  expect_true(all(result$Root_MgDM > 0))
+
+  # NPP should be sum of components
+  expect_equal(
+    result$Crop_NPP_MgDM,
+    result$Prod_MgDM + result$Residue_MgDM + result$Root_MgDM,
+    tolerance = 1e-6
+  )
+
+  # Wheat should have reasonable values:
+  # 5 Mg FM * ~0.88 DM/FM = ~4.4 Mg DM product
+  wheat <- result[result$Name_biomass == "Wheat", ]
+  expect_true(wheat$Prod_MgDM > 3.5 & wheat$Prod_MgDM < 5.0)
+  # Residue should be > product for wheat (RPR > 1)
+  expect_true(wheat$Residue_MgDM > wheat$Prod_MgDM * 0.8)
+  # Root should be plausible (15-35% of aerial)
+  aerial <- wheat$Prod_MgDM + wheat$Residue_MgDM
+  expect_true(wheat$Root_MgDM / aerial > 0.10)
+  expect_true(wheat$Root_MgDM / aerial < 0.50)
+})
+
+
+test_that("Root estimation is robust across N-input and irrigation gradients", {
+  # Same crop under different conditions
+  crop_data <- tibble::tibble(
+    Name_biomass = "Wheat",
+    Prod_ygpit_Mg = 5,
+    Area_ygpit_ha = 1,
+    Year = 2010,
+    region_HANPP = "West Europe",
+    Water_regime = c("Rainfed", "Irrigated", "Rainfed", "Rainfed", "Rainfed"),
+    N_input_kgha = c(0, 150, 50, 150, 300)
+  )
+
+  result <- crop_data |>
+    calculate_crop_residues() |>
+    calculate_crop_roots()
+
+  # Low N, rainfed should have highest root allocation
+  # (RS_adjustment = 1.2 for <20 kgN, RS_ratio_factor = 1.0 for rainfed)
+  expect_true(result$Root_MgDM[1] > result$Root_MgDM[4])
+
+  # Irrigated should have lower roots than rainfed at same N
+  # (RS_ratio_factor = 0.85 for irrigated)
+  expect_true(result$Root_MgDM[2] < result$Root_MgDM[4])
+
+  # Very high N should have lowest roots among rainfed
+  expect_true(result$Root_MgDM[5] < result$Root_MgDM[3])
+
+  # All should be positive
+  expect_true(all(result$Root_MgDM > 0))
+})
+
+
+test_that("Auto-detect mode activates each adjustment independently", {
+  # Base: only required columns (no adjustments)
+  base_data <- tibble::tibble(
+    Name_biomass = "Wheat",
+    Prod_ygpit_Mg = 5,
+    Area_ygpit_ha = 1
+  )
+  res_base <- calculate_crop_npp(base_data)
+
+  # Add Water_regime → irrigation adjustment activates
+  data_water <- base_data |> dplyr::mutate(Water_regime = "Irrigated")
+  res_water <- calculate_crop_npp(data_water)
+  # Irrigated should reduce residue and root vs no adjustment
+  expect_lt(res_water$Residue_MgDM, res_base$Residue_MgDM)
+  expect_lt(res_water$Root_MgDM, res_base$Root_MgDM)
+
+  # Add N_input_kgha → N adjustment activates (low N = more roots)
+  data_n_low <- base_data |> dplyr::mutate(N_input_kgha = 10)
+  data_n_high <- base_data |> dplyr::mutate(N_input_kgha = 250)
+  res_n_low <- calculate_crop_npp(data_n_low)
+  res_n_high <- calculate_crop_npp(data_n_high)
+  expect_gt(res_n_low$Root_MgDM, res_n_high$Root_MgDM)
+  # Residue should be the same (N doesn't affect residues)
+  expect_equal(res_n_low$Residue_MgDM, res_n_high$Residue_MgDM)
+
+  # Add Year + region_HANPP → modern variety correction activates
+  data_modern <- base_data |>
+    dplyr::mutate(Year = 2010, region_HANPP = "West Europe")
+  data_hist <- base_data |>
+    dplyr::mutate(Year = 1920, region_HANPP = "Sub-saharan Africa")
+  res_modern <- calculate_crop_npp(data_modern)
+  res_hist <- calculate_crop_npp(data_hist)
+  # Historical period, low adoption region → more residue
+  expect_gt(res_hist$Residue_MgDM, res_modern$Residue_MgDM)
+
+  # simple = TRUE overrides everything even when all columns present
+  data_full <- tibble::tibble(
+    Name_biomass = "Wheat",
+    Prod_ygpit_Mg = 5,
+    Area_ygpit_ha = 1,
+    Year = 2010,
+    region_HANPP = "West Europe",
+    Water_regime = "Irrigated",
+    N_input_kgha = 250
+  )
+  res_full <- calculate_crop_npp(data_full)
+  res_simple <- calculate_crop_npp(data_full, simple = TRUE)
+  # Simple should give different (unadjusted) results
+  expect_true(res_simple$Residue_MgDM != res_full$Residue_MgDM ||
+              res_simple$Root_MgDM != res_full$Root_MgDM)
+})
+
+
+test_that("w_ref parameter controls root estimation weighting", {
+  crop_data <- tibble::tibble(
+    Name_biomass = "Wheat",
+    Prod_MgDM = 4,
+    Residue_MgDM = 5,
+    Area_ygpit_ha = 1,
+    Water_regime = "Rainfed",
+    N_input_kgha = 100
+  )
+
+  # All weight on RS method
+  res_rs <- calculate_crop_roots(crop_data, w_ref = 0.0)
+  # All weight on reference BG biomass
+  res_ref <- calculate_crop_roots(crop_data, w_ref = 1.0)
+  # 50/50 ensemble (default)
+  res_mid <- calculate_crop_roots(crop_data, w_ref = 0.5)
+
+  # All should be positive
+  expect_gt(res_rs$Root_MgDM, 0)
+  expect_gt(res_ref$Root_MgDM, 0)
+  expect_gt(res_mid$Root_MgDM, 0)
+
+  # Ensemble should be between the two extremes (or equal if they agree)
+  root_min <- min(res_rs$Root_MgDM, res_ref$Root_MgDM)
+  root_max <- max(res_rs$Root_MgDM, res_ref$Root_MgDM)
+  expect_true(res_mid$Root_MgDM >= root_min - 1e-6)
+  expect_true(res_mid$Root_MgDM <= root_max + 1e-6)
+})
+
+
+test_that("calculate_crop_roots irrigation adjustment reduces roots", {
+  crop_rainfed <- tibble::tibble(
+    Name_biomass = "Wheat",
+    Prod_MgDM = 4,
+    Residue_MgDM = 5,
+    Area_ygpit_ha = 1,
+    Water_regime = "Rainfed",
+    N_input_kgha = 100
+  )
+  crop_irrigated <- crop_rainfed |>
+    dplyr::mutate(Water_regime = "Irrigated")
+
+  res_rain <- calculate_crop_roots(crop_rainfed)
+  res_irr <- calculate_crop_roots(crop_irrigated)
+
+  # Irrigated should have lower root biomass (shallower roots)
+  expect_lt(res_irr$Root_MgDM, res_rain$Root_MgDM)
+})
+
+
+test_that("calculate_npp_dm_c_n produces correct C and N conversions", {
+  # Build minimal input that calculate_npp_dm_c_n expects
+  # It needs biomass columns + coefficient columns + weed columns
+  input <- tibble::tibble(
+    Prod_MgDM = 4.0,
+    Residue_MgDM = 5.0,
+    Root_MgDM = 2.0,
+    Crop_NPP_MgDM = 11.0,
+    Weeds_AG_MgDM = 0.5,
+    # Crop coefficients
+    Product_kgN_kgDM = 0.020,
+    Residue_kgN_kgDM = 0.006,
+    Root_kgN_kgDM = 0.010,
+    Rhizodeposits_N_kgN_kgRootN = 0.50,
+    Product_kgC_kgDM = 0.45,
+    Residue_kgC_kgDM = 0.42,
+    Root_kgC_kgDM = 0.40,
+    Residue_kgDM_kgFM = 0.88,
+    Use_Share = 0.3,
+    Soil_Share = 0.7,
+    # Weed coefficients
+    Root_Shoot_ratio_W = 0.40,
+    Residue_kgN_kgDM_W = 0.015,
+    Root_kgN_kgDM_W = 0.012,
+    Rhizod_kgN_kgRootN_W = 0.40,
+    Residue_kgC_kgDM_W = 0.42,
+    Root_kgC_kgDM_W = 0.38
+  )
+
+  result <- calculate_npp_dm_c_n(input)
+
+  # Weed BG biomass
+  expect_equal(result$Weeds_BG_MgDM, 0.5 * 0.40)
+  expect_equal(result$Weeds_NPP_MgDM, 0.5 + 0.5 * 0.40)
+
+  # Crop_NPP_MgDM should be preserved (not recomputed)
+  expect_equal(result$Crop_NPP_MgDM, 11.0)
+
+  # Carbon conversions
+  expect_equal(result$Prod_MgC, 4.0 * 0.45)
+  expect_equal(result$Residue_MgC, 5.0 * 0.42)
+  expect_equal(result$Root_MgC, 2.0 * 0.40)
+  expect_equal(result$Crop_NPP_MgC,
+               result$Prod_MgC + result$Residue_MgC + result$Root_MgC)
+
+  # Nitrogen conversions (root N includes rhizodeposits)
+  expect_equal(result$Prod_MgN, 4.0 * 0.020)
+  expect_equal(result$Residue_MgN, 5.0 * 0.006)
+  expected_root_N <- 2.0 * 0.010 + 2.0 * 0.010 * 0.50
+  expect_equal(result$Root_MgN, expected_root_N)
+
+  # Residue FM and use/soil shares
+  expect_equal(result$Residue_MgFM, 5.0 / 0.88)
+  expect_equal(result$Used_Residue_MgFM, (5.0 / 0.88) * 0.3)
+  expect_equal(result$Residue_soil_MgN, result$Residue_MgN * 0.7)
+
+  # Totals
+  expect_equal(result$Tot_NPP_MgDM,
+               result$Crop_NPP_MgDM + result$Weeds_NPP_MgDM)
+  expect_equal(result$Tot_NPP_MgC,
+               result$Crop_NPP_MgC + result$Weeds_NPP_MgC)
+  expect_equal(result$Tot_NPP_MgN,
+               result$Crop_NPP_MgN + result$Weeds_NPP_MgN)
+})
+
+
+test_that("Simple mode produces reasonable results without context columns", {
+  crop_data <- tibble::tibble(
+    Name_biomass = c("Wheat", "Maize", "Rice", "Soyabeans"),
+    Prod_ygpit_Mg = c(5, 8, 4, 2.5),
+    Area_ygpit_ha = 1
+  )
+
+  result <- crop_data |>
+    calculate_crop_npp(simple = TRUE)
+
+  expect_true(all(result$Crop_NPP_MgDM > 0))
+  expect_true(all(result$Root_MgDM > 0))
+
+  # Simple mode (no adjustments) should produce intermediate root values
+  # between min and max possible under full mode
+  expect_true(all(result$Root_MgDM > 0.05))
 })

@@ -164,10 +164,14 @@ calculate_potential_npp <- function(Dataset) {
 #'   }
 #' @param w_ipcc Numeric weight for the IPCC linear model in the ensemble
 #'   (0-1). Default 0.5. The Biomass_coefs ratio gets weight `1 - w_ipcc`.
-#' @param simple Logical. If `TRUE`, bypasses all context-dependent
-#'   corrections (irrigation, modern-variety HI, N-input adjustments),
-#'   setting all adjustment factors to 1. No `Water_regime`,
-#'   `region_HANPP`, or `N_input_kgha` columns required. Default `FALSE`.
+#' @param simple Logical. If `TRUE`, forces all context-dependent
+#'   corrections off (irrigation, modern-variety HI), setting all
+#'   adjustment factors to 1 — even if the relevant columns exist.
+#'   If `FALSE` (default), each adjustment is **auto-detected**: it
+#'   activates only when its required columns are present in `Dataset`.
+#'   Specifically:
+#'   - Irrigation adjustment requires `Water_regime`
+#'   - Modern variety HI correction requires `Year` + `region_HANPP`
 #'
 #' @return Data frame with added columns:
 #'   \describe{
@@ -227,6 +231,24 @@ calculate_potential_npp <- function(Dataset) {
 #' }
 calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
 
+  # --- Input validation ------------------------------------------------------
+  required_cols <- c("Name_biomass", "Prod_ygpit_Mg", "Area_ygpit_ha")
+  missing_cols <- setdiff(required_cols, names(Dataset))
+  if (length(missing_cols) > 0) {
+    stop("calculate_crop_residues: missing required columns: ",
+         paste(missing_cols, collapse = ", "))
+  }
+
+  if (w_ipcc < 0 || w_ipcc > 1) {
+    stop("calculate_crop_residues: w_ipcc must be between 0 and 1, got ", w_ipcc)
+  }
+
+  # --- Auto-detect which adjustments to apply --------------------------------
+  has_water   <- "Water_regime" %in% names(Dataset)
+  has_variety <- all(c("Year", "region_HANPP") %in% names(Dataset))
+  use_irrigation_adj <- !simple && has_water
+  use_variety_adj    <- !simple && has_variety
+
   # --- Join Biomass_coefs for DM conversion and residue:product ratio --------
   Dataset <- Dataset |>
     dplyr::left_join(
@@ -280,15 +302,8 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
       Residue_ratio_MgDM = Residue_ratio_MgFM * Residue_kgDM_kgFM
     )
 
-  # --- Irrigation adjustment (requires Water_regime column) ------------------
-  # Skipped in simple mode (factor = 1).
-  if (simple) {
-    Dataset <- Dataset |>
-      dplyr::mutate(
-        Residue_ratio_factor = 1.0,
-        HI_correction_factor = 1.0
-      )
-  } else {
+  # --- Irrigation adjustment (auto-detected: requires Water_regime) ----------
+  if (use_irrigation_adj) {
     Dataset <- Dataset |>
       dplyr::left_join(
         Irrigation_adj |>
@@ -298,11 +313,13 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
       dplyr::mutate(
         Residue_ratio_factor = tidyr::replace_na(Residue_ratio_factor, 1.0)
       )
+  } else {
+    Dataset <- Dataset |>
+      dplyr::mutate(Residue_ratio_factor = 1.0)
+  }
 
-  # --- Modern variety HI correction (requires Year, region_HANPP) ------------
-  # Uses crop-group-specific adoption rates from Evenson & Gollin (2003) and
-  # crop-specific HI gap factors from HI_crop_ranges to compute the
-  # HI_correction_factor.
+  # --- Modern variety HI correction (auto-detected: requires Year + region_HANPP)
+  if (use_variety_adj) {
     Dataset <- Dataset |>
       dplyr::left_join(
         Modern_variety_adoption |>
@@ -320,6 +337,9 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
         HI_correction_factor = 1 + (1 - Modern_share) *
           (HI_gap_factor - 1)
       )
+  } else {
+    Dataset <- Dataset |>
+      dplyr::mutate(HI_correction_factor = 1.0)
   }
 
   # --- Ensemble: weighted mean of both methods -------------------------------
@@ -396,10 +416,13 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
 #' @param w_ref Numeric weight for the reference root biomass approach in
 #'   the ensemble (0-1). Default 0.5. The RS-based approach gets weight
 #'   `1 - w_ref`.
-#' @param simple Logical. If `TRUE`, bypasses all context-dependent RS
-#'   corrections (N-input, crop-group N-sensitivity, irrigation), setting
-#'   all adjustment factors to 1. No `Water_regime` or `N_input_kgha`
-#'   columns required. Default `FALSE`.
+#' @param simple Logical. If `TRUE`, forces all context-dependent RS
+#'   corrections off (N-input, irrigation), setting all adjustment factors
+#'   to 1 — even if the relevant columns exist. If `FALSE` (default),
+#'   each adjustment is **auto-detected**: it activates only when its
+#'   required columns are present in `Dataset`. Specifically:
+#'   - N-input RS adjustment requires `N_input_kgha`
+#'   - Irrigation RS adjustment requires `Water_regime`
 #'
 #' @return Data frame with added column:
 #'   \describe{
@@ -457,6 +480,24 @@ calculate_crop_residues <- function(Dataset, w_ipcc = 0.5, simple = FALSE) {
 #' }
 calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
 
+  # --- Input validation ------------------------------------------------------
+  required_cols <- c("Name_biomass", "Prod_MgDM", "Residue_MgDM", "Area_ygpit_ha")
+  missing_cols <- setdiff(required_cols, names(Dataset))
+  if (length(missing_cols) > 0) {
+    stop("calculate_crop_roots: missing required columns: ",
+         paste(missing_cols, collapse = ", "))
+  }
+
+  if (w_ref < 0 || w_ref > 1) {
+    stop("calculate_crop_roots: w_ref must be between 0 and 1, got ", w_ref)
+  }
+
+  # --- Auto-detect which adjustments to apply --------------------------------
+  has_n_input <- "N_input_kgha" %in% names(Dataset)
+  has_water   <- "Water_regime" %in% names(Dataset)
+  use_n_adj          <- !simple && has_n_input
+  use_irrigation_adj <- !simple && has_water
+
   # --- Join Biomass_coefs for default RS and BG reference --------------------
   Dataset <- Dataset |>
     dplyr::select(-dplyr::any_of(c("Root_Shoot_ratio",
@@ -480,19 +521,8 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
       by = "IPCC_crop"
     )
 
-  # --- N-input and irrigation-based RS adjustments --------------------------
-  # Skipped in simple mode (all factors = 1).
-  if (simple) {
-    Dataset <- Dataset |>
-      dplyr::mutate(
-        N_RS_factor_raw = 1.0,
-        RS_N_sensitivity = 1.0,
-        N_RS_factor = 1.0,
-        RS_ratio_factor = 1.0
-      )
-  } else {
-    # N-input based RS adjustment (requires N_input_kgha column)
-    # Use N_input_RS_adj table from load_general_data() for data-driven lookup
+  # --- N-input RS adjustment (auto-detected: requires N_input_kgha) ----------
+  if (use_n_adj) {
     Dataset <- Dataset |>
       dplyr::mutate(
         N_RS_factor_raw = findInterval(
@@ -501,15 +531,12 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
         )
       ) |>
       dplyr::mutate(
-        # Clamp to valid range [1, nrow(N_input_RS_adj)]
         N_RS_factor_raw = pmax(1L, pmin(N_RS_factor_raw,
                                         nrow(N_input_RS_adj))),
         N_RS_factor_raw = N_input_RS_adj$RS_adjustment[N_RS_factor_raw]
       )
 
     # Crop-group-specific RS N sensitivity (Poorter & Nagel 2000)
-    # Scale the generic N_RS_factor by crop-group sensitivity.
-    # Legumes (low sensitivity) barely respond; cereals respond fully.
     Dataset <- Dataset |>
       dplyr::left_join(
         Crop_RS_N_response |>
@@ -520,8 +547,13 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
         RS_N_sensitivity = tidyr::replace_na(RS_N_sensitivity, 1.0),
         N_RS_factor = 1 + (N_RS_factor_raw - 1) * RS_N_sensitivity
       )
+  } else {
+    Dataset <- Dataset |>
+      dplyr::mutate(N_RS_factor = 1.0)
+  }
 
-    # Irrigation-based RS (requires Water_regime column)
+  # --- Irrigation RS adjustment (auto-detected: requires Water_regime) ------
+  if (use_irrigation_adj) {
     Dataset <- Dataset |>
       dplyr::left_join(
         Irrigation_adj |>
@@ -531,6 +563,34 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
       dplyr::mutate(
         RS_ratio_factor = tidyr::replace_na(RS_ratio_factor, 1.0)
       )
+  } else {
+    Dataset <- Dataset |>
+      dplyr::mutate(RS_ratio_factor = 1.0)
+  }
+
+  # --- Diagnostic: warn about crops with no RS source -------------------------
+  no_rs <- Dataset |>
+    dplyr::filter(is.na(RS_default) & is.na(Root_Shoot_ratio)) |>
+    dplyr::pull(Name_biomass) |>
+    unique()
+  if (length(no_rs) > 0) {
+    warning("calculate_crop_roots: ", length(no_rs),
+            " crop(s) have no root:shoot ratio (neither IPCC nor Biomass_coefs): ",
+            paste(utils::head(no_rs, 10), collapse = ", "),
+            if (length(no_rs) > 10) paste0(", ... (", length(no_rs) - 10, " more)"),
+            ". Root biomass will rely on reference BG_Biomass values only.")
+  }
+
+  no_bg <- Dataset |>
+    dplyr::filter(is.na(RS_default) & is.na(Root_Shoot_ratio) &
+                    is.na(BG_ref_MgDMha) & is.na(BG_Biomass_kgDM_ha)) |>
+    dplyr::pull(Name_biomass) |>
+    unique()
+  if (length(no_bg) > 0) {
+    warning("calculate_crop_roots: ", length(no_bg),
+            " crop(s) have NO root estimation source at all (no RS ratio, no BG ref): ",
+            paste(utils::head(no_bg, 10), collapse = ", "),
+            ". Root biomass will be set to 0 for these crops.")
   }
 
   # --- Compute effective RS ratio --------------------------------------------
@@ -585,10 +645,11 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
         TRUE ~ 0
       ),
       # Cap at 3x default RS ratio to avoid unrealistic values
-      Root_MgDM = dplyr::if_else(
-        Aerial_MgDM > 0 & Root_MgDM / Aerial_MgDM > RS_base * 3,
-        Aerial_MgDM * RS_base * 3,
-        Root_MgDM
+      # (only when RS_base is available; otherwise cap at a generous 1.5 RS)
+      Root_MgDM = dplyr::case_when(
+        is.na(RS_base) | Aerial_MgDM <= 0 ~ Root_MgDM,
+        Root_MgDM / Aerial_MgDM > RS_base * 3 ~ Aerial_MgDM * RS_base * 3,
+        TRUE ~ Root_MgDM
       ),
       Root_MgDM = pmax(tidyr::replace_na(Root_MgDM, 0), 0)
     )
@@ -643,10 +704,15 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
 #'   residue estimation ensemble. Default 0.5.
 #' @param w_ref Numeric (0-1). Weight for the reference root biomass in the
 #'   root estimation ensemble. Default 0.5.
-#' @param simple Logical. If `TRUE`, passes `simple = TRUE` to both
-#'   `calculate_crop_residues()` and `calculate_crop_roots()`, disabling
-#'   all context-dependent corrections. Only `Name_biomass`,
-#'   `Prod_ygpit_Mg`, and `Area_ygpit_ha` columns required. Default `FALSE`.
+#' @param simple Logical. If `TRUE`, forces all context-dependent
+#'   corrections off in both sub-functions, even if relevant columns
+#'   exist. If `FALSE` (default), each adjustment auto-detects based
+#'   on which columns are present in `Dataset`:
+#'   - `Water_regime` → irrigation adjustments (residues + roots)
+#'   - `Year` + `region_HANPP` → modern variety HI correction (residues)
+#'   - `N_input_kgha` → N-input root:shoot adjustment (roots)
+#'   Only `Name_biomass`, `Prod_ygpit_Mg`, and `Area_ygpit_ha` are
+#'   always required.
 #'
 #' @return Data frame with added columns:
 #'   \describe{
@@ -664,10 +730,10 @@ calculate_crop_roots <- function(Dataset, w_ref = 0.5, simple = FALSE) {
 #' `HI` parameter for dynamic harvest index is preserved via the legacy alias
 #' `Calculate_crop_NPP()`.
 #'
-#' **Required context columns**: The Dataset must include Year,
-#' region_HANPP, Water_regime, and N_input_kgha columns. These drive the
-#' IPCC context-dependent adjustments for modern variety era, irrigation
-#' regime, and nitrogen input effects on root allocation.
+#' **Context columns (auto-detected)**: When present, Year + region_HANPP
+#' drive modern variety HI correction, Water_regime drives irrigation
+#' adjustments, and N_input_kgha drives nitrogen effects on root allocation.
+#' Each adjustment activates independently based on column presence.
 #'
 #' Requires from `load_general_data()`:
 #' - `Biomass_coefs`
@@ -729,7 +795,10 @@ calculate_npp_dm_c_n <- function(AreaNPP) {
     dplyr::mutate(
       Weeds_BG_MgDM = Weeds_AG_MgDM * Root_Shoot_ratio_W,
       Weeds_NPP_MgDM = Weeds_AG_MgDM + Weeds_BG_MgDM,
-      Crop_NPP_MgDM = Prod_MgDM + Residue_MgDM + Root_MgDM,
+      # Only compute Crop_NPP_MgDM if not already present (avoid overwriting
+      # the value from calculate_crop_npp())
+      Crop_NPP_MgDM = if ("Crop_NPP_MgDM" %in% names(AreaNPP))
+        Crop_NPP_MgDM else Prod_MgDM + Residue_MgDM + Root_MgDM,
       Tot_NPP_MgDM = Crop_NPP_MgDM + Weeds_NPP_MgDM,
       Prod_MgN = Prod_MgDM * Product_kgN_kgDM,
       Residue_MgFM = Residue_MgDM / Residue_kgDM_kgFM,
@@ -801,15 +870,34 @@ calculate_crop_npp_components <- function(Crop_NPPpot, .by = NULL) {
         dplyr::select(dplyr::any_of(c("Name_biomass", biomass_coef_cols))),
       by = c("Name_biomass")
     ) |>
-    dplyr::left_join(Weed_NPP_Scaling) |>
-    dplyr::left_join(Residue_Shares) |>
-    dplyr::left_join(Fallow_cover) |>
+    dplyr::left_join(Weed_NPP_Scaling,
+                     by = dplyr::join_by(Year, Name_biomass)) |>
+    dplyr::left_join(Residue_Shares,
+                     by = dplyr::join_by(Year, Name_biomass)) |>
+    dplyr::left_join(Fallow_cover,
+                     by = dplyr::join_by(Year, Name_biomass)) |>
     dplyr::mutate(.by = dplyr::all_of(.by),
       Scaling_weeds = dplyr::if_else(is.na(Scaling_weeds),
       mean(Scaling_weeds, na.rm = TRUE),
       Scaling_weeds
     )) |>
-    (\(x) base::replace(x, is.na(x), 0))() |>
+    # Targeted NA→0 for coefficient and share columns only.
+    # (Replaces former blanket replace(NA, 0) which could zero out
+    # non-biomass columns like Year, coordinates, etc.)
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::any_of(c(
+          biomass_coef_cols,
+          "Use_Share", "Soil_Share", "Fallow_cover_share",
+          "Scaling_weeds",
+          "Root_Shoot_ratio_W",
+          "Residue_kgN_kgDM_W", "Root_kgN_kgDM_W",
+          "Rhizod_kgN_kgRootN_W",
+          "Residue_kgC_kgDM_W", "Root_kgC_kgDM_W"
+        )),
+        \(x) tidyr::replace_na(x, 0)
+      )
+    ) |>
     dplyr::mutate(.by = dplyr::all_of(.by),
       Weeds_AG_MgDM = dplyr::if_else(Name_biomass != "Fallow",
       Area_ygpit_ha * Scaling_weeds * NPPpot_MgDMha / (1 + Root_Shoot_ratio_W),
