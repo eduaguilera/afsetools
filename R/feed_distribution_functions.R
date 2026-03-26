@@ -181,9 +181,9 @@ redistribute_feed <- function(
 ) {
   start_time <- Sys.time()
   if (verbose) {
-    cat("\n╔══════════════════════════════════════════════════════════╗\n")
-    cat("║          redistribute_feed() diagnostics                 ║\n")
-    cat("╚══════════════════════════════════════════════════════════╝\n")
+    cat("\n+----------------------------------------------------------+\n")
+    cat("|          redistribute_feed() diagnostics                 |\n")
+    cat("+----------------------------------------------------------+\n")
     cat("\u25b6 Running redistribute_feed(): allocation engine engaged.\n")
     cat("\u25b6 Diagnostics active: stage-by-stage insights below.\n")
   }
@@ -389,15 +389,15 @@ redistribute_feed <- function(
     
     if (verbose) {
       cat(sprintf("\n[Diag %02d] Stage: %s\n", diag_counter, stage_label))
-      cat(sprintf("  • Demand satisfied: %s / %s (%.1f%%)\n",
+      cat(sprintf("  - Demand satisfied: %s / %s (%.1f%%)\n",
                   format_tg(satisfied), format_tg(total_demand), satisfied_pct))
-      cat(sprintf("  • Remaining demand: %s | HP unmet: %s | HP avail: %s\n",
+      cat(sprintf("  - Remaining demand: %s | HP unmet: %s | HP avail: %s\n",
                   format_tg(remaining_demand), format_tg(hp_unmet), format_tg(hp_avail)))
       if (length(top_unmet)) {
-        cat("  • Top unmet groups: ", paste(top_unmet, collapse = "; "), "\n", sep = "")
+        cat("  - Top unmet groups: ", paste(top_unmet, collapse = "; "), "\n", sep = "")
       }
       if (!is.null(note)) {
-        cat("  • Notes: ", note, "\n", sep = "")
+        cat("  - Notes: ", note, "\n", sep = "")
       }
     }
     diag_counter <<- diag_counter + 1L

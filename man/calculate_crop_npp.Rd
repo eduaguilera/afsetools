@@ -26,10 +26,15 @@ residue estimation ensemble. Default 0.5.}
 \item{w_ref}{Numeric (0-1). Weight for the reference root biomass in the
 root estimation ensemble. Default 0.5.}
 
-\item{simple}{Logical. If `TRUE`, passes `simple = TRUE` to both
-`calculate_crop_residues()` and `calculate_crop_roots()`, disabling
-all context-dependent corrections. Only `Name_biomass`,
-`Prod_ygpit_Mg`, and `Area_ygpit_ha` columns required. Default `FALSE`.}
+\item{simple}{Logical. If `TRUE`, forces all context-dependent
+corrections off in both sub-functions, even if relevant columns
+exist. If `FALSE` (default), each adjustment auto-detects based
+on which columns are present in `Dataset`:
+- `Water_regime` → irrigation adjustments (residues + roots)
+- `Year` + `region_HANPP` → modern variety HI correction (residues)
+- `N_input_kgha` → N-input root:shoot adjustment (roots)
+Only `Name_biomass`, `Prod_ygpit_Mg`, and `Area_ygpit_ha` are
+always required.}
 }
 \value{
 Data frame with added columns:
@@ -67,10 +72,10 @@ as the previous `calculate_crop_npp()`. The old function signature using an
 `HI` parameter for dynamic harvest index is preserved via the legacy alias
 `Calculate_crop_NPP()`.
 
-**Required context columns**: The Dataset must include Year,
-region_HANPP, Water_regime, and N_input_kgha columns. These drive the
-IPCC context-dependent adjustments for modern variety era, irrigation
-regime, and nitrogen input effects on root allocation.
+**Context columns (auto-detected)**: When present, Year + region_HANPP
+drive modern variety HI correction, Water_regime drives irrigation
+adjustments, and N_input_kgha drives nitrogen effects on root allocation.
+Each adjustment activates independently based on column presence.
 
 Requires from `load_general_data()`:
 - `Biomass_coefs`

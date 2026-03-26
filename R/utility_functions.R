@@ -19,6 +19,7 @@ NULL
 #' @examples
 #' c(1, 2, 3) %!in% c(2, 4, 6) # Returns TRUE FALSE TRUE
 #'
+#' @name not_in
 #' @export
 "%!in%" <- function(x, y) !("%in%"(x, y))
 

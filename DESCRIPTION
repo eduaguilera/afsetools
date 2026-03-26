@@ -1,7 +1,7 @@
 Package: afsetools
 Type: Package
 Title: Agro-Food System and Environment Tools
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: person("Eduardo", "Aguilera", 
                   email = "eduardo.aguilera@upm.es",
                   role = c("aut", "cre"),
@@ -14,24 +14,27 @@ License: MIT + file LICENSE
 URL: https://eduaguilera.github.io/afsetools
 BugReports: https://github.com/eduaguilera/afsetools/issues
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1.0)
 Imports:
-    data.table,
+    DescTools,
     dplyr,
     ggplot2,
     rlang,
-    readxl,
     openxlsx,
     tibble,
-    tidyr
+    tidyr,
+    zoo
 Suggests:
+    data.table,
     methods,
     raster,
+    readxl,
     sf,
     testthat (>= 3.0.0),
+    withr,
     knitr,
     rmarkdown,
     pkgdown

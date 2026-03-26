@@ -198,7 +198,7 @@ calculate_footprints <- function(dtm = NULL) {
     dplyr::filter(N_yield != 0) |>
     dplyr::filter(Live_anim %in% Draught_animals) |>
     dplyr::mutate(
-      Win = DescTools::Winsorize(N_yield, val = quantile(N_yield, probs = c(0.5, 1))),
+      Win = DescTools::Winsorize(N_yield, val = stats::quantile(N_yield, probs = c(0.5, 1))),
       min_yield = min(Win),
       Yield_share = min_yield / N_yield,
       Yield_share_excess = dplyr::if_else(Yield_share > 1, Yield_share, 1),
