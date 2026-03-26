@@ -467,7 +467,7 @@ Helper functions for data manipulation and gap-filling.
 
 - [`utility_functions`](https://eduaguilera.github.io/afsetools/reference/utility_functions.md)
   : Utility Functions for Data Manipulation
-- [`` `%!in%` ``](https://eduaguilera.github.io/afsetools/reference/grapes-not-in-grapes.md)
+- [`` `%!in%` ``](https://eduaguilera.github.io/afsetools/reference/not_in.md)
   : Exclude operator
 - [`drop_cols()`](https://eduaguilera.github.io/afsetools/reference/drop_cols.md)
   : Drop columns from data frame

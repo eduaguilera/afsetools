@@ -5,6 +5,7 @@
 <url><loc>https://eduaguilera.github.io/afsetools/authors.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/copilot-instructions.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/index.html</loc></url>
+<url><loc>https://eduaguilera.github.io/afsetools/news/index.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/Agg_primary.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/Agg_processed.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/Allocate_impacts_to_products.html</loc></url>
@@ -51,7 +52,6 @@
 <url><loc>https://eduaguilera.github.io/afsetools/reference/get_global_export_footprint.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/get_herbwoody_fao.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/ggplotRegression.html</loc></url>
-<url><loc>https://eduaguilera.github.io/afsetools/reference/grapes-not-in-grapes.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/index.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/integrate_fallow.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/is_empty.html</loc></url>
@@ -59,6 +59,7 @@
 <url><loc>https://eduaguilera.github.io/afsetools/reference/load_general_data.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/load_vectors.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/max_intake_share.html</loc></url>
+<url><loc>https://eduaguilera.github.io/afsetools/reference/not_in.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/redistribute_feed.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/regions_full.html</loc></url>
 <url><loc>https://eduaguilera.github.io/afsetools/reference/residue_use.html</loc></url>

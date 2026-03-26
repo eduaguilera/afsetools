@@ -27,7 +27,7 @@ capped at 3x the default RS ratio to prevent unrealistic values."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">afsetools</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,7 @@ capped at 3x the default RS ratio to prevent unrealistic values."></head><body>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/eduaguilera/afsetools/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -106,10 +107,13 @@ the ensemble (0-1). Default 0.5. The RS-based approach gets weight
 
 
 <dt id="arg-simple">simple<a class="anchor" aria-label="anchor" href="#arg-simple"></a></dt>
-<dd><p>Logical. If `TRUE`, bypasses all context-dependent RS
-corrections (N-input, crop-group N-sensitivity, irrigation), setting
-all adjustment factors to 1. No `Water_regime` or `N_input_kgha`
-columns required. Default `FALSE`.</p></dd>
+<dd><p>Logical. If `TRUE`, forces all context-dependent RS
+corrections off (N-input, irrigation), setting all adjustment factors
+to 1 — even if the relevant columns exist. If `FALSE` (default),
+each adjustment is **auto-detected**: it activates only when its
+required columns are present in `Dataset`. Specifically:
+- N-input RS adjustment requires `N_input_kgha`
+- Irrigation RS adjustment requires `Water_regime`</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -58,10 +58,13 @@ calculate_crop_residues(Dataset, w_ipcc = 0.5, simple = FALSE)
 
 - simple:
 
-  Logical. If \`TRUE\`, bypasses all context-dependent corrections
-  (irrigation, modern-variety HI, N-input adjustments), setting all
-  adjustment factors to 1. No \`Water_regime\`, \`region_HANPP\`, or
-  \`N_input_kgha\` columns required. Default \`FALSE\`.
+  Logical. If \`TRUE\`, forces all context-dependent corrections off
+  (irrigation, modern-variety HI), setting all adjustment factors to 1 —
+  even if the relevant columns exist. If \`FALSE\` (default), each
+  adjustment is \*\*auto-detected\*\*: it activates only when its
+  required columns are present in \`Dataset\`. Specifically: -
+  Irrigation adjustment requires \`Water_regime\` - Modern variety HI
+  correction requires \`Year\` + \`region_HANPP\`
 
 ## Value
 
@@ -93,10 +96,11 @@ This captures the empirical finding (Lassaletta et al. 2014) that
 residue production is not purely proportional to yield — there is a base
 structural component (intercept).
 
-\*\*Irrigation adjustment\*\*: Irrigated crops typically have higher
-harvest index (Sadras 2007), meaning less residue per unit product. The
-adjustment factor (default 0.90 for irrigated) is from the
-\`Irrigation_adj\` table.
+\*\*Irrigation adjustment\*\*: Irrigated crops may have different
+harvest index (Sadras 2007). The base adjustment factor (0.90 for
+irrigated) from \`Irrigation_adj\` is scaled by crop-group-specific
+sensitivity from \`Irr_residue_crop_adj\` (Ludemann et al. 2025). Only
+maize shows clear irrigated RPR \< rainfed; wheat, rice, legumes do not.
 
 \*\*Modern variety correction\*\*: Pre-Green-Revolution varieties had
 lower harvest index. The \`Modern_variety_adoption\` table provides

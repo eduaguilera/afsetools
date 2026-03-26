@@ -25,7 +25,7 @@ The calculation pipeline is:
 
     <a class="navbar-brand me-2" href="../index.html">afsetools</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@ The calculation pipeline is:
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/eduaguilera/afsetools/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -110,10 +111,15 @@ root estimation ensemble. Default 0.5.</p></dd>
 
 
 <dt id="arg-simple">simple<a class="anchor" aria-label="anchor" href="#arg-simple"></a></dt>
-<dd><p>Logical. If `TRUE`, passes `simple = TRUE` to both
-`calculate_crop_residues()` and `calculate_crop_roots()`, disabling
-all context-dependent corrections. Only `Name_biomass`,
-`Prod_ygpit_Mg`, and `Area_ygpit_ha` columns required. Default `FALSE`.</p></dd>
+<dd><p>Logical. If `TRUE`, forces all context-dependent
+corrections off in both sub-functions, even if relevant columns
+exist. If `FALSE` (default), each adjustment auto-detects based
+on which columns are present in `Dataset`:
+- `Water_regime` → irrigation adjustments (residues + roots)
+- `Year` + `region_HANPP` → modern variety HI correction (residues)
+- `N_input_kgha` → N-input root:shoot adjustment (roots)
+Only `Name_biomass`, `Prod_ygpit_Mg`, and `Area_ygpit_ha` are
+always required.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -147,10 +153,10 @@ assembles total crop NPP.</p>
 as the previous `calculate_crop_npp()`. The old function signature using an
 `HI` parameter for dynamic harvest index is preserved via the legacy alias
 `Calculate_crop_NPP()`.</p>
-<p>**Required context columns**: The Dataset must include Year,
-region_HANPP, Water_regime, and N_input_kgha columns. These drive the
-IPCC context-dependent adjustments for modern variety era, irrigation
-regime, and nitrogen input effects on root allocation.</p>
+<p>**Context columns (auto-detected)**: When present, Year + region_HANPP
+drive modern variety HI correction, Water_regime drives irrigation
+adjustments, and N_input_kgha drives nitrogen effects on root allocation.
+Each adjustment activates independently based on column presence.</p>
 <p>Requires from `load_general_data()`:
 - `Biomass_coefs`
 - `IPCC_residue_coefs`, `IPCC_root_coefs`, `IPCC_crop_mapping`

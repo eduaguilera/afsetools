@@ -61,10 +61,12 @@ calculate_crop_roots(Dataset, w_ref = 0.5, simple = FALSE)
 
 - simple:
 
-  Logical. If \`TRUE\`, bypasses all context-dependent RS corrections
-  (N-input, crop-group N-sensitivity, irrigation), setting all
-  adjustment factors to 1. No \`Water_regime\` or \`N_input_kgha\`
-  columns required. Default \`FALSE\`.
+  Logical. If \`TRUE\`, forces all context-dependent RS corrections off
+  (N-input, irrigation), setting all adjustment factors to 1 — even if
+  the relevant columns exist. If \`FALSE\` (default), each adjustment is
+  \*\*auto-detected\*\*: it activates only when its required columns are
+  present in \`Dataset\`. Specifically: - N-input RS adjustment requires
+  \`N_input_kgha\` - Irrigation RS adjustment requires \`Water_regime\`
 
 ## Value
 
