@@ -1,0 +1,23 @@
+── R CMD check results ──────────────────────────────────── afsetools 0.2.0 ────
+Duration: 2m 43.1s
+
+❯ checking for hidden files and directories ... NOTE
+  Found the following hidden files and directories:
+    .doc_temp.R
+    .github
+    .vscode
+  These were most likely included in error. See section 'Package
+  structure' in the 'Writing R Extensions' manual.
+
+❯ checking for future file timestamps ... NOTE
+  unable to verify current time
+
+❯ checking DESCRIPTION meta-information ... NOTE
+  License stub is invalid DCF.
+
+❯ checking top-level files ... NOTE
+  Non-standard files/directories found at top level:
+    'DATA_REFERENCE.md' '_pkgdown.yml' 'additional_files' 'build_docs.R'
+    'check_full.txt' 'docs'
+
+0 errors ✔ | 0 warnings ✔ | 4 notes ✖

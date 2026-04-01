@@ -219,8 +219,44 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
       Rhizodeposits_mass_kgC_kgDM = as.numeric(as.character(Rhizodeposits_mass_kgC_kgDM)),
       Residue_C_N = as.numeric(as.character(Residue_C_N))
     )
+  # Fill nutrient columns from Conversores_Dieta (VLOOKUP formulas in Coefs
+  # sheet are not evaluated by openxlsx, so cached values may be missing).
+  # Cols 3-4 (GE, N) are formula-based and also unresolved; cols 5-9 are
+  # literal values. Col 10 (Energy kcal/kg) and col 11 (Protein g/kg) are
+  # literal and used to derive N = Protein / (6.25 * 1000).
+  Conversores_Dieta <- openxlsx::read.xlsx(
+    file.path(data_path, "Biomass_coefs.xlsx"),
+    sheet = "Conversores_Dieta",
+    startRow = 2,
+    cols = c(2, 5:9, 11)
+  ) |>
+    stats::setNames(c("Name_biomass", "Edible_portion_cd", "Lipids_g_kgFM_cd",
+                       "Carbohydrates_g_kgFM_cd", "Calcium_mg_kgFM_cd",
+                       "VitaminA_microg_kgFM_cd", "Protein_g_kgFM_cd")) |>
+    dplyr::filter(!is.na(Name_biomass)) |>
+    dplyr::mutate(
+      dplyr::across(-Name_biomass, as.numeric),
+      N_kgN_kgFM_cd = Protein_g_kgFM_cd / (6.25 * 1000)
+    )
+
+  Biomass_coefs <- Biomass_coefs |>
+    dplyr::left_join(Conversores_Dieta, by = "Name_biomass") |>
+    dplyr::mutate(
+      Edible_portion       = dplyr::coalesce(Edible_portion, Edible_portion_cd),
+      N_kgN_kgFM           = dplyr::coalesce(N_kgN_kgFM, N_kgN_kgFM_cd),
+      Lipids_g_kgFM        = dplyr::coalesce(Lipids_g_kgFM, Lipids_g_kgFM_cd),
+      Carbohydrates_g_kgFM = dplyr::coalesce(Carbohydrates_g_kgFM, Carbohydrates_g_kgFM_cd),
+      Calcium_mg_kgFM      = dplyr::coalesce(Calcium_mg_kgFM, Calcium_mg_kgFM_cd),
+      VitaminA_microg_kgFM = dplyr::coalesce(VitaminA_microg_kgFM, VitaminA_microg_kgFM_cd),
+      Product_kgN_kgDM     = dplyr::coalesce(Product_kgN_kgDM,
+                                              dplyr::if_else(!is.na(N_kgN_kgFM_cd) & !is.na(Product_kgDM_kgFM) & Product_kgDM_kgFM > 0,
+                                                             N_kgN_kgFM_cd / Product_kgDM_kgFM,
+                                                             NA_real_))
+    ) |>
+    dplyr::select(-dplyr::ends_with("_cd"))
+
   assign("Biomass_coefs", Biomass_coefs, envir = env)
-  
+
   Nutrients_energy <- openxlsx::read.xlsx(
     file.path(data_path, "Biomass_coefs.xlsx"),
     sheet = "Nutrients_energy",
