@@ -103,3 +103,35 @@ test_that("GWP values match IPCC standards", {
   n2o_gwp <- GWP$GWP_100[GWP$Gas == "N2O"]
   expect_true(n2o_gwp > 250 & n2o_gwp < 310)
 })
+
+test_that("Biomass_coefs has unique Name_biomass keys", {
+  load_general_data(load_vectors = FALSE)
+
+  dup <- Biomass_coefs$Name_biomass[duplicated(Biomass_coefs$Name_biomass)]
+  expect_equal(length(dup), 0,
+               info = paste("Duplicate Name_biomass:",
+                            paste(unique(dup), collapse = ", ")))
+})
+
+test_that("Conversores_Dieta join does not multiply Biomass_coefs rows", {
+  load_general_data(load_vectors = FALSE)
+
+  # Biomass_coefs should have the same number of rows as unique Name_biomass
+  expect_equal(nrow(Biomass_coefs), length(unique(Biomass_coefs$Name_biomass)))
+})
+
+test_that("Livestock manure entries are suffixed with category", {
+  load_general_data(load_vectors = FALSE)
+
+  manure_cats <- c("Solid", "Liquid", "Excreta")
+  for (species in c("Cattle", "Sheep", "Pigs", "Poultry")) {
+    # Plain species name should NOT appear
+    expect_false(species %in% Biomass_coefs$Name_biomass,
+                 info = paste(species, "should be suffixed with category"))
+    # Suffixed entries should exist
+    for (cat in manure_cats) {
+      expect_true(paste0(species, "_", cat) %in% Biomass_coefs$Name_biomass,
+                  info = paste0(species, "_", cat, " should exist"))
+    }
+  }
+})

@@ -210,6 +210,18 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
     sheet = "Coefs",
     startRow = 2
   ) |>
+    # Remove header-only rows (e.g. "Manure and residues")
+    dplyr::filter(!(Name_biomass == "Manure and residues" & is.na(Code))) |>
+    # Make livestock manure entries unique: Solid/Liquid/Excreta categories
+    # share the same Name_biomass (Cattle, Sheep, etc.), so suffix with
+    # Category to avoid duplicate keys.
+    dplyr::mutate(
+      Name_biomass = dplyr::if_else(
+        Category %in% c("Solid", "Liquid", "Excreta"),
+        paste(Name_biomass, Category, sep = "_"),
+        Name_biomass
+      )
+    ) |>
     dplyr::mutate(
       Residue_kgC_kgDM = as.numeric(as.character(Residue_kgC_kgDM)),
       Root_kgC_kgDM = as.numeric(as.character(Root_kgC_kgDM)),
@@ -237,6 +249,11 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
     dplyr::mutate(
       dplyr::across(-Name_biomass, as.numeric),
       N_kgN_kgFM_cd = Protein_g_kgFM_cd / (6.25 * 1000)
+    ) |>
+    # Aggregate duplicates (e.g. Onion, Fruits) so the join stays 1:1
+    dplyr::summarize(
+      .by = Name_biomass,
+      dplyr::across(dplyr::everything(), ~mean(.x, na.rm = TRUE))
     )
 
   Biomass_coefs <- Biomass_coefs |>
