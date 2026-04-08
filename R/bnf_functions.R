@@ -177,19 +177,22 @@
 #'
 #' Based on aridity index (water input / PET). BNF is sensitive to
 #' drought through effects on plant growth, nodule oxygen regulation,
-#' and carbon supply. Full activity above the humid threshold (AI > 0.65).
+#' and carbon supply. Full activity above the aridity index threshold.
 #'
 #' @param water_mm Total water input (precipitation + irrigation), mm.
 #' @param pet_mm Potential evapotranspiration, mm.
+#' @param ai_threshold Aridity index for full BNF activity (default 0.65).
+#'   Mediterranean systems with drought-adapted legumes use lower thresholds
+#'   (e.g. 0.45).
 #' @return Numeric vector, range (0, 1].
 #'
 #' @references
 #' Serraj R et al. (1999) Plant Physiology 120:577-586.
 #' Zahran HH (1999) Microbiol. Mol. Biol. Rev. 63:968-989.
 #' @noRd
-.bnf_f_water <- function(water_mm, pet_mm) {
+.bnf_f_water <- function(water_mm, pet_mm, ai_threshold = 0.65) {
   ai <- dplyr::if_else(pet_mm > 0, water_mm / pet_mm, 1)
-  pmin(1, ai / 0.65)
+  pmin(1, ai / ai_threshold)
 }
 
 
@@ -410,7 +413,8 @@ calc_crop_bnf <- function(x,
                           k_n_synth = 0.0035,
                           k_n_org = 0.0018,
                           t_opt = 25,
-                          t_sigma = 8) {
+                          t_sigma = 8,
+                          ai_threshold = 0.65) {
   # --- Input validation ---
   .bnf_validate_input(
     x, c("Name_biomass", "Crop_NPP_MgN", "Prod_MgN"),
@@ -442,7 +446,7 @@ calc_crop_bnf <- function(x,
       f_water_symb = dplyr::if_else(
         !is.na(WaterInput_mm) & !is.na(PET_mm) &
           PET_mm > 0,
-        .bnf_f_water(WaterInput_mm, PET_mm),
+        .bnf_f_water(WaterInput_mm, PET_mm, ai_threshold),
         1
       ),
       # Combined environmental factor
@@ -571,7 +575,8 @@ calc_weed_bnf <- function(x,
                           k_n_synth = 0.0035,
                           k_n_org = 0.0018,
                           t_opt = 25,
-                          t_sigma = 8) {
+                          t_sigma = 8,
+                          ai_threshold = 0.65) {
   # --- Input validation ---
   .bnf_validate_input(
     x,
@@ -627,7 +632,7 @@ calc_weed_bnf <- function(x,
         dplyr::if_else(
           !is.na(WaterInput_mm) & !is.na(PET_mm) &
             PET_mm > 0,
-          .bnf_f_water(WaterInput_mm, PET_mm),
+          .bnf_f_water(WaterInput_mm, PET_mm, ai_threshold),
           1
         ),
       Weeds_Ndfa_ref = weeds_ndfa_ref,
@@ -793,6 +798,7 @@ calc_nonsymbiotic_bnf <- function(x,
                                   k_n_ns_org = 0.0025,
                                   t_opt_ns = 25,
                                   t_sigma_ns = 10,
+                                  ai_threshold = 0.65,
                                   k_som = 2.0,
                                   som_ref = 2.5,
                                   ph_opt = 6.8,
@@ -845,7 +851,7 @@ calc_nonsymbiotic_bnf <- function(x,
       f_water_ns = dplyr::if_else(
         !is.na(WaterInput_mm) & !is.na(PET_mm) &
           PET_mm > 0,
-        .bnf_f_water(WaterInput_mm, PET_mm),
+        .bnf_f_water(WaterInput_mm, PET_mm, ai_threshold),
         1
       ),
       # SOM - C energy for heterotrophic fixers
@@ -1041,6 +1047,7 @@ calc_bnf <- function(x,
                      t_opt = 25,
                      t_sigma_symb = 8,
                      t_sigma_ns = 10,
+                     ai_threshold = 0.65,
                      nsbnf_default_kgha = 5,
                      k_som = 2.0,
                      som_ref = 2.5,
@@ -1052,6 +1059,44 @@ calc_bnf <- function(x,
   # === 1. Setup: ensure env columns and join BNF params ===
   x <- .bnf_ensure_env_cols(x)
   x <- .bnf_join_params(x)
+
+  # Climate-type-aware parameter overrides.
+  # If input has a climate_type column, per-row parameters are looked up from
+  # BNF_climate_params.csv (Tropical / Mediterranean / Temperate). Parameters
+  # not covered by the lookup (N inhibition constants, t_opt, k_clay, etc.)
+  # remain at the scalar defaults passed to this function.
+  # If no climate_type column, scalar defaults are used for all rows.
+  if ("climate_type" %in% names(x)) {
+    clim_params <- data.table::fread(
+      system.file("extdata", "BNF_climate_params.csv", package = "afsetools"),
+      data.table = FALSE
+    )
+    x <- x |>
+      dplyr::left_join(clim_params |>
+        dplyr::select(climate_type, .t_sigma_symb = t_sigma_symb,
+                      .t_sigma_ns = t_sigma_ns, .ai_threshold = ai_threshold,
+                      .ph_opt = ph_opt, .ph_sigma = ph_sigma,
+                      .som_ref = som_ref),
+        by = "climate_type") |>
+      dplyr::mutate(
+        .t_sigma_symb = tidyr::replace_na(.t_sigma_symb, t_sigma_symb),
+        .t_sigma_ns   = tidyr::replace_na(.t_sigma_ns, t_sigma_ns),
+        .ai_threshold  = tidyr::replace_na(.ai_threshold, ai_threshold),
+        .ph_opt        = tidyr::replace_na(.ph_opt, ph_opt),
+        .ph_sigma      = tidyr::replace_na(.ph_sigma, ph_sigma),
+        .som_ref       = tidyr::replace_na(.som_ref, som_ref)
+      )
+  } else {
+    x <- x |>
+      dplyr::mutate(
+        .t_sigma_symb = t_sigma_symb,
+        .t_sigma_ns   = t_sigma_ns,
+        .ai_threshold  = ai_threshold,
+        .ph_opt        = ph_opt,
+        .ph_sigma      = ph_sigma,
+        .som_ref       = som_ref
+      )
+  }
 
   # Extract weed parameters from BNF table
   weeds_row <- BNF |>
@@ -1087,17 +1132,19 @@ calc_bnf <- function(x,
         N_synth_kgha, N_org_kgha,
         k_synth = k_n_symb_synth, k_org = k_n_symb_org
       ),
-      # Temperature (Hungria & Vargas 2000)
+      # Temperature (Hungria & Vargas 2000; sigma broadened for
+      # Mediterranean/Temperate via climate_type lookup)
       f_temp_symb = dplyr::if_else(
         !is.na(TMP),
-        .bnf_f_temperature(TMP, t_opt, t_sigma_symb),
+        .bnf_f_temperature(TMP, t_opt, .t_sigma_symb),
         1
       ),
-      # Water (Serraj et al. 1999)
+      # Water (Serraj et al. 1999; AI threshold lowered for
+      # Mediterranean drought-adapted legumes via climate_type lookup)
       f_water_symb = dplyr::if_else(
         !is.na(WaterInput_mm) & !is.na(PET_mm) &
           PET_mm > 0,
-        .bnf_f_water(WaterInput_mm, PET_mm),
+        .bnf_f_water(WaterInput_mm, PET_mm, .ai_threshold),
         1
       ),
       f_env_symb = f_N_symb * f_temp_symb * f_water_symb,
@@ -1163,29 +1210,29 @@ calc_bnf <- function(x,
         N_synth_kgha, N_org_kgha,
         k_synth = k_n_ns_synth, k_org = k_n_ns_org
       ),
-      # Temperature (broader tolerance)
+      # Temperature (broader tolerance; sigma via climate_type lookup)
       f_temp_ns = dplyr::if_else(
         !is.na(TMP),
-        .bnf_f_temperature(TMP, t_opt, t_sigma_ns),
+        .bnf_f_temperature(TMP, t_opt, .t_sigma_ns),
         1
       ),
-      # Water
+      # Water (AI threshold via climate_type lookup)
       f_water_ns = dplyr::if_else(
         !is.na(WaterInput_mm) & !is.na(PET_mm) &
           PET_mm > 0,
-        .bnf_f_water(WaterInput_mm, PET_mm),
+        .bnf_f_water(WaterInput_mm, PET_mm, .ai_threshold),
         1
       ),
-      # SOM (C energy for heterotrophic fixers)
+      # SOM (C energy for heterotrophic fixers; som_ref via climate_type)
       f_SOM_ns = dplyr::if_else(
         !is.na(SOM_pct),
-        .bnf_f_som(SOM_pct, k_som, som_ref),
+        .bnf_f_som(SOM_pct, k_som, .som_ref),
         1
       ),
-      # Soil pH
+      # Soil pH (ph_opt and ph_sigma via climate_type lookup)
       f_pH_ns = dplyr::if_else(
         !is.na(soil_pH),
-        .bnf_f_ph(soil_pH, ph_opt, ph_sigma),
+        .bnf_f_ph(soil_pH, .ph_opt, .ph_sigma),
         1
       ),
       # Clay texture (Roper & Gupta 2016)
