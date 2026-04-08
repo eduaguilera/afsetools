@@ -131,7 +131,7 @@ utils::globalVariables(c(
   "BGN", "BNF", "CropBNF", "CropBNF2", "Crop_NPP_MgN",
   "Leguminous_share", "NHI", "NSBNF", "Ndfa", "Ndfa_adj",
   "Name_BNF", "Names_BNF", "NSBNF_base_kgha",
-  "Legs_Seeded", "Legs_SpontWeeds", "Seeded_CC_share",
+  "Legs_Seeded", "Legs_SpontWeeds", "Legs_SpontWeeds_LU", "Seeded_CC_share",
   "WeedsBNF", "Weeds_Ndfa", "Weeds_Ndfa_ref", "Weeds_leg_share",
   "Weeds_NPP_MgN",
   "kgNha", "N_org_kgha", "N_synth_kgha", "PET_mm",

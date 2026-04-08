@@ -1,0 +1,39 @@
+Name_biomass,Name_BNF,CB_Item
+Rice,Rice,Rice (Paddy Equivalent)
+Beans,Beans,Beans
+Chickpea,Other pulses,"Pulses, Other and products"
+Fava bean,Fava bean,
+Lentils,Lentils,
+Lupin,Other pulses,
+Pea,Pea,Peas
+Pulses nes,Other pulses,
+Vetch,Other pulses,
+"Beans, green",Green leguminous,Green_fodder
+"Fava bean, green, without pod",Green leguminous,
+"Pea, green, with pod",Green leguminous,
+"Vegetables, leguminous nes",Green leguminous,
+"Groundnuts, with shell","Groundnuts, with shell",
+Soyabeans,Soyabeans,Soyabeans
+Sugarcane,Sugarcane,Sugar cane
+Alfalfa,Alfalfa,Alfalfa
+Clover,Clover,
+"Crimson clover, in bloom",Clover,
+"Fodder, other","Fodder, other",
+French honeysuckle,Green leguminous,
+"Faba bean/Broad bean, green, for fodder",Green leguminous,
+Other legumes for green fodder,Green leguminous,
+"Pea, green, for fodder",Green leguminous,
+Mixed swards,Mixed swards,
+"Vetch, green",Green leguminous,
+Meadows,Meadows,
+Fallow,Fallow,
+Grass,Weeds,
+"Bard vetch/Oneflower vetch, green",Green leguminous,
+"Bitter vetch, green",Green leguminous,
+Cereal-legume mixture,Mixed swards,
+Common sainfoin,Clover,
+"Fenugreek, green",Green leguminous,
+Subterranean clover,Clover,
+Tree medick,Green leguminous,
+Legume brans,Other pulses,
+Other monospecific swards,"Fodder, other",

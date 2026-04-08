@@ -506,7 +506,17 @@ calc_crop_bnf <- function(x,
 #'       (0-1).}
 #'   }
 #'
-#'   Optional environmental columns: see \code{\link{calc_crop_bnf}}.
+#'   Optional columns:
+#'   \describe{
+#'     \item{Legs_SpontWeeds}{Pre-computed legume fraction in
+#'       spontaneous vegetation (0-1), e.g. differentiated by
+#'       LandUse. If absent, defaults to BNF table value for
+#'       Cropland and 0.15 for non-cropland (grassland, forest,
+#'       dehesa), where leguminous shrubs (Genista, Ulex, Cytisus)
+#'       also contribute.}
+#'   }
+#'
+#'   Environmental columns: see \code{\link{calc_crop_bnf}}.
 #'
 #' @param k_n_synth Numeric. Rate constant for N inhibition by
 #'   synthetic N (default 0.0035).
@@ -526,11 +536,29 @@ calc_crop_bnf <- function(x,
 #'
 #' @details
 #' Requires BNF object from `load_general_data()` (reads
-#' "Weeds" row for reference Ndfa and spontaneous legume share).
-#' Cover crop seeded share is only applied on cropland.
+#' "Weeds" row for reference Ndfa and default spontaneous legume
+#' share). Cover crop seeded share is only applied on cropland.
+#'
+#' If `Legs_SpontWeeds` is already present in the input data, the
+#' function respects those values instead of overwriting with the
+#' default. This supports LandUse-differentiated legume shares
+#' based on literature:
+#' \itemize{
+#'   \item Cropland weeds: ~0.05 (Storkey et al. 2012; Fried et al.
+#'     2009 — herbicide pressure suppresses legumes)
+#'   \item Grassland/dehesa/forest understory: ~0.15 (Luscher et al.
+#'     2014 — 4-15\% legumes in semi-natural grassland; includes
+#'     proxy for N-fixing shrubs: Genista, Ulex, Cytisus, Retama;
+#'     Dovrat et al. 2019; Viera-Rodriguez et al. 2005)
+#' }
 #'
 #' @references
+#' Dovrat G et al. (2019) New Phytol 221:1361-1370.
+#' Fried G et al. (2009) J Veg Sci 20:49-58.
+#' Luscher A et al. (2014) Grass Forage Sci 69:206-228.
 #' Peoples MB et al. (2009) Symbiosis 48:1-17.
+#' Storkey J et al. (2012) Proc R Soc B 279:1421-1429.
+#' Viera-Rodriguez MA et al. (2005) Can J For Res 35:1200-1209.
 #'
 #' @export
 #'
@@ -560,7 +588,23 @@ calc_weed_bnf <- function(x,
   weeds_row <- BNF |>
     dplyr::filter(Name_BNF == "Weeds")
   weeds_ndfa_ref <- as.numeric(weeds_row$Ndfa)
-  legs_spont <- as.numeric(weeds_row$Leguminous_share)
+
+  # If Legs_SpontWeeds is not already present, assign LandUse-differentiated
+  # defaults from Legs_SpontWeeds_LU (loaded from Legs_SpontWeeds.csv).
+  # Cropland weeds have lower legume share due to herbicide pressure;
+  # non-cropland vegetation includes N-fixing shrubs (see csv Source column).
+  # Callers can override by pre-computing Legs_SpontWeeds before calling.
+  if (!"Legs_SpontWeeds" %in% names(x)) {
+    cropland_val <- Legs_SpontWeeds_LU$Legs_SpontWeeds[
+      Legs_SpontWeeds_LU$LandUse == "Cropland"]
+    other_val <- Legs_SpontWeeds_LU$Legs_SpontWeeds[
+      Legs_SpontWeeds_LU$LandUse == "Other"]
+    x[["Legs_SpontWeeds"]] <- dplyr::if_else(
+      x[["LandUse"]] == "Cropland",
+      cropland_val,
+      other_val
+    )
+  }
 
   # Pre-compute N_total_kgha if not already present
   if (!"N_total_kgha" %in% names(x)) {
@@ -590,7 +634,6 @@ calc_weed_bnf <- function(x,
       Weeds_Ndfa = pmin(
         Weeds_Ndfa_ref * f_env_weed, Weeds_Ndfa_ref
       ),
-      Legs_SpontWeeds = legs_spont,
       Legs_Seeded = tidyr::replace_na(Legs_Seeded, 0),
       Seeded_CC_share = dplyr::if_else(
         LandUse == "Cropland", Seeded_CC_share, 0
@@ -1014,7 +1057,20 @@ calc_bnf <- function(x,
   weeds_row <- BNF |>
     dplyr::filter(Name_BNF == "Weeds")
   weeds_ndfa_ref <- as.numeric(weeds_row$Ndfa)
-  legs_spont <- as.numeric(weeds_row$Leguminous_share)
+
+  # If Legs_SpontWeeds is not already present, assign LandUse-differentiated
+  # defaults from Legs_SpontWeeds_LU (loaded from Legs_SpontWeeds.csv).
+  if (!"Legs_SpontWeeds" %in% names(x)) {
+    cropland_val <- Legs_SpontWeeds_LU$Legs_SpontWeeds[
+      Legs_SpontWeeds_LU$LandUse == "Cropland"]
+    other_val <- Legs_SpontWeeds_LU$Legs_SpontWeeds[
+      Legs_SpontWeeds_LU$LandUse == "Other"]
+    x[["Legs_SpontWeeds"]] <- dplyr::if_else(
+      x[["LandUse"]] == "Cropland",
+      cropland_val,
+      other_val
+    )
+  }
 
   # === 2. Compute everything in a single mutate chain ===
   x |>
@@ -1084,7 +1140,6 @@ calc_bnf <- function(x,
       Weeds_Ndfa = pmin(
         Weeds_Ndfa_ref * f_env_weed, Weeds_Ndfa_ref
       ),
-      Legs_SpontWeeds = legs_spont,
       Legs_Seeded = tidyr::replace_na(Legs_Seeded, 0),
       Seeded_CC_share = dplyr::if_else(
         LandUse == "Cropland", Seeded_CC_share, 0

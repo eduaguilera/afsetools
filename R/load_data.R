@@ -368,26 +368,46 @@ load_general_data <- function(path = NULL, load_vectors = TRUE) {
          as.numeric(GWP |> dplyr::filter(Gas == "N2O") |> dplyr::select(GWP_100)),
          envir = env)
   
-  # BNF parameters from BNF.xlsx ----
-  Names_BNF <- openxlsx::read.xlsx(
-    file.path(data_path, "BNF.xlsx"),
-    sheet = "Names_BNF"
-  )
+  # BNF parameters from CSV (preferred) or BNF.xlsx (legacy fallback) ----
+  bnf_csv <- file.path(data_path, "BNF.csv")
+  names_bnf_csv <- file.path(data_path, "Names_BNF.csv")
+  pure_legs_csv <- file.path(data_path, "Pure_legs.csv")
+  legs_spont_csv <- file.path(data_path, "Legs_SpontWeeds.csv")
+
+  if (file.exists(names_bnf_csv)) {
+    Names_BNF <- data.table::fread(names_bnf_csv, data.table = FALSE)
+  } else {
+    Names_BNF <- openxlsx::read.xlsx(
+      file.path(data_path, "BNF.xlsx"), sheet = "Names_BNF"
+    )
+  }
   assign("Names_BNF", Names_BNF, envir = env)
-  
-  BNF <- openxlsx::read.xlsx(
-    file.path(data_path, "BNF.xlsx"),
-    sheet = "BNF",
-    startRow = 1
-  )
+
+  if (file.exists(bnf_csv)) {
+    BNF <- data.table::fread(bnf_csv, data.table = FALSE)
+  } else {
+    BNF <- openxlsx::read.xlsx(
+      file.path(data_path, "BNF.xlsx"), sheet = "BNF", startRow = 1
+    )
+  }
   assign("BNF", BNF, envir = env)
-  
-  Pure_legs <- openxlsx::read.xlsx(
-    file.path(data_path, "BNF.xlsx"),
-    sheet = "Pure_legs",
-    startRow = 1
-  )
+
+  if (file.exists(pure_legs_csv)) {
+    Pure_legs <- data.table::fread(pure_legs_csv, data.table = FALSE)
+  } else {
+    Pure_legs <- openxlsx::read.xlsx(
+      file.path(data_path, "BNF.xlsx"), sheet = "Pure_legs", startRow = 1
+    )
+  }
   assign("Pure_legs", Pure_legs, envir = env)
+
+  # LandUse-differentiated legume share in spontaneous vegetation.
+  # Used by calc_weed_bnf() / calc_bnf() as default when Legs_SpontWeeds
+  # is not pre-computed by the caller.
+  if (file.exists(legs_spont_csv)) {
+    Legs_SpontWeeds_LU <- data.table::fread(legs_spont_csv, data.table = FALSE)
+    assign("Legs_SpontWeeds_LU", Legs_SpontWeeds_LU, envir = env)
+  }
   
   # IPCC residue and root coefficients from Biomass_coefs.xlsx ----
   IPCC_residue_coefs <- openxlsx::read.xlsx(
