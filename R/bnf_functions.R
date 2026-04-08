@@ -264,6 +264,37 @@
 }
 
 
+#' Dampened multiplicative combination of environmental modifiers
+#'
+#' Pure multiplication of n independent stress factors (each 0-1) produces
+#' unrealistically low combined values when multiple moderate stresses co-occur
+#' (e.g. 0.7^6 = 0.12). This function raises the product to power 2/n, which
+#' is equivalent to taking the geometric mean of all modifier pairs. Each
+#' factor still contributes, but the compound penalty is softened.
+#'
+#' Empirical calibration target: combined modifier should yield ~0.4-0.6 for
+#' typical Mediterranean/temperate agricultural conditions (Keuter et al. 2014:
+#' 1.7-5.7 kg N/ha from base 5; Ladha et al. 2022: 81-86\% suppression by
+#' fertilizer N alone, but other factors partially compensate).
+#'
+#' @param ... Numeric vectors of individual modifier values (each 0-1 or
+#'   slightly >1 for enhancing factors like SOM/clay).
+#' @return Numeric vector of dampened combined modifier.
+#'
+#' @references
+#' Keuter A et al. (2014) Soil Biol. Biochem. 70:38-46.
+#' Ladha JK et al. (2022) Field Crops Res. 283:108541.
+#' @noRd
+.bnf_dampen_product <- function(...) {
+  factors <- list(...)
+  n <- length(factors)
+  if (n == 0) return(1)
+  product <- Reduce(`*`, factors)
+  # Raise to power 2/n: softens compound penalty while preserving all effects
+  product^(2 / n)
+}
+
+
 #' Validate input data for BNF functions
 #'
 #' Checks that input is a data frame with required columns.
@@ -449,8 +480,9 @@ calc_crop_bnf <- function(x,
         .bnf_f_water(WaterInput_mm, PET_mm, ai_threshold),
         1
       ),
-      # Combined environmental factor
-      f_env_symb = f_N_symb * f_temp_symb * f_water_symb,
+      # Combined environmental factor — dampened product
+      f_env_symb = .bnf_dampen_product(
+        f_N_symb, f_temp_symb, f_water_symb),
       # Adjusted Ndfa (capped at reference Ndfa)
       Ndfa_adj = dplyr::if_else(
         !is.na(Ndfa),
@@ -618,23 +650,24 @@ calc_weed_bnf <- function(x,
 
   x |>
     dplyr::mutate(
-      # Environmental adjustment (same mechanisms as crop)
-      f_env_weed =
+      # Environmental adjustment — dampened product (same mechanisms as crop)
+      f_env_weed = .bnf_dampen_product(
         .bnf_f_n_symbiotic(
           N_synth_kgha, N_org_kgha,
           k_synth = k_n_synth, k_org = k_n_org
-        ) *
+        ),
         dplyr::if_else(
           !is.na(TMP),
           .bnf_f_temperature(TMP, t_opt, t_sigma),
           1
-        ) *
+        ),
         dplyr::if_else(
           !is.na(WaterInput_mm) & !is.na(PET_mm) &
             PET_mm > 0,
           .bnf_f_water(WaterInput_mm, PET_mm, ai_threshold),
           1
-        ),
+        )
+      ),
       Weeds_Ndfa_ref = weeds_ndfa_ref,
       Weeds_Ndfa = pmin(
         Weeds_Ndfa_ref * f_env_weed, Weeds_Ndfa_ref
@@ -872,9 +905,14 @@ calc_nonsymbiotic_bnf <- function(x,
         .bnf_f_clay(clay_pct, k_clay, clay_ref),
         1
       ),
-      # Combined factor
-      f_env_ns = f_N_ns * f_temp_ns * f_water_ns *
-        f_SOM_ns * f_pH_ns * f_clay_ns,
+      # Combined factor — dampened product to avoid over-penalization
+      # when multiple moderate stresses co-occur. Pure product of 6
+      # factors ~0.7 each gives 0.12; dampened (power 2/6) gives ~0.49.
+      # Calibrated against Keuter et al. 2014 (1.7-5.7 kg N/ha from
+      # base 5) and Ladha et al. 2022.
+      f_env_ns = .bnf_dampen_product(
+        f_N_ns, f_temp_ns, f_water_ns,
+        f_SOM_ns, f_pH_ns, f_clay_ns),
       # Final NSBNF (Mg N)
       NSBNF = NSBNF_base_kgha * f_env_ns *
         Area_ygpit_ha / 1000
@@ -1147,7 +1185,9 @@ calc_bnf <- function(x,
         .bnf_f_water(WaterInput_mm, PET_mm, .ai_threshold),
         1
       ),
-      f_env_symb = f_N_symb * f_temp_symb * f_water_symb,
+      # Dampened product for symbiotic modifiers (3 factors)
+      f_env_symb = .bnf_dampen_product(
+        f_N_symb, f_temp_symb, f_water_symb),
 
       # Adjusted Ndfa (capped at reference)
       Ndfa_adj = dplyr::if_else(
@@ -1241,8 +1281,10 @@ calc_bnf <- function(x,
         .bnf_f_clay(clay_pct, k_clay, clay_ref),
         1
       ),
-      f_env_ns = f_N_ns * f_temp_ns * f_water_ns *
-        f_SOM_ns * f_pH_ns * f_clay_ns,
+      # Dampened product for NSBNF modifiers (6 factors)
+      f_env_ns = .bnf_dampen_product(
+        f_N_ns, f_temp_ns, f_water_ns,
+        f_SOM_ns, f_pH_ns, f_clay_ns),
       NSBNF = NSBNF_base_kgha * f_env_ns *
         Area_ygpit_ha / 1000,
 
