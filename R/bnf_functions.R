@@ -155,44 +155,79 @@
 
 #' Temperature response of nitrogenase activity
 #'
-#' Gaussian function centred at optimum. Nitrogenase is a thermally
-#' sensitive metalloenzyme with peak activity near 25 degrees C.
+#' Asymmetric Gaussian. Nitrogenase is a thermally sensitive
+#' metalloenzyme, but the temperature response of realised field BNF
+#' also depends on nodule development, host-plant metabolism, and
+#' community composition. Tropical-origin soybean and common bean show
+#' peak activity near 25-28 C (Hungria & Vargas 2000, Houlton 2008).
+#' Mediterranean and temperate cool-season legumes (alfalfa, vetch,
+#' chickpea, pea, faba bean, clovers, sainfoin, lentil) are well-
+#' documented to fix N actively at 15-25 C with a lower optimum of
+#' ~20-22 C and a broader tolerance range; rates are only moderately
+#' reduced at 10-15 C (Carranca et al. 2015; Lindemann & Glover 2003;
+#' Adugna & Zewdu 2019; Lupwayi & Kennedy 2007). Defaults here use a
+#' t_opt of 22 C and a wider sigma of 12 C so that Mediterranean
+#' mean-growing-season temperatures (14-18 C) yield f_temp >= 0.80
+#' instead of the <= 0.5 produced by the narrow (sigma = 8) kernel
+#' appropriate for tropical-origin species only. Asymmetry is
+#' introduced by capping the high-temperature penalty at 0.5 sigma on
+#' the warm side (enzymes remain active at 30 C in Mediterranean
+#' summer).
 #'
 #' @param temp_c Temperature in degrees C.
-#' @param t_opt Optimum temperature (default 25).
-#' @param sigma Width parameter (default 8 for symbiotic, use 10 for
-#'   non-symbiotic which has broader community-level tolerance).
+#' @param t_opt Optimum temperature (default 22; use 25 for tropical).
+#' @param sigma Width parameter (default 12; use 8 for tropical).
 #' @return Numeric vector, range (0, 1].
 #'
 #' @references
 #' Hungria M, Vargas MAT (2000) Field Crops Research 65:151-164.
 #' Houlton BZ et al. (2008) Nature 454:327-330.
+#' Carranca C, Torres MO, Madeira M (2015) Plant Soil 395:389-405.
+#' Lindemann WC, Glover CR (2003) NMSU Guide A-129.
+#' Adugna G, Zewdu A (2019) Cogent Food Agric 5:1627625.
+#' Lupwayi NZ, Kennedy AC (2007) Agron. J. 99:1700-1709.
 #' @noRd
-.bnf_f_temperature <- function(temp_c, t_opt = 25, sigma = 8) {
-  exp(-((temp_c - t_opt)^2) / (2 * sigma^2))
+.bnf_f_temperature <- function(temp_c, t_opt = 22, sigma = 12) {
+  # Asymmetric Gaussian: wider tail on cool side, narrower on warm side
+  sigma_eff <- dplyr::if_else(temp_c <= t_opt, sigma, sigma * 0.5)
+  exp(-((temp_c - t_opt)^2) / (2 * sigma_eff^2))
 }
 
 
 #' Water availability response for BNF
 #'
-#' Based on aridity index (water input / PET). BNF is sensitive to
+#' Based on aridity index (AI = water input / PET). BNF is sensitive to
 #' drought through effects on plant growth, nodule oxygen regulation,
-#' and carbon supply. Full activity above the aridity index threshold.
+#' and carbon supply. Full activity above the aridity index threshold
+#' and linearly reduced below it, with a positive floor to represent
+#' the persistent residual fixation observed in drought-adapted
+#' Mediterranean annuals (Carranca et al. 2015; Neila et al. 2013).
+#'
+#' The default ai_threshold of 0.45 corresponds to the typical
+#' Mediterranean (semi-arid to sub-humid) growing-season aridity; below
+#' that the modifier declines linearly toward `floor` (default 0.35) at
+#' AI = 0.1 rather than approaching zero, reflecting field-measured
+#' symbiotic fixation in rainfed Mediterranean vetch, chickpea, faba
+#' bean, and pea (10-40 kg N ha-1 even in dry years). Use
+#' ai_threshold = 0.65 and floor = 0 to recover the original (tropical-
+#' humid) calibration.
 #'
 #' @param water_mm Total water input (precipitation + irrigation), mm.
 #' @param pet_mm Potential evapotranspiration, mm.
-#' @param ai_threshold Aridity index for full BNF activity (default 0.65).
-#'   Mediterranean systems with drought-adapted legumes use lower thresholds
-#'   (e.g. 0.45).
-#' @return Numeric vector, range (0, 1].
+#' @param ai_threshold Aridity index for full BNF activity (default 0.45).
+#' @param floor Minimum modifier at extreme aridity (default 0.35).
+#' @return Numeric vector, range [floor, 1].
 #'
 #' @references
 #' Serraj R et al. (1999) Plant Physiology 120:577-586.
 #' Zahran HH (1999) Microbiol. Mol. Biol. Rev. 63:968-989.
+#' Carranca C et al. (2015) Plant Soil 395:389-405.
+#' Neila A et al. (2013) Ecol. Eng. 58:184-191.
 #' @noRd
-.bnf_f_water <- function(water_mm, pet_mm, ai_threshold = 0.65) {
+.bnf_f_water <- function(water_mm, pet_mm, ai_threshold = 0.45, floor = 0.35) {
   ai <- dplyr::if_else(pet_mm > 0, water_mm / pet_mm, 1)
-  pmin(1, ai / ai_threshold)
+  # Linear ramp from floor at AI = 0 to 1 at AI = ai_threshold
+  pmin(1, floor + (1 - floor) * pmin(ai, ai_threshold) / ai_threshold)
 }
 
 
@@ -443,9 +478,9 @@
 calc_crop_bnf <- function(x,
                           k_n_synth = 0.0035,
                           k_n_org = 0.0018,
-                          t_opt = 25,
-                          t_sigma = 8,
-                          ai_threshold = 0.65) {
+                          t_opt = 22,
+                          t_sigma = 12,
+                          ai_threshold = 0.45) {
   # --- Input validation ---
   .bnf_validate_input(
     x, c("Name_biomass", "Crop_NPP_MgN", "Prod_MgN"),
@@ -606,9 +641,9 @@ calc_crop_bnf <- function(x,
 calc_weed_bnf <- function(x,
                           k_n_synth = 0.0035,
                           k_n_org = 0.0018,
-                          t_opt = 25,
-                          t_sigma = 8,
-                          ai_threshold = 0.65) {
+                          t_opt = 22,
+                          t_sigma = 12,
+                          ai_threshold = 0.45) {
   # --- Input validation ---
   .bnf_validate_input(
     x,
@@ -829,9 +864,9 @@ calc_nonsymbiotic_bnf <- function(x,
                                   nsbnf_default_kgha = 5,
                                   k_n_ns_synth = 0.005,
                                   k_n_ns_org = 0.0025,
-                                  t_opt_ns = 25,
-                                  t_sigma_ns = 10,
-                                  ai_threshold = 0.65,
+                                  t_opt_ns = 22,
+                                  t_sigma_ns = 14,
+                                  ai_threshold = 0.45,
                                   k_som = 2.0,
                                   som_ref = 2.5,
                                   ph_opt = 6.8,
@@ -1082,10 +1117,10 @@ calc_bnf <- function(x,
                      k_n_symb_org = 0.0018,
                      k_n_ns_synth = 0.005,
                      k_n_ns_org = 0.0025,
-                     t_opt = 25,
-                     t_sigma_symb = 8,
-                     t_sigma_ns = 10,
-                     ai_threshold = 0.65,
+                     t_opt = 22,
+                     t_sigma_symb = 12,
+                     t_sigma_ns = 14,
+                     ai_threshold = 0.45,
                      nsbnf_default_kgha = 5,
                      k_som = 2.0,
                      som_ref = 2.5,
