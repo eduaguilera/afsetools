@@ -9,6 +9,7 @@ redistribute_feed(
   Feed_demand,
   Feed_avail,
   zoot_fixed_max_multiplier = 3,
+  prioritize_monogastric = TRUE,
   territory_col = "Territory",
   sub_territory_col = "Sub_territory",
   verbose = TRUE
@@ -36,9 +37,21 @@ pre-aggregated at the item level.}
 
 \item{zoot_fixed_max_multiplier}{Numeric multiplier
 (default 3) controlling the maximum ratio of intake to
-availability for Zoot_fixed items. When availability of
-Zoot_fixed is zero or NA, no cap is applied and intake
-equals demand.}
+availability for Zoot_fixed items. Applied **per
+Livestock_cat** row: each demand row's intake is bounded by
+`zoot_fixed_max_multiplier * Avail_MgDM`, independently of
+other Livestock_cats competing for the same
+`(Year, Territory, Province, item_cbs)` pool. When
+availability of Zoot_fixed is zero or NA, no cap is applied
+and intake equals demand.}
+
+\item{prioritize_monogastric}{Logical (default `TRUE`). When
+`TRUE`, monogastric demand (with a defined
+`feedtype_graniv`) is allocated first through the primary
+hierarchy, so monogastrics get first pick on high-priority
+feed before ruminants. When `FALSE`, monogastric and
+ruminant demand are allocated in a single combined pass;
+monogastrics receive no preferential access.}
 
 \item{territory_col}{Character scalar indicating the broad
 territory column name shared by `Feed_demand` and
@@ -143,20 +156,25 @@ The allocation follows these rules:
 
 1. Items in `Cat_feed == "Zoot_fixed"` are kept unchanged
    (intake equals demand, even if availability is lower),
-   but capped at
+   but capped per Livestock_cat at
    `zoot_fixed_max_multiplier * availability` to prevent
    extreme violations. When availability is zero or NA, no
    cap is applied. If a cap is applied, the excess demand
    should be met through other available items following
    the hierarchy.
-2. Monogastric categories are allocated first.
+2. When `prioritize_monogastric = TRUE` (default),
+   monogastric categories are allocated first.
    `Monogastric` is a vector present in the environment
-   defining which Livestock_cat are monogastric.
+   defining which Livestock_cat are monogastric. Set the
+   parameter to `FALSE` to let monogastrics and ruminants
+   share a single allocation pass with no preferential
+   ordering.
 3. Items without a defined `feedtype_graniv` are ignored
    for monogastrics. `feedtype_graniv` is joined from the
    `items_full` lookup table.
 4. Ruminant Livestock_cat categories are processed with
-   the remaining availability.
+   the remaining availability (skipped when
+   `prioritize_monogastric = FALSE`).
 5. The availability of each item_cbs is redistributed
    based on demand, respecting the hierarchy levels and
    the provincial/national nature of each item.
@@ -177,6 +195,18 @@ in the input demand, even when intake is met by a
 different item after substitution. The resulting
 `scaling_factor` is computed per demand row as
 `sum(intake_MgDM) / demand_MgDM`.
+
+When the `max_intake_share` table caps an item for a
+Livestock_cat, any DM that would exceed the cap is removed
+from the violating row(s) and redirected to Grassland — the
+unlimited fallback in this model — so conservation is not
+broken by the redirect. If Grassland is itself capped for
+that Livestock_cat, the excess is redirected to the next
+non-capped item in `items_full`, chosen in the same priority
+order as the main allocation hierarchy (Lactation /
+High_quality first, then Low_quality, Residues, Grass). If
+every item in `items_full` is capped for the Livestock_cat,
+the excess is dropped and a warning is emitted.
 }
 \examples{
 \dontrun{

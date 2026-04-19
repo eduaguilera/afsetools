@@ -19,6 +19,7 @@ RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1.0)
 Imports:
+    data.table,
     DescTools,
     dplyr,
     ggplot2,
@@ -28,7 +29,6 @@ Imports:
     tidyr,
     zoo
 Suggests:
-    data.table,
     methods,
     raster,
     readxl,

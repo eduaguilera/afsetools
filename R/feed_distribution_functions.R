@@ -65,9 +65,20 @@
 #'   pre-aggregated at the item level.
 #' @param zoot_fixed_max_multiplier Numeric multiplier
 #'   (default 3) controlling the maximum ratio of intake to
-#'   availability for Zoot_fixed items. When availability of
-#'   Zoot_fixed is zero or NA, no cap is applied and intake
-#'   equals demand.
+#'   availability for Zoot_fixed items. Applied **per
+#'   Livestock_cat** row: each demand row's intake is bounded by
+#'   `zoot_fixed_max_multiplier * Avail_MgDM`, independently of
+#'   other Livestock_cats competing for the same
+#'   `(Year, Territory, Province, item_cbs)` pool. When
+#'   availability of Zoot_fixed is zero or NA, no cap is applied
+#'   and intake equals demand.
+#' @param prioritize_monogastric Logical (default `TRUE`). When
+#'   `TRUE`, monogastric demand (with a defined
+#'   `feedtype_graniv`) is allocated first through the primary
+#'   hierarchy, so monogastrics get first pick on high-priority
+#'   feed before ruminants. When `FALSE`, monogastric and
+#'   ruminant demand are allocated in a single combined pass;
+#'   monogastrics receive no preferential access.
 #' @param territory_col Character scalar indicating the broad
 #'   territory column name shared by `Feed_demand` and
 #'   `Feed_avail`. Redistribution boundaries are defined by
@@ -123,20 +134,25 @@
 #'
 #' 1. Items in `Cat_feed == "Zoot_fixed"` are kept unchanged
 #'    (intake equals demand, even if availability is lower),
-#'    but capped at
+#'    but capped per Livestock_cat at
 #'    `zoot_fixed_max_multiplier * availability` to prevent
 #'    extreme violations. When availability is zero or NA, no
 #'    cap is applied. If a cap is applied, the excess demand
 #'    should be met through other available items following
 #'    the hierarchy.
-#' 2. Monogastric categories are allocated first.
+#' 2. When `prioritize_monogastric = TRUE` (default),
+#'    monogastric categories are allocated first.
 #'    `Monogastric` is a vector present in the environment
-#'    defining which Livestock_cat are monogastric.
+#'    defining which Livestock_cat are monogastric. Set the
+#'    parameter to `FALSE` to let monogastrics and ruminants
+#'    share a single allocation pass with no preferential
+#'    ordering.
 #' 3. Items without a defined `feedtype_graniv` are ignored
 #'    for monogastrics. `feedtype_graniv` is joined from the
 #'    `items_full` lookup table.
 #' 4. Ruminant Livestock_cat categories are processed with
-#'    the remaining availability.
+#'    the remaining availability (skipped when
+#'    `prioritize_monogastric = FALSE`).
 #' 5. The availability of each item_cbs is redistributed
 #'    based on demand, respecting the hierarchy levels and
 #'    the provincial/national nature of each item.
@@ -158,7 +174,20 @@
 #' `scaling_factor` is computed per demand row as
 #' `sum(intake_MgDM) / demand_MgDM`.
 #'
+#' When the `max_intake_share` table caps an item for a
+#' Livestock_cat, any DM that would exceed the cap is removed
+#' from the violating row(s) and redirected to Grassland — the
+#' unlimited fallback in this model — so conservation is not
+#' broken by the redirect. If Grassland is itself capped for
+#' that Livestock_cat, the excess is redirected to the next
+#' non-capped item in `items_full`, chosen in the same priority
+#' order as the main allocation hierarchy (Lactation /
+#' High_quality first, then Low_quality, Residues, Grass). If
+#' every item in `items_full` is capped for the Livestock_cat,
+#' the excess is dropped and a warning is emitted.
+#'
 #' @export
+#' @importFrom data.table as.data.table data.table setnames fifelse `:=` .SD .N
 #'
 #' @examples
 #' \dontrun{
@@ -175,6 +204,7 @@ redistribute_feed <- function(
   Feed_demand,
   Feed_avail,
   zoot_fixed_max_multiplier = 3,
+  prioritize_monogastric = TRUE,
   territory_col = "Territory",
   sub_territory_col = "Sub_territory",
   verbose = TRUE
@@ -347,12 +377,21 @@ redistribute_feed <- function(
       Livestock_cat = as.character(Livestock_cat),
       item_cbs = as.character(item_cbs),
       max_intake_share = dplyr::if_else(max_intake_share < 0, 0, pmin(max_intake_share, 1))
-    ) |>
-    dplyr::summarize(
-      .by = c("Livestock_cat", "item_cbs"),
-      max_intake_share = max(max_intake_share, na.rm = TRUE)
     )
-  
+  # Guard against summarize() emitting a warning when no rows are present
+  # (empty .by groups → max(NA, na.rm=TRUE) → -Inf + warning).
+  max_intake_limits <- if (nrow(max_intake_limits) == 0) {
+    tibble::tibble(Livestock_cat = character(),
+                   item_cbs = character(),
+                   max_intake_share = numeric())
+  } else {
+    max_intake_limits |>
+      dplyr::summarize(
+        .by = c("Livestock_cat", "item_cbs"),
+        max_intake_share = max(max_intake_share, na.rm = TRUE)
+      )
+  }
+
   pretty_number <- function(x) {
     ifelse(is.finite(x), format(round(x, 3), nsmall = 3, trim = TRUE), "NA")
   }
@@ -362,23 +401,30 @@ redistribute_feed <- function(
   }
   
   diag_snapshot <- function(stage_label, note = NULL) {
+    # Short-circuit when silent. Computing the per-stage summaries cost ~15 %
+    # of total runtime even with verbose = FALSE before this guard.
+    if (!verbose) {
+      diag_counter <<- diag_counter + 1L
+      return(invisible(NULL))
+    }
+
     total_demand <- sum(demand$demand_MgDM, na.rm = TRUE)
     remaining_demand <- sum(demand$remaining, na.rm = TRUE)
     satisfied <- total_demand - remaining_demand
     satisfied_pct <- if (total_demand > 0) satisfied / total_demand * 100 else 100
-    
+
     hp_avail <- avail |>
       dplyr::filter(Cat_feed %in% c("Lactation", "High_quality")) |>
       dplyr::summarize(total = sum(avail_remaining, na.rm = TRUE)) |>
       dplyr::pull(total)
     hp_avail <- dplyr::coalesce(hp_avail, 0)
-    
+
     hp_unmet <- demand |>
       dplyr::filter(Cat_feed %in% c("Lactation", "High_quality"), remaining > 1e-6) |>
       dplyr::summarize(total = sum(remaining, na.rm = TRUE)) |>
       dplyr::pull(total)
     hp_unmet <- dplyr::coalesce(hp_unmet, 0)
-    
+
     top_unmet <- demand |>
       dplyr::filter(remaining > 1e-6) |>
       dplyr::mutate(key = paste(Year, Territory, Province_name, Livestock_cat, sep = " | ")) |>
@@ -386,19 +432,17 @@ redistribute_feed <- function(
       dplyr::slice_head(n = 3) |>
       dplyr::transmute(msg = sprintf("%s (%.3f Tg)", key, remaining / 1e6)) |>
       dplyr::pull(msg)
-    
-    if (verbose) {
-      cat(sprintf("\n[Diag %02d] Stage: %s\n", diag_counter, stage_label))
-      cat(sprintf("  - Demand satisfied: %s / %s (%.1f%%)\n",
-                  format_tg(satisfied), format_tg(total_demand), satisfied_pct))
-      cat(sprintf("  - Remaining demand: %s | HP unmet: %s | HP avail: %s\n",
-                  format_tg(remaining_demand), format_tg(hp_unmet), format_tg(hp_avail)))
-      if (length(top_unmet)) {
-        cat("  - Top unmet groups: ", paste(top_unmet, collapse = "; "), "\n", sep = "")
-      }
-      if (!is.null(note)) {
-        cat("  - Notes: ", note, "\n", sep = "")
-      }
+
+    cat(sprintf("\n[Diag %02d] Stage: %s\n", diag_counter, stage_label))
+    cat(sprintf("  - Demand satisfied: %s / %s (%.1f%%)\n",
+                format_tg(satisfied), format_tg(total_demand), satisfied_pct))
+    cat(sprintf("  - Remaining demand: %s | HP unmet: %s | HP avail: %s\n",
+                format_tg(remaining_demand), format_tg(hp_unmet), format_tg(hp_avail)))
+    if (length(top_unmet)) {
+      cat("  - Top unmet groups: ", paste(top_unmet, collapse = "; "), "\n", sep = "")
+    }
+    if (!is.null(note)) {
+      cat("  - Notes: ", note, "\n", sep = "")
     }
     diag_counter <<- diag_counter + 1L
   }
@@ -423,8 +467,7 @@ redistribute_feed <- function(
     dplyr::mutate(
       Cat_1 = dplyr::coalesce(Cat_1, Cat_1_items),
       Cat_feed = dplyr::coalesce(Cat_feed, Cats$Cat_feed[match(Cat_1, Cats$Cat_1)]),
-      is_monogastric = Livestock_cat %in% Monogastric,
-      can_receive_priority = !(is_monogastric & is.na(feedtype_graniv))
+      is_monogastric = Livestock_cat %in% Monogastric
     ) |>
     dplyr::select(-Cat_1_items)
   
@@ -438,6 +481,25 @@ redistribute_feed <- function(
       allocated_so_far = 0,
       remaining_cap = total_demand
     )
+
+  # Composite-key index for O(1) lookup/update inside add_alloc(). Without
+  # this, every add_alloc call did two full left_joins on demand_cap and
+  # demand, which dominated runtime on large fixtures.
+  demand_cap_key <- paste(
+    demand_cap$Year, demand_cap$Territory,
+    demand_cap$Province_name, demand_cap$Livestock_cat,
+    sep = "\001"
+  )
+  demand_cap_idx <- setNames(seq_len(nrow(demand_cap)), demand_cap_key)
+
+  # Pre-bucket demand row indices by (Year, Territory). The priority-pool
+  # and surplus loops iterate over (y, t) availability groups and each
+  # iteration used to do a full O(|demand|) filter to find the matching
+  # rows. The index lets them subset in O(1) — the `demand` table itself is
+  # mutated in place (remaining via indexed writes) so row positions are
+  # stable across the whole run.
+  demand_yt_key <- paste(demand$Year, demand$Territory, sep = "\001")
+  demand_yt_idx <- split(seq_along(demand_yt_key), demand_yt_key)
   
   avail <- Feed_avail |>
     dplyr::mutate(
@@ -524,299 +586,303 @@ redistribute_feed <- function(
       dplyr::select(-dplyr::any_of("Cat_1_lookup"))
   }
   
+  # Rebuild the composite cap key for a frame (vectorized).
+  build_cap_key <- function(df) {
+    paste(df$Year, df$Territory, df$Province_name, df$Livestock_cat,
+          sep = "\001")
+  }
+
   add_alloc <- function(df, respect_cap = TRUE) {
     if (is.null(df) || nrow(df) == 0) {
       return(invisible(NULL))
     }
-    df <- df |>
-      dplyr::filter(intake_MgDM > 1e-9)
+    df <- df[!is.na(df$intake_MgDM) & df$intake_MgDM > 1e-9, , drop = FALSE]
     if (nrow(df) == 0) {
       return(invisible(NULL))
     }
-    
+
     if (respect_cap) {
       zoot_mask <- df$Cat_feed == "Zoot_fixed"
       uncapped <- df[zoot_mask, , drop = FALSE]
       capped <- df[!zoot_mask, , drop = FALSE]
-      
+
       if (nrow(capped) > 0) {
-        capped <- capped |>
-          dplyr::left_join(
-            demand_cap |>
-              dplyr::select(Year, Territory, Province_name, Livestock_cat, remaining_cap),
-            by = c("Year", "Territory", "Province_name", "Livestock_cat")
-          ) |>
-          dplyr::group_by(Year, Territory, Province_name, Livestock_cat) |>
-          dplyr::mutate(
-            cumsum_intake = cumsum(intake_MgDM),
-            capped_intake = dplyr::case_when(
-              is.na(remaining_cap) ~ intake_MgDM,
-              cumsum_intake <= remaining_cap ~ intake_MgDM,
-              (cumsum_intake - intake_MgDM) < remaining_cap ~ remaining_cap - (cumsum_intake - intake_MgDM),
-              TRUE ~ 0
-            )
-          ) |>
-          dplyr::ungroup() |>
-          dplyr::mutate(intake_MgDM = capped_intake) |>
-          dplyr::select(-capped_intake, -cumsum_intake, -remaining_cap) |>
-          dplyr::filter(intake_MgDM > 1e-9)
-        
+        # Pull remaining_cap via the pre-built index instead of a full join.
+        cap_keys <- build_cap_key(capped)
+        cap_idx <- demand_cap_idx[cap_keys]
+        remaining_cap_vec <- demand_cap$remaining_cap[cap_idx]
+
+        # Deterministic tiebreaker: items are processed in ascending Cat_feed
+        # priority (Lactation/High_quality first), then by descending
+        # intake_MgDM, then by stable demand/avail_id. Without this the
+        # cumsum cap depends on arbitrary row order (P1). Base R avoids the
+        # dplyr overhead that dominated runtime on small per-call frames.
+        tie_priority_vec <- unname(catfeed_priority[capped$Cat_feed])
+        tie_priority_vec[is.na(tie_priority_vec)] <- 999
+        if ("avail_id" %in% names(capped)) {
+          tie_avail_vec <- as.numeric(capped$avail_id)
+          tie_avail_vec[is.na(tie_avail_vec)] <- Inf
+        } else {
+          tie_avail_vec <- rep(Inf, nrow(capped))
+        }
+        tie_demand_vec <- as.numeric(capped$demand_id)
+        tie_demand_vec[is.na(tie_demand_vec)] <- Inf
+
+        ord <- order(capped$Year, capped$Territory, capped$Province_name,
+                     capped$Livestock_cat, tie_priority_vec,
+                     -capped$intake_MgDM, tie_demand_vec, tie_avail_vec)
+        capped <- capped[ord, , drop = FALSE]
+        remaining_cap_vec <- remaining_cap_vec[ord]
+        cap_keys <- cap_keys[ord]
+
+        # Group-wise cumsum via ave(), then apply the cap.
+        cumsum_intake <- stats::ave(capped$intake_MgDM, cap_keys,
+                                    FUN = cumsum)
+        prev_intake <- cumsum_intake - capped$intake_MgDM
+        capped_intake <- ifelse(
+          is.na(remaining_cap_vec),
+          capped$intake_MgDM,
+          pmax(0, pmin(capped$intake_MgDM,
+                       remaining_cap_vec - prev_intake))
+        )
+        capped$intake_MgDM <- capped_intake
+        capped <- capped[capped$intake_MgDM > 1e-9, , drop = FALSE]
+
         if (nrow(capped) > 0) {
-          cap_updates <- capped |>
-            dplyr::summarize(
-              .by = c(Year, Territory, Province_name, Livestock_cat),
-              alloc = sum(intake_MgDM, na.rm = TRUE)
-            )
-          demand_cap <<- demand_cap |>
-            dplyr::left_join(cap_updates, by = c("Year", "Territory", "Province_name", "Livestock_cat")) |>
-            dplyr::mutate(
-              allocated_so_far = allocated_so_far + dplyr::coalesce(alloc, 0),
-              remaining_cap = pmax(0, total_demand - allocated_so_far)
-            ) |>
-            dplyr::select(-alloc)
+          # Aggregate intake by cap key and update demand_cap in place.
+          cap_keys2 <- build_cap_key(capped)
+          alloc_sum <- rowsum(capped$intake_MgDM,
+                              group = cap_keys2, reorder = FALSE)
+          uidx <- demand_cap_idx[rownames(alloc_sum)]
+          demand_cap$allocated_so_far[uidx] <<-
+            demand_cap$allocated_so_far[uidx] + alloc_sum[, 1]
+          demand_cap$remaining_cap[uidx] <<- pmax(
+            0,
+            demand_cap$total_demand[uidx] - demand_cap$allocated_so_far[uidx]
+          )
         }
       }
-      
+
       df <- dplyr::bind_rows(uncapped, capped)
-      
+
       if (nrow(df) > 0) {
-        demand_updates <- df |>
-          dplyr::summarize(.by = demand_id, alloc = sum(intake_MgDM, na.rm = TRUE))
-        demand <<- demand |>
-          dplyr::left_join(demand_updates, by = "demand_id") |>
-          dplyr::mutate(
-            remaining = dplyr::if_else(!is.na(alloc), pmax(0, remaining - alloc), remaining),
-            alloc = NULL
-          )
+        # demand_id is the row number of `demand` (assigned once at
+        # preprocessing; left_join preserves order), so indexed writes are
+        # safe. rowsum collapses duplicate demand_ids first.
+        d_sum <- rowsum(df$intake_MgDM,
+                        group = df$demand_id, reorder = FALSE)
+        did <- as.integer(rownames(d_sum))
+        demand$remaining[did] <<- pmax(0,
+                                        demand$remaining[did] - d_sum[, 1])
       }
     }
-    
+
     if ("avail_id" %in% names(df)) {
-      avail_updates <- df |>
-        dplyr::summarize(.by = avail_id, used = sum(intake_MgDM, na.rm = TRUE))
-      avail <<- avail |>
-        dplyr::left_join(avail_updates, by = "avail_id") |>
-        dplyr::mutate(
-          avail_remaining = dplyr::if_else(!is.na(used), pmax(0, avail_remaining - used), avail_remaining),
-          used = NULL
+      df_a <- df[!is.na(df$avail_id), , drop = FALSE]
+      if (nrow(df_a) > 0) {
+        a_sum <- rowsum(df_a$intake_MgDM,
+                        group = df_a$avail_id, reorder = FALSE)
+        aid <- as.integer(rownames(a_sum))
+        avail$avail_remaining[aid] <<- pmax(
+          0, avail$avail_remaining[aid] - a_sum[, 1]
         )
+      }
     }
-    
+
     allocations[[length(allocations) + 1]] <<- df
     invisible(NULL)
   }
   
+  # data.table implementation: keyed joins are ~3-5x faster than dplyr's
+  # inner_join for the repeated summarize+join pattern in primary levels,
+  # which dominates runtime on large fixtures.
   allocate_cartesian <- function(demand_subset, avail_subset, group_cols, level_label) {
-    if (nrow(demand_subset) == 0 || nrow(avail_subset) == 0) {
-      return(NULL)
+    if (nrow(demand_subset) == 0 || nrow(avail_subset) == 0) return(NULL)
+
+    dD <- data.table::as.data.table(demand_subset)
+    dA <- data.table::as.data.table(avail_subset)
+    dD <- dD[remaining > 1e-9]
+    dA <- dA[avail_remaining > 1e-9]
+    if (nrow(dD) == 0 || nrow(dA) == 0) return(NULL)
+
+    # Metadata guard (mirror ensure_item_metadata semantics).
+    if (!("Cat_1" %in% names(dA)) || !("Cat_feed" %in% names(dA))) {
+      if (!"Cat_1" %in% names(dA)) {
+        dA[, Cat_1 := items_full$Cat_1[match(item_cbs, items_full$item_cbs)]]
+      }
+      if (!"Cat_feed" %in% names(dA)) {
+        dA[, Cat_feed := Cats$Cat_feed[match(Cat_1, Cats$Cat_1)]]
+      }
     }
-    demand_subset <- demand_subset |>
-      dplyr::filter(remaining > 1e-9)
-    avail_subset <- avail_subset |>
-      dplyr::filter(avail_remaining > 1e-9)
-    if (nrow(demand_subset) == 0 || nrow(avail_subset) == 0) {
-      return(NULL)
-    }
-    avail_subset <- ensure_item_metadata(avail_subset)
-    
-    demand_groups <- demand_subset |>
-      dplyr::summarize(.by = dplyr::all_of(group_cols), demand_group = sum(remaining, na.rm = TRUE))
-    avail_groups <- avail_subset |>
-      dplyr::summarize(.by = dplyr::all_of(group_cols), avail_group = sum(avail_remaining, na.rm = TRUE))
-    
-    matched <- dplyr::inner_join(demand_groups, avail_groups, by = group_cols) |>
-      dplyr::filter(demand_group > 1e-9, avail_group > 1e-9)
-    if (nrow(matched) == 0) {
-      return(NULL)
-    }
-    
-    demand_weighted <- demand_subset |>
-      dplyr::inner_join(matched, by = group_cols) |>
-      dplyr::mutate(demand_share = remaining / demand_group)
-    avail_weighted <- avail_subset |>
-      dplyr::inner_join(matched, by = group_cols) |>
-      dplyr::mutate(avail_share = avail_remaining / avail_group)
-    
+
+    demand_groups <- dD[, .(demand_group = sum(remaining, na.rm = TRUE)),
+                        by = group_cols]
+    avail_groups  <- dA[, .(avail_group = sum(avail_remaining, na.rm = TRUE)),
+                        by = group_cols]
+    matched <- demand_groups[avail_groups, on = group_cols, nomatch = NULL][
+      demand_group > 1e-9 & avail_group > 1e-9
+    ]
+    if (nrow(matched) == 0) return(NULL)
+
+    dw <- dD[matched, on = group_cols, allow.cartesian = TRUE,
+             nomatch = NULL]
+    dw[, demand_share := remaining / demand_group]
+
+    aw <- dA[matched, on = group_cols, allow.cartesian = TRUE,
+             nomatch = NULL]
+    aw[, `:=`(avail_share = avail_remaining / avail_group,
+              source_Province = Province_name)]
+
+    # Rename item/Cat columns on the availability side that aren't in
+    # group_cols, to avoid clobbering the demand-side values on join.
     item_cols <- c("item_cbs", "Cat_1", "Cat_feed")
     rename_cols <- setdiff(item_cols, group_cols)
-    avail_weighted <- avail_weighted |>
-      dplyr::mutate(source_Province = Province_name)
     for (nm in rename_cols) {
-      avail_weighted <- dplyr::rename(avail_weighted, !!paste0(nm, "_sub") := !!rlang::sym(nm))
+      data.table::setnames(aw, nm, paste0(nm, "_sub"))
     }
-    
-    extra_cols <- intersect(paste0(item_cols, "_sub"), names(avail_weighted))
-    result <- demand_weighted |>
-      dplyr::select(-dplyr::any_of("original_Province")) |>
-      dplyr::inner_join(
-        avail_weighted |>
-          dplyr::select(dplyr::all_of(c(group_cols, "avail_id", extra_cols,
-                                        "avail_share", "source_Province"))),
-        by = group_cols,
-        relationship = "many-to-many"
-      ) |>
-      dplyr::mutate(
-        intake_MgDM = pmin(demand_group, avail_group) * demand_share * avail_share,
-        hierarchy_level = level_label
-      ) |>
-      dplyr::filter(intake_MgDM > 1e-9)
-    if (nrow(result) == 0) {
-      return(NULL)
+
+    extra_cols <- intersect(paste0(item_cols, "_sub"), names(aw))
+    keep_cols  <- unique(c(group_cols, "avail_id", extra_cols,
+                           "avail_share", "source_Province"))
+    aw_small <- aw[, keep_cols, with = FALSE]
+
+    # Drop demand-side original_Province so the avail-side source_Province
+    # carries through cleanly (mirrors dplyr version).
+    if ("original_Province" %in% names(dw)) {
+      dw[, original_Province := NULL]
     }
-    
-    item_cbs_out <- if ("item_cbs_sub" %in% names(result)) {
-      dplyr::coalesce(result$item_cbs_sub, result$item_cbs)
-    } else {
-      result$item_cbs
-    }
-    cat1_out <- if ("Cat_1_sub" %in% names(result)) {
-      dplyr::coalesce(result$Cat_1_sub, result$Cat_1)
-    } else {
-      result$Cat_1
-    }
-    catfeed_out <- if ("Cat_feed_sub" %in% names(result)) {
-      dplyr::coalesce(result$Cat_feed_sub, result$Cat_feed)
-    } else {
-      result$Cat_feed
-    }
-    
-    out <- dplyr::tibble(
-      demand_id = result$demand_id,
-      Year = result$Year,
-      Territory = result$Territory,
-      Province_name = result$Province_name,
-      Livestock_cat = result$Livestock_cat,
-      item_cbs = item_cbs_out,
-      Cat_1 = cat1_out,
-      Cat_feed = catfeed_out,
-      intake_MgDM = result$intake_MgDM,
-      hierarchy_level = result$hierarchy_level,
-      original_demand_item = result$original_demand_item,
-      original_Province = result$source_Province,
-      avail_id = result$avail_id
+
+    res <- dw[aw_small, on = group_cols, allow.cartesian = TRUE,
+              nomatch = NULL]
+    res[, `:=`(intake_MgDM = pmin(demand_group, avail_group) *
+                  demand_share * avail_share,
+               hierarchy_level = level_label)]
+    res <- res[intake_MgDM > 1e-9]
+    if (nrow(res) == 0) return(NULL)
+
+    out <- data.table::data.table(
+      demand_id     = res$demand_id,
+      Year          = res$Year,
+      Territory     = res$Territory,
+      Province_name = res$Province_name,
+      Livestock_cat = res$Livestock_cat,
+      item_cbs      = if ("item_cbs_sub" %in% names(res))
+        data.table::fifelse(is.na(res$item_cbs_sub), res$item_cbs, res$item_cbs_sub)
+      else res$item_cbs,
+      Cat_1         = if ("Cat_1_sub" %in% names(res))
+        data.table::fifelse(is.na(res$Cat_1_sub), res$Cat_1, res$Cat_1_sub)
+      else res$Cat_1,
+      Cat_feed      = if ("Cat_feed_sub" %in% names(res))
+        data.table::fifelse(is.na(res$Cat_feed_sub), res$Cat_feed, res$Cat_feed_sub)
+      else res$Cat_feed,
+      intake_MgDM          = res$intake_MgDM,
+      hierarchy_level      = res$hierarchy_level,
+      original_demand_item = res$original_demand_item,
+      original_Province    = res$source_Province,
+      avail_id             = res$avail_id
     )
-    out
+    tibble::as_tibble(out)
   }
   
   allocate_grouped <- function(demand_subset, avail_subset, group_cols, level_label) {
-    if (nrow(demand_subset) == 0 || nrow(avail_subset) == 0) {
-      return(NULL)
+    if (nrow(demand_subset) == 0 || nrow(avail_subset) == 0) return(NULL)
+
+    dD <- data.table::as.data.table(demand_subset)
+    dA <- data.table::as.data.table(avail_subset)
+    dD <- dD[remaining > 1e-9]
+    dA <- dA[avail_remaining > 1e-9]
+    if (nrow(dD) == 0 || nrow(dA) == 0) return(NULL)
+
+    if (!("Cat_1" %in% names(dA)) || !("Cat_feed" %in% names(dA))) {
+      if (!"Cat_1" %in% names(dA)) {
+        dA[, Cat_1 := items_full$Cat_1[match(item_cbs, items_full$item_cbs)]]
+      }
+      if (!"Cat_feed" %in% names(dA)) {
+        dA[, Cat_feed := Cats$Cat_feed[match(Cat_1, Cats$Cat_1)]]
+      }
     }
-    demand_subset <- demand_subset |>
-      dplyr::filter(remaining > 1e-9)
-    avail_subset <- avail_subset |>
-      dplyr::filter(avail_remaining > 1e-9)
-    if (nrow(demand_subset) == 0 || nrow(avail_subset) == 0) {
-      return(NULL)
-    }
-    avail_subset <- ensure_item_metadata(avail_subset)
-    
-    demand_groups <- demand_subset |>
-      dplyr::summarize(.by = dplyr::all_of(group_cols), demand_group = sum(remaining, na.rm = TRUE))
-    avail_groups <- avail_subset |>
-      dplyr::summarize(.by = dplyr::all_of(group_cols), avail_group = sum(avail_remaining, na.rm = TRUE))
-    matched <- dplyr::inner_join(demand_groups, avail_groups, by = group_cols) |>
-      dplyr::filter(demand_group > 1e-9, avail_group > 1e-9)
-    if (nrow(matched) == 0) {
-      return(NULL)
-    }
-    
-    demand_weighted <- demand_subset |>
-      dplyr::inner_join(matched, by = group_cols) |>
-      dplyr::mutate(scale_factor = pmin(1, avail_group / demand_group))
-    
-    demand_scaled <- demand_weighted |>
-      dplyr::mutate(intake_MgDM = remaining * scale_factor)
-    
-    avail_weighted <- avail_subset |>
-      ensure_item_metadata()
-    
+
+    demand_groups <- dD[, .(demand_group = sum(remaining, na.rm = TRUE)),
+                        by = group_cols]
+    avail_groups  <- dA[, .(avail_group = sum(avail_remaining, na.rm = TRUE)),
+                        by = group_cols]
+    matched <- demand_groups[avail_groups, on = group_cols, nomatch = NULL][
+      demand_group > 1e-9 & avail_group > 1e-9
+    ]
+    if (nrow(matched) == 0) return(NULL)
+
+    dw <- dD[matched, on = group_cols, allow.cartesian = TRUE,
+             nomatch = NULL]
+    dw[, `:=`(scale_factor = pmin(1, avail_group / demand_group))]
+    dw[, intake_MgDM := remaining * scale_factor]
+
     item_cols <- c("item_cbs", "Cat_1", "Cat_feed")
     rename_cols <- setdiff(item_cols, group_cols)
+    aw <- data.table::copy(dA)
     for (nm in rename_cols) {
-      avail_weighted <- dplyr::rename(avail_weighted, !!paste0(nm, "_sub") := !!rlang::sym(nm))
+      data.table::setnames(aw, nm, paste0(nm, "_sub"))
     }
-    
-    avail_weighted <- avail_weighted |>
-      dplyr::inner_join(matched, by = group_cols) |>
-      dplyr::mutate(
-        share = avail_remaining / avail_group,
-        source_Province = Province_name
-      )
-    
-    extra_cols <- intersect(paste0(item_cols, "_sub"), names(avail_weighted))
-    result <- demand_scaled |>
-      dplyr::select(-dplyr::any_of("original_Province")) |>
-      dplyr::inner_join(
-        avail_weighted |>
-          dplyr::select(dplyr::all_of(c(group_cols, "avail_id", extra_cols,
-                                        "share", "source_Province"))),
-        by = group_cols,
-        relationship = "many-to-many"
-      ) |>
-      dplyr::mutate(
-        intake_MgDM = intake_MgDM * share,
-        hierarchy_level = level_label
-      ) |>
-      dplyr::filter(intake_MgDM > 1e-9)
-    if (nrow(result) == 0) {
-      return(NULL)
-    }
-    
-    item_cbs_out <- if ("item_cbs_sub" %in% names(result)) {
-      dplyr::coalesce(result$item_cbs_sub, result$item_cbs)
-    } else {
-      result$item_cbs
-    }
-    cat1_out <- if ("Cat_1_sub" %in% names(result)) {
-      dplyr::coalesce(result$Cat_1_sub, result$Cat_1)
-    } else {
-      result$Cat_1
-    }
-    catfeed_out <- if ("Cat_feed_sub" %in% names(result)) {
-      dplyr::coalesce(result$Cat_feed_sub, result$Cat_feed)
-    } else {
-      result$Cat_feed
-    }
-    
-    dplyr::tibble(
-      demand_id = result$demand_id,
-      Year = result$Year,
-      Territory = result$Territory,
-      Province_name = result$Province_name,
-      Livestock_cat = result$Livestock_cat,
-      item_cbs = item_cbs_out,
-      Cat_1 = cat1_out,
-      Cat_feed = catfeed_out,
-      intake_MgDM = result$intake_MgDM,
-      hierarchy_level = result$hierarchy_level,
-      original_demand_item = result$original_demand_item,
-      original_Province = result$source_Province,
-      avail_id = result$avail_id
+    aw <- aw[matched, on = group_cols, allow.cartesian = TRUE,
+             nomatch = NULL]
+    aw[, `:=`(share = avail_remaining / avail_group,
+              source_Province = Province_name)]
+
+    extra_cols <- intersect(paste0(item_cols, "_sub"), names(aw))
+    keep_cols <- unique(c(group_cols, "avail_id", extra_cols,
+                          "share", "source_Province"))
+    aw_small <- aw[, keep_cols, with = FALSE]
+
+    if ("original_Province" %in% names(dw)) dw[, original_Province := NULL]
+
+    res <- dw[aw_small, on = group_cols, allow.cartesian = TRUE,
+              nomatch = NULL]
+    res[, `:=`(intake_MgDM = intake_MgDM * share,
+               hierarchy_level = level_label)]
+    res <- res[intake_MgDM > 1e-9]
+    if (nrow(res) == 0) return(NULL)
+
+    out <- data.table::data.table(
+      demand_id     = res$demand_id,
+      Year          = res$Year,
+      Territory     = res$Territory,
+      Province_name = res$Province_name,
+      Livestock_cat = res$Livestock_cat,
+      item_cbs      = if ("item_cbs_sub" %in% names(res))
+        data.table::fifelse(is.na(res$item_cbs_sub), res$item_cbs, res$item_cbs_sub)
+      else res$item_cbs,
+      Cat_1         = if ("Cat_1_sub" %in% names(res))
+        data.table::fifelse(is.na(res$Cat_1_sub), res$Cat_1, res$Cat_1_sub)
+      else res$Cat_1,
+      Cat_feed      = if ("Cat_feed_sub" %in% names(res))
+        data.table::fifelse(is.na(res$Cat_feed_sub), res$Cat_feed, res$Cat_feed_sub)
+      else res$Cat_feed,
+      intake_MgDM          = res$intake_MgDM,
+      hierarchy_level      = res$hierarchy_level,
+      original_demand_item = res$original_demand_item,
+      original_Province    = res$source_Province,
+      avail_id             = res$avail_id
     )
+    tibble::as_tibble(out)
   }
   
-  execute_level <- function(target_ids, avail_filter, group_cols, label) {
-    demand_subset <- demand |>
-      dplyr::filter(demand_id %in% target_ids,
-                    remaining > 1e-9,
-                    Cat_feed != "Zoot_fixed")
-    if (nrow(demand_subset) == 0) {
+  # target_mask: logical vector aligned with demand rows (e.g. is_monogastric).
+  execute_level <- function(target_mask, avail_filter, group_cols, label) {
+    keep <- target_mask & demand$remaining > 1e-9 & demand$Cat_feed != "Zoot_fixed"
+    if (!any(keep)) {
       return()
     }
+    demand_subset <- demand[keep, , drop = FALSE]
     avail_subset <- avail_filter(avail)
     alloc <- allocate_cartesian(demand_subset, avail_subset, group_cols, label)
     add_alloc(alloc)
   }
-  
-  execute_grouped <- function(target_ids, avail_filter, group_cols, label) {
-    demand_subset <- demand |>
-      dplyr::filter(demand_id %in% target_ids,
-                    remaining > 1e-9,
-                    Cat_feed != "Zoot_fixed")
-    if (nrow(demand_subset) == 0) {
+
+  execute_grouped <- function(target_mask, avail_filter, group_cols, label) {
+    keep <- target_mask & demand$remaining > 1e-9 & demand$Cat_feed != "Zoot_fixed"
+    if (!any(keep)) {
       return()
     }
+    demand_subset <- demand[keep, , drop = FALSE]
     avail_subset <- avail_filter(avail)
     alloc <- allocate_grouped(demand_subset, avail_subset, group_cols, label)
     add_alloc(alloc)
@@ -848,76 +914,56 @@ redistribute_feed <- function(
     zoot_nat <- zoot_enriched |>
       dplyr::filter(is.na(avail_prov))
     
+    # Zoot_fixed cap is applied per demand row (i.e., per Livestock_cat) rather
+    # than to the group sum. Each row's intake is bounded by
+    # `zoot_fixed_max_multiplier * Avail_MgDM` independently of other
+    # Livestock_cats competing for the same (Year, Territory, Province, item).
     zoot_prov_alloc <- tibble::tibble()
     if (nrow(zoot_prov) > 0) {
-      prov_factors <- zoot_prov |>
-        dplyr::summarize(
-          .by = c(Year, Territory, Province_name, item_cbs, avail_prov, avail_id_prov),
-          demand_tot = sum(demand_MgDM, na.rm = TRUE)
-        ) |>
+      zoot_prov_alloc <- zoot_prov |>
         dplyr::mutate(
-          cap_total = dplyr::case_when(
+          cap_per_row = dplyr::case_when(
             is.na(avail_prov) ~ NA_real_,
             avail_prov <= 0 ~ NA_real_,
             TRUE ~ zoot_fixed_max_multiplier * avail_prov
           ),
-          scale_factor = dplyr::case_when(
-            is.na(cap_total) ~ 1,
-            demand_tot <= 0 ~ 1,
-            TRUE ~ pmin(1, cap_total / demand_tot)
-          )
-        ) |>
-        dplyr::select(Year, Territory, Province_name, item_cbs, scale_factor, avail_id = avail_id_prov)
-      
-      zoot_prov_alloc <- zoot_prov |>
-        dplyr::left_join(prov_factors, by = c("Year", "Territory", "Province_name", "item_cbs")) |>
-        dplyr::mutate(
-          scale_factor = dplyr::coalesce(scale_factor, 1),
-          intake_MgDM = demand_MgDM * scale_factor,
+          intake_MgDM = dplyr::case_when(
+            is.na(cap_per_row) ~ demand_MgDM,
+            demand_MgDM <= 0 ~ demand_MgDM,
+            TRUE ~ pmin(demand_MgDM, cap_per_row)
+          ),
           hierarchy_level = priority_labels[1],
-          avail_id = dplyr::coalesce(avail_id, avail_id_prov)
+          avail_id = avail_id_prov
         ) |>
         dplyr::select(demand_id, Year, Territory, Province_name, Livestock_cat,
                       item_cbs, Cat_1, Cat_feed, intake_MgDM,
                       hierarchy_level, original_demand_item, original_Province,
                       avail_id)
     }
-    
+
     zoot_nat_alloc <- tibble::tibble()
     if (nrow(zoot_nat) > 0) {
-      nat_factors <- zoot_nat |>
-        dplyr::summarize(
-          .by = c(Year, Territory, item_cbs, avail_nat, avail_id_nat),
-          demand_tot = sum(demand_MgDM, na.rm = TRUE)
-        ) |>
+      zoot_nat_alloc <- zoot_nat |>
         dplyr::mutate(
-          cap_total = dplyr::case_when(
+          cap_per_row = dplyr::case_when(
             is.na(avail_nat) ~ NA_real_,
             avail_nat <= 0 ~ NA_real_,
             TRUE ~ zoot_fixed_max_multiplier * avail_nat
           ),
-          scale_factor = dplyr::case_when(
-            is.na(cap_total) ~ 1,
-            demand_tot <= 0 ~ 1,
-            TRUE ~ pmin(1, cap_total / demand_tot)
-          )
-        ) |>
-        dplyr::select(Year, Territory, item_cbs, scale_factor, avail_id = avail_id_nat)
-      
-      zoot_nat_alloc <- zoot_nat |>
-        dplyr::left_join(nat_factors, by = c("Year", "Territory", "item_cbs")) |>
-        dplyr::mutate(
-          scale_factor = dplyr::coalesce(scale_factor, 1),
-          intake_MgDM = demand_MgDM * scale_factor,
+          intake_MgDM = dplyr::case_when(
+            is.na(cap_per_row) ~ demand_MgDM,
+            demand_MgDM <= 0 ~ demand_MgDM,
+            TRUE ~ pmin(demand_MgDM, cap_per_row)
+          ),
           hierarchy_level = priority_labels[1],
-          avail_id = dplyr::coalesce(avail_id, avail_id_nat)
+          avail_id = avail_id_nat
         ) |>
         dplyr::select(demand_id, Year, Territory, Province_name, Livestock_cat,
                       item_cbs, Cat_1, Cat_feed, intake_MgDM,
                       hierarchy_level, original_demand_item, original_Province,
                       avail_id)
     }
-    
+
     zoot_alloc <- dplyr::bind_rows(zoot_prov_alloc, zoot_nat_alloc)
   }
   
@@ -925,8 +971,7 @@ redistribute_feed <- function(
   
   demand <- demand |>
     dplyr::mutate(
-      remaining = dplyr::if_else(Cat_feed == "Zoot_fixed", 0, remaining),
-      can_receive_priority = !(Livestock_cat %in% Monogastric & is.na(feedtype_graniv))
+      remaining = dplyr::if_else(Cat_feed == "Zoot_fixed", 0, remaining)
     )
   
   diag_snapshot("After Zoot_fixed", note = sprintf("Allocated %.3f Tg", sum(zoot_alloc$intake_MgDM, na.rm = TRUE) / 1e6))
@@ -934,47 +979,55 @@ redistribute_feed <- function(
   # ============================================================================
   # 5. PRIMARY LEVELS (Monogastric first, then ruminants)
   # ============================================================================
-  run_primary_levels <- function(target_ids, stage_note) {
-    if (!length(target_ids)) {
+  run_primary_levels <- function(target_mask, stage_note) {
+    if (!any(target_mask)) {
       diag_snapshot(stage_note, note = "No eligible demand")
       return()
     }
-    
-    execute_level(target_ids,
+
+    execute_level(target_mask,
                   function(x) dplyr::filter(x, Feed_scale == "Provincial"),
                   c("Year", "Territory", "Province_name", "item_cbs"),
                   priority_labels[1])
-    execute_grouped(target_ids,
+    execute_grouped(target_mask,
                     function(x) dplyr::filter(x, Feed_scale == "National"),
                     c("Year", "Territory", "item_cbs"),
                     priority_labels[1])
-    
-    execute_level(target_ids,
+
+    execute_level(target_mask,
                   function(x) dplyr::filter(x, Feed_scale == "Provincial"),
                   c("Year", "Territory", "Province_name", "Cat_1"),
                   priority_labels[2])
-    execute_grouped(target_ids,
+    execute_grouped(target_mask,
                     function(x) dplyr::filter(x, Feed_scale == "National"),
                     c("Year", "Territory", "Cat_1"),
                     priority_labels[2])
-    
-    execute_level(target_ids,
+
+    execute_level(target_mask,
                   function(x) dplyr::filter(x, Feed_scale == "Provincial"),
                   c("Year", "Territory", "Province_name", "Cat_feed"),
                   priority_labels[3])
-    execute_grouped(target_ids,
+    execute_grouped(target_mask,
                     function(x) dplyr::filter(x, Feed_scale == "National"),
                     c("Year", "Territory", "Cat_feed"),
                     priority_labels[3])
-    
+
     diag_snapshot(stage_note)
   }
-  
-  monogastric_ids <- demand$demand_id[demand$is_monogastric & !is.na(demand$feedtype_graniv)]
-  run_primary_levels(monogastric_ids, "After monogastric hierarchy")
-  
-  ruminant_ids <- demand$demand_id[!(demand$demand_id %in% monogastric_ids)]
-  run_primary_levels(ruminant_ids, "After ruminant hierarchy")
+
+  # Monogastric rows eligible for the priority hierarchy need a feedtype_graniv;
+  # the remaining rows (ruminants + graniv-less monogastric) go through the
+  # ruminant pass. When `prioritize_monogastric = FALSE`, the two passes are
+  # collapsed into one so monogastric and ruminant demand compete equally for
+  # availability rather than monogastric getting first pick.
+  mono_mask <- demand$is_monogastric & !is.na(demand$feedtype_graniv)
+  if (prioritize_monogastric) {
+    run_primary_levels(mono_mask, "After monogastric hierarchy")
+    run_primary_levels(!mono_mask, "After ruminant hierarchy")
+  } else {
+    run_primary_levels(rep(TRUE, nrow(demand)),
+                       "After combined hierarchy (no monogastric priority)")
+  }
   
   # ============================================================================
   # 6. MODE-SPECIFIC LEVELS
@@ -1092,6 +1145,17 @@ redistribute_feed <- function(
         return(NULL)
       }
       
+      # original_Province tracks the province the feed came from. For a
+      # provincial supply row, that is the availability's Province_name; for
+      # a national supply row it is NA. Without this the release pass
+      # (allow_trade = TRUE) would propagate the demand's own province and
+      # lose the trade origin.
+      source_province <- if (identical(current_row$Feed_scale, "National")) {
+        NA_character_
+      } else {
+        current_row$Province_name
+      }
+
       dplyr::bind_rows(outputs) |>
         dplyr::filter(intake_MgDM > 1e-9) |>
         dplyr::transmute(
@@ -1106,7 +1170,7 @@ redistribute_feed <- function(
           intake_MgDM,
           hierarchy_level = label,
           original_demand_item,
-          original_Province,
+          original_Province = source_province,
           avail_id = current_row$avail_id
         )
     }
@@ -1119,11 +1183,17 @@ redistribute_feed <- function(
       y <- territory_years$Year[row_idx]
       t <- territory_years$Territory[row_idx]
       items_year <- pool_avail |> dplyr::filter(Year == y, Territory == t)
-      
-      # Pre-filter demand for this year
-      demand_subset <- demand |> 
-        dplyr::filter(Year == y, Territory == t, remaining > 1e-9, Cat_feed != "Zoot_fixed")
-      
+
+      # O(1) lookup into the pre-built (Year, Territory) bucket.
+      yt_rows <- demand_yt_idx[[paste(y, t, sep = "\001")]]
+      if (is.null(yt_rows) || length(yt_rows) == 0) next
+      demand_subset <- demand[yt_rows, , drop = FALSE]
+      demand_subset <- demand_subset[
+        demand_subset$remaining > 1e-9 &
+          demand_subset$Cat_feed != "Zoot_fixed", ,
+        drop = FALSE
+      ]
+
       if (nrow(demand_subset) == 0) next
       
       for (idx in seq_len(nrow(items_year))) {
@@ -1151,11 +1221,18 @@ redistribute_feed <- function(
         
         if (!is.null(alloc)) {
           add_alloc(alloc, respect_cap = respect_cap)
-          
-          # Update local demand_subset to reflect changes made by add_alloc
-          # We map alloc$demand_id back to demand_subset indices
-          idx_in_subset <- match(alloc$demand_id, demand_subset$demand_id)
-          demand_subset$remaining[idx_in_subset] <- pmax(0, demand_subset$remaining[idx_in_subset] - alloc$intake_MgDM)
+
+          # Update local demand_subset to reflect the changes made by
+          # add_alloc. `rowsum` collapses duplicate demand_ids in one pass;
+          # `stats::aggregate` is ~10x slower per call in this loop.
+          agg <- rowsum(alloc$intake_MgDM,
+                        group = alloc$demand_id, reorder = FALSE)
+          ids <- as.integer(rownames(agg))
+          idx_in_subset <- match(ids, demand_subset$demand_id)
+          demand_subset$remaining[idx_in_subset] <- pmax(
+            0,
+            demand_subset$remaining[idx_in_subset] - agg[, 1]
+          )
         }
       }
     }
@@ -1188,11 +1265,11 @@ redistribute_feed <- function(
   allocate_grassland <- function(label, only_fixed = FALSE) {
     target_demand <- demand |>
       dplyr::filter(remaining > 1e-9, Cat_feed != "Zoot_fixed")
-    
+
     if (only_fixed) {
       target_demand <- target_demand |> dplyr::filter(fixed_demand)
     }
-    
+
     leftover <- target_demand |>
       dplyr::mutate(
         intake_MgDM = remaining,
@@ -1205,9 +1282,12 @@ redistribute_feed <- function(
       dplyr::select(demand_id, Year, Territory, Province_name, Livestock_cat,
                     item_cbs, Cat_1, Cat_feed, intake_MgDM,
                     hierarchy_level, original_demand_item, original_Province)
+    # `add_alloc` may cap intake below `remaining` (e.g. if the per-LC cap
+    # already bound from earlier substitutions). Decrement `demand$remaining`
+    # only by what was actually allocated, so the invariant
+    #   demand$remaining == 0  <=>  fully fulfilled
+    # holds even in edge cases.
     add_alloc(leftover)
-    demand <<- demand |>
-      dplyr::mutate(remaining = dplyr::if_else(demand_id %in% leftover$demand_id, 0, remaining))
   }
   
   distribute_surplus <- function(label, only_variable = FALSE) {
@@ -1225,16 +1305,17 @@ redistribute_feed <- function(
       y <- territory_years$Year[row_idx]
       t <- territory_years$Territory[row_idx]
       items_year <- surplus_avail |> dplyr::filter(Year == y, Territory == t)
-      
-      # Pre-filter demand for this year
-      demand_subset <- demand |> 
-        dplyr::mutate(weight = demand_MgDM) |>
-        dplyr::filter(Year == y, Territory == t, weight > 0)
-      
+
+      yt_rows <- demand_yt_idx[[paste(y, t, sep = "\001")]]
+      if (is.null(yt_rows) || length(yt_rows) == 0) next
+      demand_subset <- demand[yt_rows, , drop = FALSE]
+      demand_subset$weight <- demand_subset$demand_MgDM
+      demand_subset <- demand_subset[demand_subset$weight > 0, , drop = FALSE]
+
       if (only_variable) {
-        demand_subset <- demand_subset |> dplyr::filter(!fixed_demand)
+        demand_subset <- demand_subset[!demand_subset$fixed_demand, , drop = FALSE]
       }
-      
+
       if (nrow(demand_subset) == 0) next
       
       for (idx in seq_len(nrow(items_year))) {
@@ -1274,15 +1355,12 @@ redistribute_feed <- function(
           dplyr::mutate(avail_id = current$avail_id)
         
         add_alloc(alloc, respect_cap = FALSE)
-        
-        # Refresh local demand weights from parent demand
-        refreshed <- demand[demand$demand_id %in% demand_subset$demand_id, ]
-        demand_subset$weight[match(refreshed$demand_id, demand_subset$demand_id)] <-
-          refreshed$demand_MgDM
+        # Weights in surplus distribution are the immutable demand_MgDM; no
+        # local refresh is needed (dead code previously lived here).
       }
     }
   }
-  
+
   reroute_excess_grass <- function(result_tbl) {
     if (allocation_mode == "variable") {
       return(result_tbl)
@@ -1323,62 +1401,51 @@ redistribute_feed <- function(
     } else {
       utils::tail(priority_labels, 1)
     }
-    
-    rerouted <- list()
-    
-    for (i in seq_len(nrow(violations))) {
-      violation <- violations[i, ]
-      idx <- which(
-        result_tbl$Year == violation$Year &
-          result_tbl$Territory == violation$Territory &
-          result_tbl$item_cbs == violation$item_cbs &
-          result_tbl$Cat_feed == "Grass"
+
+    # Vectorized: mark Grass rows, compute per-row reduction proportional to
+    # intake, then split into kept rows (with reduced intake) and new
+    # Grassland rows carrying the removed DM. Replaces an O(n_violations)
+    # R-level loop.
+    result_tbl$row_id <- seq_len(nrow(result_tbl))
+    grass_rows <- result_tbl |>
+      dplyr::filter(Cat_feed == "Grass", item_cbs != "Grassland") |>
+      dplyr::inner_join(
+        violations |>
+          dplyr::select(Year, Territory, item_cbs, total_intake, excess),
+        by = c("Year", "Territory", "item_cbs")
+      ) |>
+      dplyr::mutate(
+        reduction = dplyr::if_else(
+          total_intake > 1e-9,
+          pmin(intake_MgDM, intake_MgDM / total_intake * pmin(excess, total_intake)),
+          0
+        ),
+        reduction = pmax(0, dplyr::coalesce(reduction, 0))
       )
-      if (!length(idx)) {
-        next
-      }
-      
-      total_item <- sum(result_tbl$intake_MgDM[idx], na.rm = TRUE)
-      if (total_item <= 1e-9) {
-        next
-      }
-      
-      target <- min(violation$excess, total_item)
-      if (target <= 1e-9) {
-        next
-      }
-      
-      reduction <- result_tbl$intake_MgDM[idx] / total_item * target
-      reduction_total <- sum(reduction)
-      if (!is.finite(reduction_total) || reduction_total <= 0) {
-        next
-      }
-      adjust <- target - reduction_total
-      if (abs(adjust) > 1e-6) {
-        reduction[1] <- reduction[1] + adjust
-      }
-      reduction <- pmin(result_tbl$intake_MgDM[idx], reduction)
-      reduction <- pmax(0, reduction)
-      
-      result_tbl$intake_MgDM[idx] <- pmax(0, result_tbl$intake_MgDM[idx] - reduction)
-      
+
+    if (nrow(grass_rows) > 0) {
+      reductions <- dplyr::coalesce(grass_rows$reduction, 0)
+      idx <- grass_rows$row_id
+      result_tbl$intake_MgDM[idx] <- pmax(0, result_tbl$intake_MgDM[idx] - reductions)
+
       new_rows <- result_tbl[idx, , drop = FALSE]
-      new_rows$intake_MgDM <- reduction
+      new_rows$intake_MgDM <- reductions
       new_rows$item_cbs <- "Grassland"
       new_rows$Cat_1 <- "Grassland"
       new_rows$Cat_feed <- "Grass"
       new_rows$hierarchy_level <- final_level
       new_rows$original_Province <- new_rows$Province_name
-      new_rows$avail_id <- NA_integer_
-      rerouted[[length(rerouted) + 1L]] <- new_rows
-    }
-    
-    if (length(rerouted)) {
-      additions <- dplyr::bind_rows(rerouted) |>
-        dplyr::filter(intake_MgDM > 1e-9)
+      if ("avail_id" %in% names(new_rows)) {
+        new_rows$avail_id <- NA_integer_
+      }
+      additions <- new_rows[new_rows$intake_MgDM > 1e-9, , drop = FALSE]
+      additions$row_id <- NULL
+      result_tbl$row_id <- NULL
       result_tbl <- dplyr::bind_rows(result_tbl, additions)
+    } else {
+      result_tbl$row_id <- NULL
     }
-    
+
     result_tbl
   }
   
@@ -1421,41 +1488,260 @@ redistribute_feed <- function(
       return(result_tbl)
     }
     
-    # Optimization: Vectorized reduction instead of row-by-row loop
-    # Join violations back to result_tbl to identify rows to reduce
-    
-    rows_to_reduce <- result_tbl |>
-      dplyr::inner_join(
-        violations |> dplyr::select(Year, Territory, Province_name, Livestock_cat, item_cbs, excess, item_dm),
-        by = c("Year", "Territory", "Province_name", "Livestock_cat", "item_cbs")
-      )
-    
-    if (nrow(rows_to_reduce) == 0) return(result_tbl)
-    
-    # Use row-index approach: join violations back and
-    # scale intake proportionally so total equals the cap.
+    # Scale violating rows' intake proportionally so the per-item total equals
+    # the cap. Carry the removed DM forward to be redirected to a non-capped
+    # category for the same (Year, Territory, Province, Livestock_cat).
     result_tbl$row_id <- seq_len(nrow(result_tbl))
-    
-    keys <- violations |> 
-      dplyr::select(Year, Territory, Province_name, Livestock_cat, item_cbs, excess, item_dm)
-    
-    # Find indices of rows to reduce
-    # This join might be expensive if result_tbl is huge, but it's necessary
+
+    keys <- violations |>
+      dplyr::select(Year, Territory, Province_name, Livestock_cat,
+                    item_cbs, excess, item_dm)
+
     matches <- result_tbl |>
-      dplyr::inner_join(keys, by = c("Year", "Territory", "Province_name", "Livestock_cat", "item_cbs")) |>
+      dplyr::inner_join(keys,
+                        by = c("Year", "Territory", "Province_name",
+                               "Livestock_cat", "item_cbs")) |>
       dplyr::mutate(
         reduction_factor = pmax(0, (item_dm - excess) / item_dm),
         new_intake = intake_MgDM * reduction_factor
       )
-    
+
     if (nrow(matches) > 0) {
       result_tbl$intake_MgDM[matches$row_id] <- matches$new_intake
     }
-    
     result_tbl$row_id <- NULL
-    
-    # Note: We do NOT substitute with Grassland anymore, prioritizing the constraint.
-    
+
+    # Redirect the excess DM via a chained, availability-aware substitution.
+    #
+    # Priority of substitutes for each Livestock_cat's excess DM:
+    #   1. Grassland (unlimited in this model; see `allocate_grassland`) —
+    #      tried first UNLESS Grassland is itself capped for the
+    #      Livestock_cat. Doesn't compete with any other supply.
+    #   2. Other non-Zoot items from `items_full` in the SAME priority order
+    #      the main pipeline uses: highest Cat_feed priority first
+    #      (Lactation / High_quality → Low_quality → Residues → Grass),
+    #      skipping items capped for this Livestock_cat. Each substitute is
+    #      bounded by `avail$avail_remaining` and decrements it (preserves
+    #      supply conservation). Provincial supply at the group's province
+    #      is preferred; national supply is used if provincial is
+    #      insufficient.
+    #   3. Last-resort chaining: if all priority-2 substitutes are
+    #      exhausted (either all capped or avail-depleted) and excess
+    #      remains, the remainder is pushed to Grassland, bypassing
+    #      Grassland's cap (per user instruction: "chaining to grass if
+    #      not enough other substitutes").
+    excess_per_lc <- violations |>
+      dplyr::summarize(
+        .by = c(Year, Territory, Province_name, Livestock_cat),
+        total_excess = sum(pmin(excess, item_dm), na.rm = TRUE)
+      ) |>
+      dplyr::filter(total_excess > 1e-9)
+
+    if (nrow(excess_per_lc) > 0) {
+      capped_by_lc <- split(
+        max_intake_limits$item_cbs,
+        max_intake_limits$Livestock_cat
+      )
+      is_capped <- function(lc, item) {
+        c <- capped_by_lc[[lc]]
+        !is.null(c) && item %in% c
+      }
+
+      # Non-zoot items ordered by ascending feed_rank (Lactation/HQ=1 first,
+      # Grass=4 last). Grassland is handled out-of-band below.
+      non_zoot_subs <- tibble::tibble(item_cbs = items_full$item_cbs,
+                                      Cat_1    = items_full$Cat_1) |>
+        dplyr::mutate(
+          Cat_feed  = unname(Cats$Cat_feed[match(Cat_1, Cats$Cat_1)]),
+          feed_rank = dplyr::coalesce(catfeed_priority[Cat_feed], 999)
+        ) |>
+        dplyr::filter(!is.na(Cat_feed),
+                      Cat_feed != "Zoot_fixed",
+                      item_cbs != "Grassland") |>
+        dplyr::arrange(feed_rank) |>
+        dplyr::select(item_cbs, Cat_1, Cat_feed)
+
+      # Schema donor: one row per (Y, T, P, LC) group from result_tbl, so
+      # new rows inherit the group's identifiers without us having to
+      # restate every column.
+      donors <- result_tbl |>
+        dplyr::group_by(Year, Territory, Province_name, Livestock_cat) |>
+        dplyr::slice_head(n = 1L) |>
+        dplyr::ungroup() |>
+        dplyr::select(-dplyr::any_of(c("item_cbs", "Cat_1", "Cat_feed",
+                                       "intake_MgDM", "hierarchy_level",
+                                       "original_Province", "avail_id")))
+
+      # Working frame: remaining_excess per (Y, T, P, LC).
+      state <- excess_per_lc |>
+        dplyr::mutate(remaining_excess = total_excess,
+                      grassland_capped = vapply(
+                        Livestock_cat,
+                        function(lc) is_capped(lc, "Grassland"),
+                        logical(1)
+                      ))
+
+      final_level <- utils::tail(priority_labels, 1)
+      additions_list <- list()
+
+      emit_grassland_rows <- function(sub_state) {
+        if (nrow(sub_state) == 0) return(NULL)
+        donors |>
+          dplyr::inner_join(
+            sub_state |> dplyr::select(Year, Territory, Province_name,
+                                       Livestock_cat, remaining_excess),
+            by = c("Year", "Territory", "Province_name", "Livestock_cat")
+          ) |>
+          dplyr::mutate(
+            item_cbs         = "Grassland",
+            Cat_1            = "Grassland",
+            Cat_feed         = "Grass",
+            intake_MgDM      = remaining_excess,
+            hierarchy_level  = final_level,
+            original_Province = Province_name,
+            avail_id         = NA_integer_
+          ) |>
+          dplyr::select(-remaining_excess)
+      }
+
+      # ---- Phase 1: Grassland absorbs excess where not capped -------------
+      phase1 <- state[!state$grassland_capped &
+                        state$remaining_excess > 1e-9, , drop = FALSE]
+      if (nrow(phase1) > 0) {
+        additions_list[[length(additions_list) + 1L]] <-
+          emit_grassland_rows(phase1)
+        state$remaining_excess[!state$grassland_capped] <- 0
+      }
+
+      # ---- Phase 2: chain through non-Grassland substitutes, avail-aware -
+      for (si in seq_len(nrow(non_zoot_subs))) {
+        if (all(state$remaining_excess <= 1e-9)) break
+
+        sub <- non_zoot_subs[si, , drop = FALSE]
+        active_mask <- state$remaining_excess > 1e-9 &
+          state$grassland_capped &
+          !vapply(state$Livestock_cat,
+                  function(lc) is_capped(lc, sub$item_cbs),
+                  logical(1))
+        if (!any(active_mask)) next
+
+        active <- state[active_mask, , drop = FALSE]
+
+        sub_avail <- avail[avail$item_cbs == sub$item_cbs &
+                             avail$avail_remaining > 1e-9, ,
+                           drop = FALSE]
+        if (nrow(sub_avail) == 0) next
+
+        # Match active groups to avail: provincial avail at the same
+        # Province_name, OR national avail (Province_name is NA and
+        # Feed_scale == "National"). Prefer provincial within each group.
+        matched <- active |>
+          dplyr::select(Year, Territory, Province_name, Livestock_cat,
+                        remaining_excess) |>
+          dplyr::inner_join(
+            sub_avail |>
+              dplyr::select(Year, Territory,
+                            avail_Province = Province_name,
+                            Feed_scale, avail_id, avail_remaining),
+            by = c("Year", "Territory"),
+            relationship = "many-to-many"
+          ) |>
+          dplyr::filter(Feed_scale == "National" |
+                          (!is.na(avail_Province) &
+                             !is.na(Province_name) &
+                             avail_Province == Province_name)) |>
+          dplyr::mutate(prov_first = as.integer(Feed_scale == "Provincial")) |>
+          dplyr::arrange(Year, Territory, Province_name, Livestock_cat,
+                         dplyr::desc(prov_first), avail_id) |>
+          dplyr::group_by(Year, Territory, Province_name, Livestock_cat) |>
+          dplyr::mutate(
+            prev_cum = cumsum(avail_remaining) - avail_remaining,
+            alloc    = pmax(0, pmin(avail_remaining,
+                                    remaining_excess - prev_cum))
+          ) |>
+          dplyr::ungroup() |>
+          dplyr::filter(alloc > 1e-9)
+
+        if (nrow(matched) == 0) next
+
+        # Decrement avail_remaining for consumed avail_ids.
+        decrement <- rowsum(matched$alloc,
+                            group = matched$avail_id, reorder = FALSE)
+        aid <- as.integer(rownames(decrement))
+        avail$avail_remaining[aid] <<- pmax(
+          0, avail$avail_remaining[aid] - decrement[, 1]
+        )
+
+        # Emit rows: one per (group × matched avail row) so each
+        # avail_id is traceable.
+        new_rows <- matched |>
+          dplyr::inner_join(donors,
+                            by = c("Year", "Territory", "Province_name",
+                                   "Livestock_cat")) |>
+          dplyr::mutate(
+            item_cbs         = sub$item_cbs,
+            Cat_1            = sub$Cat_1,
+            Cat_feed         = sub$Cat_feed,
+            intake_MgDM      = alloc,
+            hierarchy_level  = final_level,
+            original_Province = dplyr::if_else(
+              Feed_scale == "National",
+              NA_character_, avail_Province
+            )
+          ) |>
+          dplyr::select(-prev_cum, -alloc, -remaining_excess,
+                        -avail_Province, -Feed_scale,
+                        -prov_first, -avail_remaining)
+        additions_list[[length(additions_list) + 1L]] <- new_rows
+
+        # Update state$remaining_excess by total allocated per group.
+        per_group <- matched |>
+          dplyr::summarize(
+            .by = c(Year, Territory, Province_name, Livestock_cat),
+            alloc_total = sum(alloc, na.rm = TRUE)
+          )
+        idx <- match(
+          paste(per_group$Year, per_group$Territory,
+                per_group$Province_name, per_group$Livestock_cat,
+                sep = "\001"),
+          paste(state$Year, state$Territory,
+                state$Province_name, state$Livestock_cat,
+                sep = "\001")
+        )
+        state$remaining_excess[idx] <- pmax(
+          0, state$remaining_excess[idx] - per_group$alloc_total
+        )
+      }
+
+      # ---- Phase 3: last-resort Grassland fallback for any remaining -----
+      leftover <- state[state$remaining_excess > 1e-9, , drop = FALSE]
+      if (nrow(leftover) > 0) {
+        additions_list[[length(additions_list) + 1L]] <-
+          emit_grassland_rows(leftover)
+        # Warn only if Grassland was itself capped (otherwise phase 1
+        # handled it and there is no drop to report).
+        warned_lc <- unique(leftover$Livestock_cat[leftover$grassland_capped])
+        if (length(warned_lc) > 0) {
+          warning(
+            "apply_max_intake_caps(): Grassland is capped for ",
+            "Livestock_cat(s) ",
+            paste(warned_lc, collapse = ", "),
+            " but non-grassland substitutes were insufficient; ",
+            "the remainder was forced to Grassland regardless of cap.",
+            call. = FALSE
+          )
+        }
+      }
+
+      additions <- dplyr::bind_rows(additions_list)
+      if (nrow(additions) > 0) {
+        additions <- additions[, intersect(names(result_tbl),
+                                           names(additions)),
+                               drop = FALSE]
+        result_tbl <- dplyr::bind_rows(result_tbl, additions)
+      }
+    }
+
     result_tbl |>
       dplyr::filter(intake_MgDM > 1e-9)
   }
@@ -1553,27 +1839,33 @@ redistribute_feed <- function(
   result <- reroute_excess_grass(result)
   result <- apply_max_intake_caps(result)
   
-  result <- result |>
-    dplyr::left_join(demand |>
-                       dplyr::select(demand_id, demand_MgDM, fixed_demand),
-                     by = "demand_id")
-  
-  scaling_factors <- result |>
-    dplyr::summarize(.by = demand_id, total_intake = sum(intake_MgDM, na.rm = TRUE)) |>
-    dplyr::left_join(demand |>
-                       dplyr::select(demand_id, demand_MgDM),
-                     by = "demand_id") |>
-    dplyr::mutate(
-      scaling_factor = dplyr::case_when(
-        demand_MgDM > 0 ~ total_intake / demand_MgDM,
-        total_intake > 0 ~ NA_real_,
-        TRUE ~ 0
-      )
-    ) |>
-    dplyr::select(demand_id, scaling_factor)
-  
-  result <- result |>
-    dplyr::left_join(scaling_factors, by = "demand_id")
+  # Attach demand_MgDM and fixed_demand via indexed lookup (demand_id is the
+  # row index of `demand`).
+  result$demand_MgDM   <- demand$demand_MgDM[result$demand_id]
+  result$fixed_demand  <- demand$fixed_demand[result$demand_id]
+
+  # scaling_factor is computed once at the end of the function. The first
+  # pass that used to live here was always overwritten by the final pass
+  # below and never read between assignments — removed.
+  compute_scaling <- function(res) {
+    # Vectorised: one rowsum + indexed write, no join. Preserves the
+    # original case_when semantics:
+    #   demand_MgDM > 0              -> total_intake / demand_MgDM
+    #   demand_MgDM <= 0, intake > 0 -> NA  (ill-defined ratio)
+    #   demand_MgDM <= 0, intake = 0 -> 0
+    # Demand rows with no corresponding result row get 0.
+    intake_by_id <- rowsum(res$intake_MgDM,
+                           group = res$demand_id, reorder = FALSE)
+    sf <- numeric(nrow(demand))  # init 0
+    ids <- as.integer(rownames(intake_by_id))
+    tot <- intake_by_id[, 1]
+    dm  <- demand$demand_MgDM[ids]
+    # Assign per-case without collapsing NA back to 0.
+    vals <- ifelse(dm > 0, tot / dm,
+                   ifelse(tot > 0, NA_real_, 0))
+    sf[ids] <- vals
+    sf[res$demand_id]
+  }
   
   # ============================================================================
   # 8. SCALE ZOOT_FIXED (Variable Mode)
@@ -1629,29 +1921,19 @@ redistribute_feed <- function(
   }
 
   # Recalculate final scaling factors after all intake adjustments
-  scaling_factors_final <- result |>
-    dplyr::summarize(.by = demand_id, total_intake = sum(intake_MgDM, na.rm = TRUE)) |>
-    dplyr::left_join(demand |>
-                       dplyr::select(demand_id, demand_MgDM),
-                     by = "demand_id") |>
-    dplyr::mutate(
-      scaling_factor = dplyr::case_when(
-        demand_MgDM > 0 ~ total_intake / demand_MgDM,
-        total_intake > 0 ~ NA_real_,
-        TRUE ~ 0
-      )
-    ) |>
-    dplyr::select(demand_id, scaling_factor)
-
-  result <- result |>
-    dplyr::select(-scaling_factor) |>
-    dplyr::left_join(scaling_factors_final, by = "demand_id")
+  # (vectorized; same logic as the first pass).
+  result$scaling_factor <- compute_scaling(result)
   
   result <- result |>
     dplyr::select(Year, Territory, Province_name, Livestock_cat, item_cbs, Cat_1, Cat_feed,
                   demand_MgDM, intake_MgDM, scaling_factor, hierarchy_level,
                   original_demand_item, fixed_demand, original_Province) |>
-    dplyr::arrange(Year, Territory, Province_name, Livestock_cat, original_demand_item, hierarchy_level)
+    # Deterministic tiebreakers: when rows match on the semantic keys, fall
+    # through to item_cbs and original_Province so row order is stable across
+    # runs even if upstream operations produce different internal orderings.
+    dplyr::arrange(Year, Territory, Province_name, Livestock_cat,
+                   original_demand_item, hierarchy_level, item_cbs,
+                   original_Province)
 
   if (output_sub_territory_col != "Province_name") {
     result <- result |>
