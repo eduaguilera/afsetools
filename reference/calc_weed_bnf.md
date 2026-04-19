@@ -14,7 +14,14 @@ mechanism as crop BNF).
 ## Usage
 
 ``` r
-calc_weed_bnf(x, k_n_synth = 0.0035, k_n_org = 0.0018, t_opt = 25, t_sigma = 8)
+calc_weed_bnf(
+  x,
+  k_n_synth = 0.0035,
+  k_n_org = 0.0018,
+  t_opt = 22,
+  t_sigma = 12,
+  ai_threshold = 0.45
+)
 ```
 
 ## Arguments
@@ -39,7 +46,17 @@ calc_weed_bnf(x, k_n_synth = 0.0035, k_n_org = 0.0018, t_opt = 25, t_sigma = 8)
 
   :   Share of area with seeded cover crops (0-1).
 
-  Optional environmental columns: see
+  Optional columns:
+
+  Legs_SpontWeeds
+
+  :   Pre-computed legume fraction in spontaneous vegetation (0-1), e.g.
+      differentiated by LandUse. If absent, defaults to BNF table value
+      for Cropland and 0.15 for non-cropland (grassland, forest,
+      dehesa), where leguminous shrubs (Genista, Ulex, Cytisus) also
+      contribute.
+
+  Environmental columns: see
   [`calc_crop_bnf`](https://eduaguilera.github.io/afsetools/reference/calc_crop_bnf.md).
 
 - k_n_synth:
@@ -90,12 +107,28 @@ The legume fraction in field vegetation is a weighted average of
 spontaneous weeds and seeded cover crops, based on management data.
 
 Requires BNF object from \`load_general_data()\` (reads "Weeds" row for
-reference Ndfa and spontaneous legume share). Cover crop seeded share is
-only applied on cropland.
+reference Ndfa and default spontaneous legume share). Cover crop seeded
+share is only applied on cropland.
+
+If \`Legs_SpontWeeds\` is already present in the input data, the
+function respects those values instead of overwriting with the default.
+This supports LandUse-differentiated legume shares based on literature:
+
+- Cropland weeds: ~0.05 (Storkey et al. 2012; Fried et al. 2009 —
+  herbicide pressure suppresses legumes)
+
+- Grassland/dehesa/forest understory: ~0.15 (Luscher et al. 2014 — 4-15%
+  legumes in semi-natural grassland; includes proxy for N-fixing shrubs:
+  Genista, Ulex, Cytisus, Retama; Dovrat et al. 2019; Viera-Rodriguez et
+  al. 2005)
 
 ## References
 
-Peoples MB et al. (2009) Symbiosis 48:1-17.
+Dovrat G et al. (2019) New Phytol 221:1361-1370. Fried G et al. (2009) J
+Veg Sci 20:49-58. Luscher A et al. (2014) Grass Forage Sci 69:206-228.
+Peoples MB et al. (2009) Symbiosis 48:1-17. Storkey J et al. (2012) Proc
+R Soc B 279:1421-1429. Viera-Rodriguez MA et al. (2005) Can J For Res
+35:1200-1209.
 
 ## Examples
 

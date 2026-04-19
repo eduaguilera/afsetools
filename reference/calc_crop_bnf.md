@@ -18,7 +18,14 @@ f_W\$\$
 ## Usage
 
 ``` r
-calc_crop_bnf(x, k_n_synth = 0.0035, k_n_org = 0.0018, t_opt = 25, t_sigma = 8)
+calc_crop_bnf(
+  x,
+  k_n_synth = 0.0035,
+  k_n_org = 0.0018,
+  t_opt = 22,
+  t_sigma = 12,
+  ai_threshold = 0.45
+)
 ```
 
 ## Arguments
