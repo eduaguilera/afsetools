@@ -652,13 +652,32 @@ load_vectors <- function(env = parent.frame()) {
   Animal_colour <- get("Animal_colour", envir = env)
   Sea_colour <- get("Sea_colour", envir = env)
   
-  assign("LU_simple_levels", c("Animal", "Cropland", "Cropland SOC", "Non-Cropland", "Non-Cropland SOC", "LULUCF", "Industry", "Transport", "Sea"), envir = env)
-  assign("LU_type_levels", c("Animal", "Cropland", "Non-Cropland", "Sea"), envir = env)
-  assign("LU_type_colours", c(Animal_colour, Cropland_colour, Non_cropland_colour, Sea_colour), envir = env)
-  assign("Colours_AniCroGra", c("coral3", "darkkhaki", "darkolivegreen4"), envir = env)
-  assign("Colours_GL", c("coral3", "darkkhaki", "darkgoldenrod2", "darkolivegreen4", "darkgoldenrod", "chartreuse3", "azure3", "azure4", "cornflowerblue"), envir = env)
-  assign("Colours_NRE_GL", c("coral3", "darkolivegreen4", "darkkhaki", "azure3", "azure4", "cornflowerblue"), envir = env)
-  assign("Colours_Land_GL", c("darkkhaki", "darkolivegreen4", "azure3"), envir = env)
+  LU_simple_levels <- c("Animal", "Cropland", "Cropland SOC", "Non-Cropland", "Non-Cropland SOC", "LULUCF", "Industry", "Transport", "Sea")
+  LU_type_levels <- c("Animal", "Cropland", "Non-Cropland", "Sea")
+  assign("LU_simple_levels", LU_simple_levels, envir = env)
+  assign("LU_type_levels", LU_type_levels, envir = env)
+  assign("LU_type_colours", stats::setNames(
+    c(Animal_colour, Cropland_colour, Non_cropland_colour, Sea_colour),
+    LU_type_levels), envir = env)
+  assign("Colours_AniCroGra", c(Animal = "coral3", Cropland = "darkkhaki", `Non-Cropland` = "darkolivegreen4"), envir = env)
+  assign("Colours_GL", stats::setNames(
+    c("coral3", "darkkhaki", "darkgoldenrod2", "darkolivegreen4", "darkgoldenrod",
+      "chartreuse3", "azure3", "azure4", "cornflowerblue"),
+    LU_simple_levels), envir = env)
+  # NRE only exists for 6 of the LU_simple levels (Animal, Cropland, Non-Cropland,
+  # Industry, Transport, Sea); name the palette explicitly so colour mapping is
+  # stable under upstream filters and factor-level reordering.
+  assign("Colours_NRE_GL", c(
+    Animal         = "coral3",
+    Cropland       = "darkkhaki",
+    `Non-Cropland` = "darkolivegreen4",
+    Industry       = "azure3",
+    Transport      = "azure4",
+    Sea            = "cornflowerblue"), envir = env)
+  assign("Colours_Land_GL", c(
+    Cropland       = "darkkhaki",
+    `Non-Cropland` = "darkolivegreen4",
+    Industry       = "azure3"), envir = env)
   
   # SJOS Levels and colours ----
   assign("Nour_levels", c("Over", "Adequate", "Under"), envir = env)
