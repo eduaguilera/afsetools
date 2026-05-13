@@ -1981,8 +1981,7 @@ redistribute_feed <- function(
   }
   
   result <- reroute_excess_grass(result)
-  result <- apply_max_intake_caps(result)
-  
+
   # Attach demand_MgDM and fixed_demand via indexed lookup (demand_id is the
   # row index of `demand`).
   result$demand_MgDM   <- demand$demand_MgDM[result$demand_id]
@@ -2060,9 +2059,18 @@ redistribute_feed <- function(
         )
       ) |>
       dplyr::select(-zoot_scale_factor)
-      
+
     diag_snapshot("After Zoot_fixed scaling (variable mode)")
   }
+
+  # Apply cap AFTER Zoot scaling. The cap uses total_dm (sum of intake
+  # across all Cat_feed for the group). Running it before Zoot scaling let
+  # the subsequent Zoot rescaling shrink the total, which silently inflated
+  # the post-function Grass share above max_share (~1-2 pp drift in variable
+  # /mixed mode where Zoot scales down on a cap-reduced non-Zoot intake).
+  # Placing it here makes the cap operate on the same total the caller
+  # observes in the returned data frame, so the strict cap holds exactly.
+  result <- apply_max_intake_caps(result)
 
   # Recalculate final scaling factors after all intake adjustments
   # (vectorized; same logic as the first pass).
