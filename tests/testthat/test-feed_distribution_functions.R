@@ -723,7 +723,13 @@ test_that("max_intake_share chain: Grassland capped, falls back to non-capped it
               info = "Wheat intake must not exceed Wheat availability (supply decrement)")
 })
 
-test_that("max_intake_share chain: non-grass substitutes exhausted, fallback warns and uses Grassland", {
+test_that("max_intake_share chain: non-grass substitutes exhausted, strict cap drops leftover", {
+  # Strict cap (no force-back-to-Grassland). With Barley cap 0.3 and Grassland
+  # cap 0.1 for Cattle_milk, the share-of-final math reduces Barley to its
+  # cap, Grassland is unreachable (capped), and only the 5 Mg of Wheat is
+  # available as a substitute. The leftover excess is DROPPED (no warning,
+  # no Grassland row at final level); scaling_factor on the affected
+  # demand_id reflects the resulting supply shortfall.
   assign("max_intake_share",
          tibble::tibble(Livestock_cat = c("Cattle_milk", "Cattle_milk"),
                         item_cbs = c("Barley", "Grassland"),
@@ -743,18 +749,36 @@ test_that("max_intake_share chain: non-grass substitutes exhausted, fallback war
     2020, "T1", "P1", "Grassland", "Grassland", "Grass",        5000
   )
 
-  expect_warning(
-    result <- redistribute_feed(d, a, verbose = FALSE),
-    regexp = "Grassland is capped"
+  result <- expect_silent(
+    redistribute_feed(d, a, verbose = FALSE)
   )
 
+  cm <- result |> dplyr::filter(Livestock_cat == "Cattle_milk")
+
+  # No final-level Grassland row should be emitted for Cattle_milk — the
+  # strict cap drops leftover rather than violating Grassland's own cap.
   final_lvl <- utils::tail(sort(unique(result$hierarchy_level)), 1)
-  grass_final <- result |>
-    dplyr::filter(Livestock_cat == "Cattle_milk",
-                  item_cbs == "Grassland",
+  grass_final <- cm |>
+    dplyr::filter(item_cbs == "Grassland",
                   hierarchy_level == final_lvl)
-  expect_true(nrow(grass_final) >= 1 && sum(grass_final$intake_MgDM) > 0,
-              info = "Final-level Grassland intake row must exist for Cattle_milk when non-grass substitutes are exhausted")
+  expect_true(nrow(grass_final) == 0 || sum(grass_final$intake_MgDM) <= 1e-6,
+              info = "Strict cap must not push leftover excess into capped Grassland")
+
+  # Cattle_milk should still respect both caps after reduction + reallocation.
+  total_intake <- sum(cm$intake_MgDM, na.rm = TRUE)
+  barley_share <- sum(cm$intake_MgDM[cm$item_cbs == "Barley"]) /
+    pmax(total_intake, 1e-9)
+  grass_share  <- sum(cm$intake_MgDM[cm$item_cbs == "Grassland"]) /
+    pmax(total_intake, 1e-9)
+  expect_true(barley_share <= 0.3 + 1e-6,
+              info = "Strict Barley cap (0.3) must hold after reduction")
+  expect_true(grass_share <= 0.1 + 1e-6,
+              info = "Strict Grassland cap (0.1) must hold after reduction")
+
+  # Supply shortfall must show up in scaling_factor (< 1).
+  sf <- unique(cm$scaling_factor)
+  expect_true(any(sf < 1 - 1e-6),
+              info = "Dropped leftover must surface as scaling_factor < 1")
 })
 
 test_that("max_intake_share redirect preserves total LC diet (fixed mode)", {

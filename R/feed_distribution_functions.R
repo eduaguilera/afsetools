@@ -371,23 +371,45 @@ redistribute_feed <- function(
     )
   }
 
-  max_intake_limits <- tibble::as_tibble(max_intake_share) |>
+  # Normalise cap-table schema. Two supported shapes:
+  #   - Legacy: (Livestock_cat, item_cbs, max_intake_share). Every row is
+  #     treated as a per-item cap (`var = "item_cbs"`, value = item_cbs).
+  #   - New: (Livestock_cat, var, var_value, max_intake_share). `var` is
+  #     either "item_cbs" (per-item cap) or "Cat_feed" (joint cap across
+  #     every item in that Cat_feed for the livestock). `var_value` carries
+  #     the Acorns / Grass / ... value to match against result_tbl.
+  max_intake_limits <- tibble::as_tibble(max_intake_share)
+  if (!"var" %in% names(max_intake_limits)) {
+    max_intake_limits$var <- "item_cbs"
+  }
+  if (!"var_value" %in% names(max_intake_limits)) {
+    # Legacy schema or new schema without var_value: fall back to item_cbs.
+    if ("item_cbs" %in% names(max_intake_limits)) {
+      max_intake_limits$var_value <- max_intake_limits$item_cbs
+    } else {
+      max_intake_limits$var_value <- NA_character_
+    }
+  }
+  max_intake_limits <- max_intake_limits |>
     dplyr::filter(is.finite(max_intake_share)) |>
     dplyr::mutate(
-      Livestock_cat = as.character(Livestock_cat),
-      item_cbs = as.character(item_cbs),
-      max_intake_share = dplyr::if_else(max_intake_share < 0, 0, pmin(max_intake_share, 1))
+      Livestock_cat    = as.character(Livestock_cat),
+      var              = as.character(var),
+      var_value        = as.character(var_value),
+      max_intake_share = dplyr::if_else(max_intake_share < 0, 0,
+                                        pmin(max_intake_share, 1))
     )
   # Guard against summarize() emitting a warning when no rows are present
   # (empty .by groups → max(NA, na.rm=TRUE) → -Inf + warning).
   max_intake_limits <- if (nrow(max_intake_limits) == 0) {
     tibble::tibble(Livestock_cat = character(),
-                   item_cbs = character(),
+                   var = character(),
+                   var_value = character(),
                    max_intake_share = numeric())
   } else {
     max_intake_limits |>
       dplyr::summarize(
-        .by = c("Livestock_cat", "item_cbs"),
+        .by = c("Livestock_cat", "var", "var_value"),
         max_intake_share = max(max_intake_share, na.rm = TRUE)
       )
   }
@@ -1450,105 +1472,224 @@ redistribute_feed <- function(
   }
   
   apply_max_intake_caps <- function(result_tbl) {
-    if (!nrow(max_intake_limits)) {
-      return(result_tbl)
+    if (!nrow(max_intake_limits)) return(result_tbl)
+
+    # Partition cap rules by `var` (which result_tbl column the cap is
+    # keyed on). Two flavours supported:
+    #   - `item_cbs`: per-item cap on (Livestock_cat, item_cbs).
+    #   - `Cat_feed`: joint cap on the sum of intake across every item in
+    #     that Cat_feed for the livestock, EXCLUDING items that have their
+    #     own per-item cap (so an Acorns row at 40 % survives next to a
+    #     Cat_feed=Grass cap at 10 %).
+    item_caps    <- max_intake_limits[max_intake_limits$var == "item_cbs",   , drop = FALSE]
+    catfeed_caps <- max_intake_limits[max_intake_limits$var == "Cat_feed",   , drop = FALSE]
+
+    items_with_own_cap <- if (nrow(item_caps) > 0) {
+      tibble::tibble(
+        Livestock_cat = as.character(item_caps$Livestock_cat),
+        item_cbs      = as.character(item_caps$var_value)
+      ) |> dplyr::distinct() |> dplyr::mutate(has_own_cap = TRUE)
+    } else {
+      tibble::tibble(Livestock_cat = character(),
+                     item_cbs = character(),
+                     has_own_cap = logical())
     }
-    
-    limited_rows <- result_tbl |>
-      dplyr::semi_join(max_intake_limits, by = c("Livestock_cat", "item_cbs"))
-    if (nrow(limited_rows) == 0) {
-      return(result_tbl)
-    }
-    
+
     totals <- result_tbl |>
       dplyr::summarize(
         .by = c("Year", "Territory", "Province_name", "Livestock_cat"),
         total_dm = sum(intake_MgDM, na.rm = TRUE)
       )
-    
-    item_totals <- limited_rows |>
-      dplyr::summarize(
-        .by = c("Year", "Territory", "Province_name", "Livestock_cat", "item_cbs"),
-        item_dm = sum(intake_MgDM, na.rm = TRUE)
+
+    # Strict cap math: enforces item_new / (other + item_new) <= max_share
+    # AFTER reduction. Derivation:
+    #   item_new <= max_share * (other + item_new)
+    #   item_new <= other * max_share / (1 - max_share)
+    # Edge cases:
+    #   max_share = 1 -> 1 - max_share = 0 -> limit = +Inf (no binding cap).
+    #   max_share = 0 -> limit = 0 (full removal).
+    # Replaces the previous "share-of-original-total" formula
+    # `limit_dm = total_dm * max_intake_share` which left systematic
+    # residual violations: after reducing the item, the new total shrinks
+    # and the resulting share exceeds max_share whenever the item is a
+    # major fraction of the original diet.
+    strict_limit <- function(other_dm, max_share) {
+      dplyr::if_else(
+        max_share >= 1 - 1e-9, Inf,
+        other_dm * max_share / pmax(1 - max_share, 1e-9)
       )
-    
-    violations <- item_totals |>
-      dplyr::left_join(totals, by = c("Year", "Territory", "Province_name", "Livestock_cat")) |>
-      dplyr::left_join(max_intake_limits, by = c("Livestock_cat", "item_cbs")) |>
-      dplyr::mutate(
-        total_dm = dplyr::coalesce(total_dm, 0),
-        max_intake_share = dplyr::coalesce(max_intake_share, 0),
-        limit_dm = total_dm * max_intake_share,
-        limit_dm = dplyr::if_else(!is.finite(limit_dm), 0, limit_dm),
-        excess = item_dm - limit_dm
-      ) |>
-      dplyr::filter(excess > 1e-6)
-    
-    if (nrow(violations) == 0) {
-      return(result_tbl)
     }
-    
-    # Scale violating rows' intake proportionally so the per-item total equals
-    # the cap. Carry the removed DM forward to be redirected to a non-capped
-    # category for the same (Year, Territory, Province, Livestock_cat).
+
+    item_viol <- NULL
+    if (nrow(item_caps) > 0) {
+      res_filt <- result_tbl |>
+        dplyr::semi_join(
+          item_caps |> dplyr::transmute(Livestock_cat, item_cbs = var_value),
+          by = c("Livestock_cat", "item_cbs")
+        )
+      if (nrow(res_filt) > 0) {
+        item_totals <- res_filt |>
+          dplyr::summarize(
+            .by = c("Year", "Territory", "Province_name", "Livestock_cat", "item_cbs"),
+            item_dm = sum(intake_MgDM, na.rm = TRUE)
+          )
+        item_viol <- item_totals |>
+          dplyr::left_join(totals, by = c("Year", "Territory", "Province_name", "Livestock_cat")) |>
+          dplyr::left_join(
+            item_caps |> dplyr::transmute(Livestock_cat,
+                                          item_cbs = var_value,
+                                          max_intake_share),
+            by = c("Livestock_cat", "item_cbs")
+          ) |>
+          dplyr::mutate(
+            total_dm         = dplyr::coalesce(total_dm, 0),
+            max_intake_share = dplyr::coalesce(max_intake_share, 0),
+            other_dm         = total_dm - item_dm,
+            limit_dm         = strict_limit(other_dm, max_intake_share),
+            excess           = item_dm - limit_dm
+          ) |>
+          dplyr::filter(is.finite(excess), excess > 1e-6)
+      }
+    }
+
+    catfeed_viol <- NULL
+    if (nrow(catfeed_caps) > 0) {
+      eligible_tbl <- result_tbl |>
+        dplyr::left_join(items_with_own_cap,
+                         by = c("Livestock_cat", "item_cbs")) |>
+        dplyr::filter(is.na(has_own_cap)) |>
+        dplyr::select(-has_own_cap) |>
+        dplyr::semi_join(
+          catfeed_caps |> dplyr::transmute(Livestock_cat, Cat_feed = var_value),
+          by = c("Livestock_cat", "Cat_feed")
+        )
+      if (nrow(eligible_tbl) > 0) {
+        cf_totals <- eligible_tbl |>
+          dplyr::summarize(
+            .by = c("Year", "Territory", "Province_name", "Livestock_cat", "Cat_feed"),
+            item_dm = sum(intake_MgDM, na.rm = TRUE)
+          )
+        catfeed_viol <- cf_totals |>
+          dplyr::left_join(totals, by = c("Year", "Territory", "Province_name", "Livestock_cat")) |>
+          dplyr::left_join(
+            catfeed_caps |> dplyr::transmute(Livestock_cat,
+                                             Cat_feed = var_value,
+                                             max_intake_share),
+            by = c("Livestock_cat", "Cat_feed")
+          ) |>
+          dplyr::mutate(
+            total_dm         = dplyr::coalesce(total_dm, 0),
+            max_intake_share = dplyr::coalesce(max_intake_share, 0),
+            other_dm         = total_dm - item_dm,
+            limit_dm         = strict_limit(other_dm, max_intake_share),
+            excess           = item_dm - limit_dm
+          ) |>
+          dplyr::filter(is.finite(excess), excess > 1e-6)
+      }
+    }
+
+    has_item_viol <- !is.null(item_viol) && nrow(item_viol) > 0
+    has_cf_viol   <- !is.null(catfeed_viol) && nrow(catfeed_viol) > 0
+    if (!has_item_viol && !has_cf_viol) return(result_tbl)
+
+    # ---- Reduce violating rows ------------------------------------------
     result_tbl$row_id <- seq_len(nrow(result_tbl))
 
-    keys <- violations |>
-      dplyr::select(Year, Territory, Province_name, Livestock_cat,
-                    item_cbs, excess, item_dm)
-
-    matches <- result_tbl |>
-      dplyr::inner_join(keys,
-                        by = c("Year", "Territory", "Province_name",
-                               "Livestock_cat", "item_cbs")) |>
-      dplyr::mutate(
-        reduction_factor = pmax(0, (item_dm - excess) / item_dm),
-        new_intake = intake_MgDM * reduction_factor
-      )
-
-    if (nrow(matches) > 0) {
-      result_tbl$intake_MgDM[matches$row_id] <- matches$new_intake
+    if (has_item_viol) {
+      keys <- item_viol |>
+        dplyr::select(Year, Territory, Province_name, Livestock_cat,
+                      item_cbs, excess, item_dm)
+      matches <- result_tbl |>
+        dplyr::inner_join(keys,
+                          by = c("Year", "Territory", "Province_name",
+                                 "Livestock_cat", "item_cbs")) |>
+        dplyr::mutate(
+          reduction_factor = pmax(0, (item_dm - excess) / item_dm),
+          new_intake       = intake_MgDM * reduction_factor
+        )
+      if (nrow(matches) > 0) {
+        result_tbl$intake_MgDM[matches$row_id] <- matches$new_intake
+      }
     }
+
+    if (has_cf_viol) {
+      keys <- catfeed_viol |>
+        dplyr::select(Year, Territory, Province_name, Livestock_cat,
+                      Cat_feed, excess, item_dm)
+      matches <- result_tbl |>
+        dplyr::left_join(items_with_own_cap,
+                         by = c("Livestock_cat", "item_cbs")) |>
+        dplyr::filter(is.na(has_own_cap)) |>
+        dplyr::inner_join(keys,
+                          by = c("Year", "Territory", "Province_name",
+                                 "Livestock_cat", "Cat_feed")) |>
+        dplyr::mutate(
+          reduction_factor = pmax(0, (item_dm - excess) / item_dm),
+          new_intake       = intake_MgDM * reduction_factor
+        )
+      if (nrow(matches) > 0) {
+        result_tbl$intake_MgDM[matches$row_id] <- matches$new_intake
+      }
+    }
+
     result_tbl$row_id <- NULL
 
-    # Redirect the excess DM via a chained, availability-aware substitution.
-    #
-    # Priority of substitutes for each Livestock_cat's excess DM:
-    #   1. Grassland (unlimited in this model; see `allocate_grassland`) —
-    #      tried first UNLESS Grassland is itself capped for the
-    #      Livestock_cat. Doesn't compete with any other supply.
-    #   2. Other non-Zoot items from `items_full` in the SAME priority order
-    #      the main pipeline uses: highest Cat_feed priority first
-    #      (Lactation / High_quality → Low_quality → Residues → Grass),
-    #      skipping items capped for this Livestock_cat. Each substitute is
-    #      bounded by `avail$avail_remaining` and decrements it (preserves
-    #      supply conservation). Provincial supply at the group's province
-    #      is preferred; national supply is used if provincial is
-    #      insufficient.
-    #   3. Last-resort chaining: if all priority-2 substitutes are
-    #      exhausted (either all capped or avail-depleted) and excess
-    #      remains, the remainder is pushed to Grassland, bypassing
-    #      Grassland's cap (per user instruction: "chaining to grass if
-    #      not enough other substitutes").
-    excess_per_lc <- violations |>
+    # ---- Aggregate freed DM per (Y, T, P, LC) for reallocation ----------
+    excess_per_lc <- dplyr::bind_rows(
+      if (has_item_viol) {
+        item_viol |> dplyr::transmute(Year, Territory, Province_name,
+                                      Livestock_cat,
+                                      capped_excess = pmin(excess, item_dm))
+      } else NULL,
+      if (has_cf_viol) {
+        catfeed_viol |> dplyr::transmute(Year, Territory, Province_name,
+                                         Livestock_cat,
+                                         capped_excess = pmin(excess, item_dm))
+      } else NULL
+    ) |>
       dplyr::summarize(
         .by = c(Year, Territory, Province_name, Livestock_cat),
-        total_excess = sum(pmin(excess, item_dm), na.rm = TRUE)
+        total_excess = sum(capped_excess, na.rm = TRUE)
       ) |>
       dplyr::filter(total_excess > 1e-9)
 
+    # ---- Reallocation: substitute freed DM via remaining availability ----
+    # Strategy:
+    #   Phase 1. Grassland absorbs excess where Grassland is not capped
+    #            for the livestock (and not part of a Cat_feed cap group).
+    #   Phase 2. Chain through non-Grassland items in catfeed_priority
+    #            order, decrementing avail$avail_remaining. Skips any item
+    #            that is capped (per-item or via its Cat_feed) for the
+    #            livestock.
+    #   Phase 3 (STRICT). Leftover that no substitute could absorb is
+    #            DROPPED — scaling_factor on the affected demand_id falls
+    #            below 1, signalling supply-constrained intake. This
+    #            replaces the previous "force back to Grassland with
+    #            warning" behaviour, which silently violated the
+    #            biological cap.
     if (nrow(excess_per_lc) > 0) {
-      capped_by_lc <- split(
-        max_intake_limits$item_cbs,
-        max_intake_limits$Livestock_cat
-      )
+      # Build item_cbs -> Cat_feed mapping for the is_capped lookup.
+      item_cbs_to_cat_feed <- tibble::tibble(
+        item_cbs = as.character(items_full$item_cbs),
+        Cat_1    = as.character(items_full$Cat_1)
+      ) |>
+        dplyr::mutate(Cat_feed = unname(Cats$Cat_feed[match(Cat_1, Cats$Cat_1)])) |>
+        dplyr::distinct(item_cbs, Cat_feed)
+
+      item_capped_keys <- if (nrow(item_caps) > 0) {
+        paste0(item_caps$Livestock_cat, "\001", item_caps$var_value)
+      } else character(0)
+      catfeed_capped_keys <- if (nrow(catfeed_caps) > 0) {
+        paste0(catfeed_caps$Livestock_cat, "\001", catfeed_caps$var_value)
+      } else character(0)
+
       is_capped <- function(lc, item) {
-        c <- capped_by_lc[[lc]]
-        !is.null(c) && item %in% c
+        if (paste0(lc, "\001", item) %in% item_capped_keys) return(TRUE)
+        cf <- item_cbs_to_cat_feed$Cat_feed[match(item, item_cbs_to_cat_feed$item_cbs)]
+        if (length(cf) == 0L || is.na(cf)) return(FALSE)
+        paste0(lc, "\001", cf) %in% catfeed_capped_keys
       }
 
-      # Non-zoot items ordered by ascending feed_rank (Lactation/HQ=1 first,
-      # Grass=4 last). Grassland is handled out-of-band below.
       non_zoot_subs <- tibble::tibble(item_cbs = items_full$item_cbs,
                                       Cat_1    = items_full$Cat_1) |>
         dplyr::mutate(
@@ -1561,9 +1702,6 @@ redistribute_feed <- function(
         dplyr::arrange(feed_rank) |>
         dplyr::select(item_cbs, Cat_1, Cat_feed)
 
-      # Schema donor: one row per (Y, T, P, LC) group from result_tbl, so
-      # new rows inherit the group's identifiers without us having to
-      # restate every column.
       donors <- result_tbl |>
         dplyr::group_by(Year, Territory, Province_name, Livestock_cat) |>
         dplyr::slice_head(n = 1L) |>
@@ -1572,7 +1710,6 @@ redistribute_feed <- function(
                                        "intake_MgDM", "hierarchy_level",
                                        "original_Province", "avail_id")))
 
-      # Working frame: remaining_excess per (Y, T, P, LC).
       state <- excess_per_lc |>
         dplyr::mutate(remaining_excess = total_excess,
                       grassland_capped = vapply(
@@ -1593,18 +1730,18 @@ redistribute_feed <- function(
             by = c("Year", "Territory", "Province_name", "Livestock_cat")
           ) |>
           dplyr::mutate(
-            item_cbs         = "Grassland",
-            Cat_1            = "Grassland",
-            Cat_feed         = "Grass",
-            intake_MgDM      = remaining_excess,
-            hierarchy_level  = final_level,
+            item_cbs          = "Grassland",
+            Cat_1             = "Grassland",
+            Cat_feed          = "Grass",
+            intake_MgDM       = remaining_excess,
+            hierarchy_level   = final_level,
             original_Province = Province_name,
-            avail_id         = NA_integer_
+            avail_id          = NA_integer_
           ) |>
           dplyr::select(-remaining_excess)
       }
 
-      # ---- Phase 1: Grassland absorbs excess where not capped -------------
+      # Phase 1: Grassland absorbs excess where not capped.
       phase1 <- state[!state$grassland_capped &
                         state$remaining_excess > 1e-9, , drop = FALSE]
       if (nrow(phase1) > 0) {
@@ -1613,28 +1750,22 @@ redistribute_feed <- function(
         state$remaining_excess[!state$grassland_capped] <- 0
       }
 
-      # ---- Phase 2: chain through non-Grassland substitutes, avail-aware -
+      # Phase 2: chain through non-Grassland substitutes.
       for (si in seq_len(nrow(non_zoot_subs))) {
         if (all(state$remaining_excess <= 1e-9)) break
 
         sub <- non_zoot_subs[si, , drop = FALSE]
         active_mask <- state$remaining_excess > 1e-9 &
-          state$grassland_capped &
           !vapply(state$Livestock_cat,
                   function(lc) is_capped(lc, sub$item_cbs),
                   logical(1))
         if (!any(active_mask)) next
 
         active <- state[active_mask, , drop = FALSE]
-
         sub_avail <- avail[avail$item_cbs == sub$item_cbs &
-                             avail$avail_remaining > 1e-9, ,
-                           drop = FALSE]
+                             avail$avail_remaining > 1e-9, , drop = FALSE]
         if (nrow(sub_avail) == 0) next
 
-        # Match active groups to avail: provincial avail at the same
-        # Province_name, OR national avail (Province_name is NA and
-        # Feed_scale == "National"). Prefer provincial within each group.
         matched <- active |>
           dplyr::select(Year, Territory, Province_name, Livestock_cat,
                         remaining_excess) |>
@@ -1664,7 +1795,6 @@ redistribute_feed <- function(
 
         if (nrow(matched) == 0) next
 
-        # Decrement avail_remaining for consumed avail_ids.
         decrement <- rowsum(matched$alloc,
                             group = matched$avail_id, reorder = FALSE)
         aid <- as.integer(rownames(decrement))
@@ -1672,18 +1802,16 @@ redistribute_feed <- function(
           0, avail$avail_remaining[aid] - decrement[, 1]
         )
 
-        # Emit rows: one per (group × matched avail row) so each
-        # avail_id is traceable.
         new_rows <- matched |>
           dplyr::inner_join(donors,
                             by = c("Year", "Territory", "Province_name",
                                    "Livestock_cat")) |>
           dplyr::mutate(
-            item_cbs         = sub$item_cbs,
-            Cat_1            = sub$Cat_1,
-            Cat_feed         = sub$Cat_feed,
-            intake_MgDM      = alloc,
-            hierarchy_level  = final_level,
+            item_cbs          = sub$item_cbs,
+            Cat_1             = sub$Cat_1,
+            Cat_feed          = sub$Cat_feed,
+            intake_MgDM       = alloc,
+            hierarchy_level   = final_level,
             original_Province = dplyr::if_else(
               Feed_scale == "National",
               NA_character_, avail_Province
@@ -1694,7 +1822,6 @@ redistribute_feed <- function(
                         -prov_first, -avail_remaining)
         additions_list[[length(additions_list) + 1L]] <- new_rows
 
-        # Update state$remaining_excess by total allocated per group.
         per_group <- matched |>
           dplyr::summarize(
             .by = c(Year, Territory, Province_name, Livestock_cat),
@@ -1713,32 +1840,49 @@ redistribute_feed <- function(
         )
       }
 
-      # ---- Phase 3: last-resort Grassland fallback for any remaining -----
-      leftover <- state[state$remaining_excess > 1e-9, , drop = FALSE]
-      if (nrow(leftover) > 0) {
-        additions_list[[length(additions_list) + 1L]] <-
-          emit_grassland_rows(leftover)
-        # Warn only if Grassland was itself capped (otherwise phase 1
-        # handled it and there is no drop to report).
-        warned_lc <- unique(leftover$Livestock_cat[leftover$grassland_capped])
-        if (length(warned_lc) > 0) {
-          warning(
-            "apply_max_intake_caps(): Grassland is capped for ",
-            "Livestock_cat(s) ",
-            paste(warned_lc, collapse = ", "),
-            " but non-grassland substitutes were insufficient; ",
-            "the remainder was forced to Grassland regardless of cap.",
-            call. = FALSE
-          )
-        }
-      }
-
       additions <- dplyr::bind_rows(additions_list)
       if (nrow(additions) > 0) {
         additions <- additions[, intersect(names(result_tbl),
                                            names(additions)),
                                drop = FALSE]
         result_tbl <- dplyr::bind_rows(result_tbl, additions)
+      }
+    }
+
+    # ---- Diagnostic trace ----------------------------------------------
+    if (verbose) {
+      all_viol <- dplyr::bind_rows(
+        if (has_item_viol) {
+          item_viol |> dplyr::transmute(Year, Territory, Province_name,
+                                        Livestock_cat,
+                                        cap_var = "item_cbs",
+                                        cap_value = item_cbs,
+                                        item_dm, limit_dm, excess,
+                                        excess_pct = excess / pmax(item_dm, 1e-9) * 100)
+        } else NULL,
+        if (has_cf_viol) {
+          catfeed_viol |> dplyr::transmute(Year, Territory, Province_name,
+                                           Livestock_cat,
+                                           cap_var = "Cat_feed",
+                                           cap_value = Cat_feed,
+                                           item_dm, limit_dm, excess,
+                                           excess_pct = excess / pmax(item_dm, 1e-9) * 100)
+        } else NULL
+      )
+      cat(sprintf("[apply_max_intake_caps] %d cap violations reduced (item_cbs %d, Cat_feed %d).\n",
+                  nrow(all_viol),
+                  if (has_item_viol) nrow(item_viol) else 0L,
+                  if (has_cf_viol)   nrow(catfeed_viol) else 0L))
+      if (nrow(all_viol) > 0) {
+        top_viol <- all_viol |> dplyr::arrange(dplyr::desc(excess)) |> utils::head(5)
+        for (i in seq_len(nrow(top_viol))) {
+          v <- top_viol[i, ]
+          cat(sprintf("  top%02d: %s | %s | %s [%s=%s] | item_dm=%.1f Mg, limit=%.1f Mg, excess=%.1f Mg (%.1f%%)\n",
+                      i, as.character(v$Year), as.character(v$Province_name),
+                      as.character(v$Livestock_cat),
+                      as.character(v$cap_var), as.character(v$cap_value),
+                      v$item_dm, v$limit_dm, v$excess, v$excess_pct))
+        }
       }
     }
 
