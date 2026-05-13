@@ -8,6 +8,7 @@ call this function.
 ## Quick Reference
 
 ``` r
+
 library(afsetools)
 load_general_data()  # Loads all 82 objects below
 ```
@@ -224,6 +225,7 @@ datasets including:
 ## Usage Examples
 
 ``` r
+
 # Load all data
 load_general_data()
 

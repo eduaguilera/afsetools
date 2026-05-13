@@ -56,6 +56,7 @@ Unlike typical R packages, afsetools loads 73+ objects directly into the
 user’s environment:
 
 ``` r
+
 library(afsetools)
 load_general_data()  # Creates Biomass_coefs, GWP, BNF, etc. in environment
 npp <- Calc_NPP_potentials(climate_data)  # Functions use environment objects
@@ -86,6 +87,7 @@ sentences with period - Use proper markdown formatting
 **Example**:
 
 ``` r
+
 #' Calculate Net Primary Productivity
 #'
 #' Calculates potential NPP using Miami, NCEAS, and Rosenzweig models from
@@ -137,6 +139,7 @@ informative
 ### Grouping Pattern (Important!)
 
 ``` r
+
 # CORRECT: Use .by for simple operations
 df |> mutate(.by = Year, total = sum(value))
 
@@ -206,6 +209,7 @@ df |>
 **Pipe-friendly functions** (return modified data frame):
 
 ``` r
+
 Calculate_crop_NPP <- function(Dataset, HI, ...) {
   Dataset |>
     dplyr::left_join(Biomass_coefs, by = "Name_biomass") |>  # Uses environment object
@@ -217,6 +221,7 @@ Calculate_crop_NPP <- function(Dataset, HI, ...) {
 **Environment object usage** (implicit dependencies):
 
 ``` r
+
 Calc_N_fix <- function(x) {
   x |>
     dplyr::left_join(Names_BNF |>  # Names_BNF from environment
@@ -232,6 +237,7 @@ Calc_N_fix <- function(x) {
 **Critical setup pattern**:
 
 ``` r
+
 # tests/testthat/setup-afsetools.R
 library(afsetools)
 load_general_data()  # Makes all 73+ objects available to tests
@@ -246,6 +252,7 @@ creates expected objects - Verify coefficient values are realistic
 **Useful test patterns**:
 
 ``` r
+
 # Test environment loading
 test_that("load_general_data creates all required data objects", {
   test_env <- new.env()
@@ -321,6 +328,7 @@ with documented source - ✅ Calculate with referenced methodology
 **Example from code**:
 
 ``` r
+
 # Weed coefficients derived from grass biomass coefficients
 assign("Root_Shoot_ratio_W", 
        as.numeric(Biomass_coefs |> 

@@ -9,18 +9,19 @@ food-system sustainability.
 
 ## Overview
 
-| Component              | Description                                                                                                         |
-|------------------------|---------------------------------------------------------------------------------------------------------------------|
-| **73+ data objects**   | Biomass coefficients, FAO commodity codes, regional classifications, conversion factors, GWP values, BNF parameters |
-| **35+ functions**      | NPP calculation, impact allocation, supply-chain tracing, biological N fixation, GHG accounting, diet analysis      |
-| **Workflow functions** | End-to-end footprint calculation pipelines (primary production to final consumption)                                |
-| **Visualization**      | Consistent ggplot2 themes and color palettes for scientific figures                                                 |
+| Component | Description |
+|----|----|
+| **73+ data objects** | Biomass coefficients, FAO commodity codes, regional classifications, conversion factors, GWP values, BNF parameters |
+| **35+ functions** | NPP calculation, impact allocation, supply-chain tracing, biological N fixation, GHG accounting, diet analysis |
+| **Workflow functions** | End-to-end footprint calculation pipelines (primary production to final consumption) |
+| **Visualization** | Consistent ggplot2 themes and color palettes for scientific figures |
 
 ## Installation
 
 ### From GitHub (recommended)
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("eduaguilera/afsetools")
 ```
@@ -70,6 +71,7 @@ This means you must always call
 before using most functions:
 
 ``` r
+
 library(afsetools)
 load_general_data()          # Populates your environment with 73+ objects
 load_general_data(load_vectors = TRUE)  # Also loads color palettes and month vectors
@@ -78,6 +80,7 @@ load_general_data(load_vectors = TRUE)  # Also loads color palettes and month ve
 ## Quick Start
 
 ``` r
+
 library(afsetools)
 
 # Load all coefficients and classification data
@@ -113,6 +116,7 @@ final_fp   <- footprints$FP_final
 **In R**:
 
 ``` r
+
 ?load_general_data
 ?calculate_footprints
 ?calculate_potential_npp
@@ -128,19 +132,19 @@ for the full catalogue of the 73+ objects created by
 
 ### Data Loading
 
-| Function                                                                                        | Description                                                              |
-|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Function | Description |
+|----|----|
 | [`load_general_data()`](https://eduaguilera.github.io/afsetools/reference/load_general_data.md) | Load all 73+ coefficient tables and classifications into the environment |
-| [`load_vectors()`](https://eduaguilera.github.io/afsetools/reference/load_vectors.md)           | Load color palettes and month-name vectors                               |
+| [`load_vectors()`](https://eduaguilera.github.io/afsetools/reference/load_vectors.md) | Load color palettes and month-name vectors |
 
 ### NPP Calculation
 
-| Function                                                                                                                | Aliases                                                                                                           | Description                                          |
-|-------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| [`calculate_potential_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_potential_npp.md)             | [`Calc_NPP_potentials()`](https://eduaguilera.github.io/afsetools/reference/calculate_potential_npp.md)           | Potential NPP (Miami, NCEAS, Rosenzweig models)      |
-| [`calculate_crop_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md)                       | [`Calculate_crop_NPP()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md)                 | Crop NPP components (product, residue, root biomass) |
-| [`calculate_npp_dm_c_n()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md)                   | [`Calc_NPP_DM_C_N()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md)                  | Convert NPP to dry matter, carbon, and nitrogen      |
-| [`calculate_crop_npp_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md) | [`Calc_CropNPP_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md) | Complete cropland NPP including weed biomass         |
+| Function | Aliases | Description |
+|----|----|----|
+| [`calculate_potential_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_potential_npp.md) | [`Calc_NPP_potentials()`](https://eduaguilera.github.io/afsetools/reference/calculate_potential_npp.md) | Potential NPP (Miami, NCEAS, Rosenzweig models) |
+| [`calculate_crop_npp()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md) | [`Calculate_crop_NPP()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp.md) | Crop NPP components (product, residue, root biomass) |
+| [`calculate_npp_dm_c_n()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md) | [`Calc_NPP_DM_C_N()`](https://eduaguilera.github.io/afsetools/reference/calculate_npp_dm_c_n.md) | Convert NPP to dry matter, carbon, and nitrogen |
+| [`calculate_crop_npp_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md) | [`Calc_CropNPP_components()`](https://eduaguilera.github.io/afsetools/reference/calculate_crop_npp_components.md) | Complete cropland NPP including weed biomass |
 
 > **Note on naming**: NPP functions were recently renamed to
 > `snake_case`. The old PascalCase names are kept as exported aliases
@@ -148,66 +152,66 @@ for the full catalogue of the 73+ objects created by
 
 ### Impact Tracing
 
-| Function                                                                                                              | Description                                        |
-|-----------------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
-| [`Prepare_prim()`](https://eduaguilera.github.io/afsetools/reference/Prepare_prim.md)                                 | Prepare primary production data for impact tracing |
-| [`Allocate_impacts_to_products()`](https://eduaguilera.github.io/afsetools/reference/Allocate_impacts_to_products.md) | Economic allocation of impacts to co-products      |
-| [`calc_avail_fp_gt()`](https://eduaguilera.github.io/afsetools/reference/calc_avail_fp_gt.md)                         | Availability footprint using gross trade           |
-| [`calc_avail_fp_dtm()`](https://eduaguilera.github.io/afsetools/reference/calc_avail_fp_dtm.md)                       | Availability footprint using detailed trade matrix |
-| [`Calc_impact_processed()`](https://eduaguilera.github.io/afsetools/reference/Calc_impact_processed.md)               | Trace impacts through processing chains            |
-| [`Agg_primary()`](https://eduaguilera.github.io/afsetools/reference/Agg_primary.md)                                   | Aggregate primary products to CBS items            |
-| [`Agg_processed()`](https://eduaguilera.github.io/afsetools/reference/Agg_processed.md)                               | Aggregate processed products by origin             |
-| [`get_global_export_footprint()`](https://eduaguilera.github.io/afsetools/reference/get_global_export_footprint.md)   | Global export-weighted footprint                   |
+| Function | Description |
+|----|----|
+| [`Prepare_prim()`](https://eduaguilera.github.io/afsetools/reference/Prepare_prim.md) | Prepare primary production data for impact tracing |
+| [`Allocate_impacts_to_products()`](https://eduaguilera.github.io/afsetools/reference/Allocate_impacts_to_products.md) | Economic allocation of impacts to co-products |
+| [`calc_avail_fp_gt()`](https://eduaguilera.github.io/afsetools/reference/calc_avail_fp_gt.md) | Availability footprint using gross trade |
+| [`calc_avail_fp_dtm()`](https://eduaguilera.github.io/afsetools/reference/calc_avail_fp_dtm.md) | Availability footprint using detailed trade matrix |
+| [`Calc_impact_processed()`](https://eduaguilera.github.io/afsetools/reference/Calc_impact_processed.md) | Trace impacts through processing chains |
+| [`Agg_primary()`](https://eduaguilera.github.io/afsetools/reference/Agg_primary.md) | Aggregate primary products to CBS items |
+| [`Agg_processed()`](https://eduaguilera.github.io/afsetools/reference/Agg_processed.md) | Aggregate processed products by origin |
+| [`get_global_export_footprint()`](https://eduaguilera.github.io/afsetools/reference/get_global_export_footprint.md) | Global export-weighted footprint |
 
 ### End-to-End Workflows
 
-| Function                                                                                              | Description                                                                            |
-|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| Function | Description |
+|----|----|
 | [`calculate_footprints()`](https://eduaguilera.github.io/afsetools/reference/calculate_footprints.md) | Full pipeline: primary production → processing → trade → final availability footprints |
-| [`extract_luh2()`](https://eduaguilera.github.io/afsetools/reference/extract_luh2.md)                 | Extract carbon stock and area data from LUH2 rasters                                   |
+| [`extract_luh2()`](https://eduaguilera.github.io/afsetools/reference/extract_luh2.md) | Extract carbon stock and area data from LUH2 rasters |
 
 ### Analysis
 
-| Function                                                                                                  | Description                                                  |
-|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| [`Calc_N_fix()`](https://eduaguilera.github.io/afsetools/reference/Calc_N_fix.md)                         | Biological nitrogen fixation (crop, weed, non-symbiotic)     |
-| [`Gases_GWP()`](https://eduaguilera.github.io/afsetools/reference/Gases_GWP.md)                           | Classify GHG emissions and calculate GWP-100 CO₂ equivalents |
-| [`Calc_diets()`](https://eduaguilera.github.io/afsetools/reference/Calc_diets.md)                         | Nutrient composition of diets                                |
-| [`calculate_land_scaling()`](https://eduaguilera.github.io/afsetools/reference/calculate_land_scaling.md) | Land scaling factors for cropping intensity                  |
-| [`scale_land()`](https://eduaguilera.github.io/afsetools/reference/scale_land.md)                         | Apply land scaling adjustments                               |
-| [`filter_areas()`](https://eduaguilera.github.io/afsetools/reference/filter_areas.md)                     | Filter and reshape FAO area/production data                  |
-| [`get_herbwoody_fao()`](https://eduaguilera.github.io/afsetools/reference/get_herbwoody_fao.md)           | Extract herbaceous/woody cover shares from FAO data          |
+| Function | Description |
+|----|----|
+| [`Calc_N_fix()`](https://eduaguilera.github.io/afsetools/reference/Calc_N_fix.md) | Biological nitrogen fixation (crop, weed, non-symbiotic) |
+| [`Gases_GWP()`](https://eduaguilera.github.io/afsetools/reference/Gases_GWP.md) | Classify GHG emissions and calculate GWP-100 CO₂ equivalents |
+| [`Calc_diets()`](https://eduaguilera.github.io/afsetools/reference/Calc_diets.md) | Nutrient composition of diets |
+| [`calculate_land_scaling()`](https://eduaguilera.github.io/afsetools/reference/calculate_land_scaling.md) | Land scaling factors for cropping intensity |
+| [`scale_land()`](https://eduaguilera.github.io/afsetools/reference/scale_land.md) | Apply land scaling adjustments |
+| [`filter_areas()`](https://eduaguilera.github.io/afsetools/reference/filter_areas.md) | Filter and reshape FAO area/production data |
+| [`get_herbwoody_fao()`](https://eduaguilera.github.io/afsetools/reference/get_herbwoody_fao.md) | Extract herbaceous/woody cover shares from FAO data |
 
 ### Biomass Processing
 
-| Function                                                                                        | Description                              |
-|-------------------------------------------------------------------------------------------------|------------------------------------------|
-| [`integrate_fallow()`](https://eduaguilera.github.io/afsetools/reference/integrate_fallow.md)   | Integrate fallow land into cropland data |
+| Function | Description |
+|----|----|
+| [`integrate_fallow()`](https://eduaguilera.github.io/afsetools/reference/integrate_fallow.md) | Integrate fallow land into cropland data |
 | [`residues_as_items()`](https://eduaguilera.github.io/afsetools/reference/residues_as_items.md) | Convert crop residues to item-level data |
-| [`residue_use()`](https://eduaguilera.github.io/afsetools/reference/residue_use.md)             | Calculate residue management shares      |
+| [`residue_use()`](https://eduaguilera.github.io/afsetools/reference/residue_use.md) | Calculate residue management shares |
 
 ### Feed Distribution
 
-| Function                                                                                        | Description                                                    |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| Function | Description |
+|----|----|
 | [`redistribute_feed()`](https://eduaguilera.github.io/afsetools/reference/redistribute_feed.md) | Redistribute livestock feed demand across products and regions |
 
 ### Utilities
 
-| Function                                                                                  | Description                         |
-|-------------------------------------------------------------------------------------------|-------------------------------------|
-| `%!in%`                                                                                   | Not-in operator (inverse of `%in%`) |
-| [`drop_cols()`](https://eduaguilera.github.io/afsetools/reference/drop_cols.md)           | Drop columns by name                |
-| [`is_empty()`](https://eduaguilera.github.io/afsetools/reference/is_empty.md)             | Test if object is empty             |
-| [`Arrange_dates()`](https://eduaguilera.github.io/afsetools/reference/Arrange_dates.md)   | Sort data frames by date columns    |
-| [`add_xlsx_sheet()`](https://eduaguilera.github.io/afsetools/reference/add_xlsx_sheet.md) | Add sheets to Excel workbooks       |
+| Function | Description |
+|----|----|
+| `%!in%` | Not-in operator (inverse of `%in%`) |
+| [`drop_cols()`](https://eduaguilera.github.io/afsetools/reference/drop_cols.md) | Drop columns by name |
+| [`is_empty()`](https://eduaguilera.github.io/afsetools/reference/is_empty.md) | Test if object is empty |
+| [`Arrange_dates()`](https://eduaguilera.github.io/afsetools/reference/Arrange_dates.md) | Sort data frames by date columns |
+| [`add_xlsx_sheet()`](https://eduaguilera.github.io/afsetools/reference/add_xlsx_sheet.md) | Add sheets to Excel workbooks |
 
 ### Visualization
 
-| Function                                                                                      | Description                                           |
-|-----------------------------------------------------------------------------------------------|-------------------------------------------------------|
-| [`theme_new()`](https://eduaguilera.github.io/afsetools/reference/theme_new.md)               | Clean ggplot2 theme for scientific publications       |
-| [`theme_nolabel()`](https://eduaguilera.github.io/afsetools/reference/theme_nolabel.md)       | Theme variant without facet strip labels              |
+| Function | Description |
+|----|----|
+| [`theme_new()`](https://eduaguilera.github.io/afsetools/reference/theme_new.md) | Clean ggplot2 theme for scientific publications |
+| [`theme_nolabel()`](https://eduaguilera.github.io/afsetools/reference/theme_nolabel.md) | Theme variant without facet strip labels |
 | [`ggplotRegression()`](https://eduaguilera.github.io/afsetools/reference/ggplotRegression.md) | Plot linear regression with R², p-value, and equation |
 
 ## Package Data
@@ -244,16 +248,17 @@ Grass row in `Biomass_coefs`.
 
 The raw input data shipped in `inst/extdata/`:
 
-| File                 | Contents                                                                                     |
-|----------------------|----------------------------------------------------------------------------------------------|
-| `Codes_coefs.xlsx`   | 48 sheets: FAO commodity codes, regional mappings, processing coefficients, price references |
-| `Biomass_coefs.xlsx` | Crop-specific DM, N, C, energy, root:shoot ratios, harvest indices                           |
-| `BNF.xlsx`           | Biological nitrogen fixation parameters (Ndfa, leguminous shares)                            |
-| `GWP.xlsx`           | IPCC GWP values (AR5/AR6) for multiple time horizons                                         |
+| File | Contents |
+|----|----|
+| `Codes_coefs.xlsx` | 48 sheets: FAO commodity codes, regional mappings, processing coefficients, price references |
+| `Biomass_coefs.xlsx` | Crop-specific DM, N, C, energy, root:shoot ratios, harvest indices |
+| `BNF.xlsx` | Biological nitrogen fixation parameters (Ndfa, leguminous shares) |
+| `GWP.xlsx` | IPCC GWP values (AR5/AR6) for multiple time horizons |
 
 ## Example Workflow
 
 ``` r
+
 library(afsetools)
 library(dplyr)
 
@@ -283,10 +288,10 @@ results$FP_final |>
 
 `afsetools` provides the shared analytical core for these projects:
 
-| Repository                                                  | Description                                                                                                      |
-|-------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| [**Global**](https://github.com/eduaguilera/Global)         | Global agro-food system environmental footprints — cropland NPP, supply-chain impacts, trade-adjusted footprints |
-| [**Spain_Hist**](https://github.com/eduaguilera/Spain_Hist) | Historical environmental footprints of the Spanish agro-food system                                              |
+| Repository | Description |
+|----|----|
+| [**Global**](https://github.com/eduaguilera/Global) | Global agro-food system environmental footprints — cropland NPP, supply-chain impacts, trade-adjusted footprints |
+| [**Spain_Hist**](https://github.com/eduaguilera/Spain_Hist) | Historical environmental footprints of the Spanish agro-food system |
 
 Both repositories call
 [`library(afsetools)`](https://eduaguilera.github.io/afsetools) followed
