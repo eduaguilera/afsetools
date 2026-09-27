@@ -1,4 +1,7 @@
-# GitHub Copilot Instructions for afsetools Package
+# AGENTS.md — afsetools Package
+
+Claude Code, Codex and GitHub Copilot all read `AGENTS.md`, so this repository
+keeps one instruction file for every agent instead of a per-tool copy.
 
 ## Package Purpose
 
